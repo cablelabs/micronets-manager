@@ -3,17 +3,16 @@
     <v-layout row wrap>
       <v-flex lg12>
         <v-card class="subnet-card">
-          <v-card-media
-            src="https://vuetifyjs.com/static/doc-images/cards/sunshine.jpg"
-            height="00px"
-          >
+          <v-card-media height="00px">
           </v-card-media>
           <v-card-title primary-title>
             <div>
               <div class="headline">Personal</div>
-              <span class="grey--text">3 Devices</span>
+              <span  v-if="!show" class="grey--text">3 Devices</span>
+              <span  v-if="show" class="black--text--darken-4">Devices</span>
             </div>
             <v-spacer></v-spacer>
+            <v-btn raised class="addDevice">ADD DEVICE</v-btn>
             <v-card-actions>
               <v-btn icon @click.native="show = !show">
                 <v-icon>{{ show ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</v-icon>
@@ -22,8 +21,7 @@
           </v-card-title>
           <v-slide-y-transition>
             <v-card-text v-show="show">
-              I'm a thing. But, like most politicians, he promised more than he could deliver. You won't have time for sleeping, soldier, not with all the bed making you'll be doing. Then we'll go with that data file! Hey, you add a one and two zeros to that or we walk! You're going to do his laundry? I've got to find a way to escape.
-              soldier, not with all the bed making you'll be doing. Then we'll go with that data file! Hey, you add a one and two zeros to that or we walk! You're going to do his laundry? I've got to find a way to escape.
+             <DeviceCard/>
             </v-card-text>
           </v-slide-y-transition>
         </v-card>
@@ -33,7 +31,10 @@
 </template>
 
 <script>
+  import VBtn from 'vuetify/es5/components/VBtn/VBtn'
+  import DeviceCard from '../components/DeviceCard'
   export default {
+    components: {VBtn, DeviceCard},
     name: 'SubnetCard',
     data () {
       return {
@@ -61,5 +62,11 @@
   }
   .subnet-card {
     width: 88em;
+  }
+  .addDevice {
+    color: #C41B20;
+    background-color: #EEEEEE;
+    font-size: 14px;
+    font-family: Roboto;
   }
 </style>
