@@ -11,6 +11,9 @@ var express = require('express')
 var webpack = require('webpack')
 var proxyMiddleware = require('http-proxy-middleware')
 var webpackConfig = require('./webpack.dev.conf')
+const mongoose = require('mongoose');
+const mongodb = require('mongodb');
+
 
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
@@ -64,6 +67,9 @@ var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsS
 app.use(staticPath, express.static('./static'))
 
 var uri = 'http://localhost:' + port
+
+// app.use(mongodb);
+// app.use(mongoose);
 
 var _resolve
 var readyPromise = new Promise(resolve => {

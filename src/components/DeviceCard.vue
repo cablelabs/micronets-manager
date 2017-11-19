@@ -1,6 +1,6 @@
 <template>
-  <v-content>
-    <v-container fluid>
+  <v-content fluid>
+    <v-container row grow wrap>
       <v-list class="device-list">
         <template v-for="(item, index) in items">
           <div class="device-row">
@@ -103,7 +103,7 @@
 
   .device-row {
     display: inline;
-    min-width: 1000px;
+    min-width: 100%;
     max-height: 200px;
   }
 
@@ -119,7 +119,7 @@
     margin: 50px;
   }
   .device-list {
-    min-width: 95%;
+    min-width: 100%;
   }
 
 </style>

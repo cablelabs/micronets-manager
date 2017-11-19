@@ -1,0 +1,9 @@
+{
+  "host": "localhost",
+  "port": 8080,
+  "paginate": {
+    "default": 10,
+    "max": 50
+  },
+  "mongodb": "mongodb://localhost:27017/micronets"
+}

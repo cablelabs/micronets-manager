@@ -1,6 +1,6 @@
 <template>
-  <v-content>
-    <v-container fluid>
+  <v-content fluid>
+    <v-container row grow wrap>
       <v-app id="inspire">
         <v-navigation-drawer
           fixed
