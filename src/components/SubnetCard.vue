@@ -1,8 +1,5 @@
 <template>
   <v-app id="subnet-card">
-    <v-content fluid>
-      <v-container row grow wrap>
-        <v-flex>
           <v-card class="subnet-card">
             <v-card-title primary-title>
               <div>
@@ -24,9 +21,6 @@
               </v-card-text>
             </v-slide-y-transition>
           </v-card>
-        </v-flex>
-      </v-container>
-    </v-content>
   </v-app>
 </template>
 
@@ -67,6 +61,8 @@
 
   .subnet-card {
     min-width: 100%;
+    margin-top: 20px;
+    background-color: white;
   }
 
   .addDevice {

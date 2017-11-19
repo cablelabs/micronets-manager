@@ -1,14 +1,14 @@
 <template>
   <v-content fluid>
     <v-container row grow wrap>
-      <v-app id="inspire">
+      <v-app id="app">
         <v-navigation-drawer
           fixed
           v-model="drawer"
           right
           app
         >
-          <v-flex lg12 lg12 offset-sm0 wrap>
+          <v-flex offset-sm0 wrap>
             <v-card>
               <v-toolbar color="white" dark>
                 <v-toolbar-title class="black--text">Console</v-toolbar-title>
@@ -17,14 +17,12 @@
                   <v-icon class="custom-icon">close</v-icon>
                 </v-btn>
               </v-toolbar>
-              <v-list two-line>
-                <template v-for="message in items">
-                  <v-divider v-if="message.divider" v-bind:inset="false"></v-divider>
-                  <v-list-tile avatar v-else v-bind:key="message.title" @click="">
-                    <v-list-tile-content>
-                      <v-list-tile-sub-title v-html="message.status" class="messages"></v-list-tile-sub-title>
-                    </v-list-tile-content>
-                  </v-list-tile>
+              <v-list>
+                <template v-for="message in messages">
+                  <v-divider />
+                    <div class="message-list">
+                      <span class="messages">{{message.status}}</span>
+                    </div>
                 </template>
               </v-list>
             </v-card>
@@ -38,15 +36,15 @@
           <v-spacer></v-spacer>
           <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         </v-toolbar>
-        <div class="grid">
+        <div>
           <SubnetCard></SubnetCard>
         </div>
-        <v-footer app>
-          <span class="grey--text">&copy; 2017 CableLabs.</span>
-          <v-spacer></v-spacer>
-        </v-footer>
       </v-app>
     </v-container>
+    <v-footer app>
+      <span class="black--text">&copy; 2017 CableLabs.</span>
+      <v-spacer></v-spacer>
+    </v-footer>
   </v-content>
 </template>
 
@@ -60,12 +58,10 @@
     name: 'home',
     data: () => ({
       drawer: false,
-      items: [
-        {status: '<span class=\'messages\'>05/08/2017 14:45:36 Device Authenticated 192.168.1.4</span>'},
-        {divider: true, inset: true},
-        {status: '<span class=\'messages\'>05/08/2017 13:45:36 Device Authenticated 192.168.1.5</span>'},
-        {divider: true, inset: true},
-        {status: '<span class=\'messages\'>05/08/2017 14:45:33 Device Authenticated 192.168.1.6</span>'}
+      messages: [
+        {status: '05/08/2017 14:45:36 Device Authenticated 192.168.1.4'},
+        {status: '05/08/2017 13:45:36 Device Authenticated 192.168.1.5'},
+        {status: '05/08/2017 14:45:33 Device Authenticated 192.168.1.6'}
       ]
     }),
     props: {
@@ -80,40 +76,39 @@
   h1, h2 {
     font-weight: normal;
   }
-
   ul {
     list-style-type: none;
     padding: 0;
   }
-
   li {
     display: inline-block;
     margin: 0 10px;
   }
-
   a {
     color: #42b983;
   }
-
   .custom-icon {
     background-color: white !important;
     color: #9e9e9e !important;
   }
-
   .toolbar-title {
     font-size: 20px;
     font-family: "Roboto";
   }
-
   .messages {
     background-color: white !important;
     color: #757575 !important;
-    font-family: "Roboto Mono";
+    font-family: "Roboto";
     font-size: 10px;
-    font-weight: bold;
+    margin-top: 0px;
+    margin-bottom: 10px;
+    margin-left: 10px;
   }
-  .company-logo {
-    background-color: black;
-    margin-top: 10px;
+  .message-list {
+    margin-left: 0px;
+    text-align: left;
+    width: 360px;
+    min-height:30px;
+
   }
 </style>
