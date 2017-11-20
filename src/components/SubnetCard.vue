@@ -65,7 +65,7 @@
   .subnet-card {
     min-width: 100%;
     margin-top: 20px;
-    background-color: white;
+    /*background-color: #EEEEEE;*/
   }
   .addDevice {
     color: #C41B20;
@@ -84,8 +84,8 @@
   }
   .numberCircle {
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     padding: 8px;
     background: #fff;
     border: 2px solid black;

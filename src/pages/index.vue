@@ -1,7 +1,7 @@
 <template>
-  <v-content fluid>
-    <v-container row grow wrap>
-      <v-app id="app">
+  <v-content fluid class="app">
+    <v-container row grow wrap >
+      <v-app id="app" >
         <v-navigation-drawer
           fixed
           v-model="drawer"
@@ -42,9 +42,9 @@
         <template v-if="items && items.subnets.length > 0" v-for="(item,index) in items.subnets">
           <SubnetCard :subnets="item" :key="index"></SubnetCard>
         </template>
-        <template v-else-if="items.subnets.length == 0">
+        <template v-if="items.subnets.length == 0">
           <v-card>
-            <v-card-text class="no-subnets">No sub-nets are present / created. </v-card-text>
+            <v-card-text class="no-subnets">No sub-nets are present. </v-card-text>
           </v-card>
         </template>
       </v-app>
@@ -67,6 +67,9 @@
     name: 'home',
     data: () => ({
       drawer: false,
+      eItemsTest: {
+        subnets: []
+      },
       items: {
         'timestampUtc': '20171116T202706.000',
         'statusCode': 0,
@@ -156,24 +159,6 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  h1, h2 {
-    font-weight: normal;
-  }
-
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  li {
-    display: inline-block;
-    margin: 0 10px;
-  }
-
-  a {
-    color: #42b983;
-  }
-
   .custom-icon {
     background-color: white !important;
     color: #9e9e9e !important;
@@ -201,12 +186,15 @@
 
   }
   .no-subnets {
-    background-color: pink;
-    color: white;
+    background-color: #ffffff;
+    color: #000000;
     min-height: 300px;
     text-align: center;
     font-size: 20px;
     margin-top: 2%;
     padding-top: 150px;
+  }
+  .app {
+    background-color:#fafafa;
   }
 </style>
