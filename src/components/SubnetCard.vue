@@ -31,7 +31,6 @@
     components: { VCardTitle, VBtn, DeviceCard },
     name: 'SubnetCard',
     data () {
-      console.log('\n SubnetCard property subnets : ' + JSON.stringify(this.subnets))
       return {
         show: false
       }

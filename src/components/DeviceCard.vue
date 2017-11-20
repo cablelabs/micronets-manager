@@ -2,7 +2,7 @@
     <v-container row wrap>
       <v-list class="device-list">
         <template v-for="(item, index) in devices">
-          <div class="device-row">
+          <div class="device-row" :key="index">
             <span class="device-title">
               <h3>{{ item.deviceName }}</h3>
               <p>{{ item.deviceDescription }}</p>
@@ -14,7 +14,7 @@
               <v-icon>more_vert</v-icon>
             </v-btn>
           </div>
-          <v-divider v-if="index + 1 < items.length" :key="item.title" inset="false" class="list-divider"></v-divider>
+          <v-divider v-if="index + 1 < devices.length" :key="index" inset="false" class="list-divider"></v-divider>
         </template>
       </v-list>
     </v-container>
@@ -30,7 +30,6 @@
       VListTileAction},
     name: 'DeviceCard',
     data () {
-      console.log('\n DeviceCard component devices prop : ' + JSON.stringify(this.devices))
       return {
       }
     },
