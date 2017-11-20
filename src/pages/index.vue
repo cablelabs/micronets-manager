@@ -18,8 +18,8 @@
                 </v-btn>
               </v-toolbar>
               <v-list>
-                <template v-for="message in messages">
-                  <v-divider />
+                <template v-for="(message,index) in messages">
+                  <v-divider/>
                     <div class="message-list">
                       <span class="messages">{{message.status}}</span>
                     </div>
@@ -36,9 +36,7 @@
           <v-spacer></v-spacer>
           <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         </v-toolbar>
-        <div>
           <SubnetCard></SubnetCard>
-        </div>
       </v-app>
     </v-container>
     <v-footer app>
@@ -59,9 +57,9 @@
     data: () => ({
       drawer: false,
       messages: [
-        {status: '05/08/2017 14:45:36 Device Authenticated 192.168.1.4'},
-        {status: '05/08/2017 13:45:36 Device Authenticated 192.168.1.5'},
-        {status: '05/08/2017 14:45:33 Device Authenticated 192.168.1.6'}
+        { status: '05/08/2017 14:45:36 Device Authenticated 192.168.1.4' },
+        { status: '05/08/2017 13:45:36 Device Authenticated 192.168.1.5' },
+        { status: '05/08/2017 14:45:33 Device Authenticated 192.168.1.6' }
       ]
     }),
     props: {
@@ -109,6 +107,8 @@
     text-align: left;
     width: 360px;
     min-height:30px;
-
+  }
+  .console-divider{
+    margin-left: 0px;
   }
 </style>
