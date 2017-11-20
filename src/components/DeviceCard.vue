@@ -1,6 +1,5 @@
 <template>
-  <v-content fluid>
-    <v-container row grow wrap>
+    <v-container row wrap>
       <v-list class="device-list">
         <template v-for="(item, index) in items">
           <div class="device-row">
@@ -15,11 +14,10 @@
               <v-icon>more_vert</v-icon>
             </v-btn>
           </div>
-          <v-divider v-if="index + 1 < items.length" :key="item.title"></v-divider>
+          <v-divider v-if="index + 1 < items.length" :key="item.title" inset="false" class="list-divider"></v-divider>
         </template>
       </v-list>
     </v-container>
-  </v-content>
 </template>
 
 <script>
@@ -115,11 +113,15 @@
     border: 3px solid #73AD21;
   }
   .device-item {
-    width: 35%;
-    margin: 50px;
+    width: 25%;
+    margin: 20px;
   }
   .device-list {
     min-width: 100%;
+    padding-right: 0px;
+  }
+  .list-divider {
+    margin-left: 5px;
   }
 
 </style>

@@ -1,5 +1,4 @@
 <template>
-  <v-app id="subnet-card">
           <v-card class="subnet-card">
             <v-card-title primary-title>
               <div>
@@ -16,12 +15,11 @@
             </v-card-title>
             <v-slide-y-transition>
               <v-card-text v-show="show">
-                <h3 class="card-title">Devices</h3>
+                <span class="card-text-title">Devices</span>
                 <DeviceCard/>
               </v-card-text>
             </v-slide-y-transition>
           </v-card>
-  </v-app>
 </template>
 
 <script>
@@ -72,9 +70,10 @@
     font-family: Roboto;
   }
 
-  .card-title {
+  .card-text-title {
     color: black;
     font-family: 'Roboto';
+    font-size: 14px;
     font-weight: bold;
     margin-left: 2%;
     margin-top: 5%;
