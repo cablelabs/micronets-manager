@@ -15,7 +15,10 @@
             </v-card-title>
             <v-slide-y-transition>
               <v-card-text v-show="show">
+                <span>
+                <span class="numberCircle">{{subnets.deviceList.length}}</span>
                 <span class="card-text-title">Devices</span>
+                </span>
                 <DeviceCard :devices="subnets.deviceList"/>
               </v-card-text>
             </v-slide-y-transition>
@@ -73,11 +76,25 @@
   .card-text-title {
     color: black;
     font-family: 'Roboto';
-    font-size: 14px;
+    font-size: 18px;
     font-weight: bold;
-    margin-left: 2%;
+    margin-left: 1%;
     margin-top: 5%;
     margin-bottom: -5%;
+  }
+  .numberCircle {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    padding: 8px;
+    background: #fff;
+    border: 2px solid black;
+    color: black;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: Roboto, sans-serif;
+    margin-left: 1%;
   }
 
 </style>

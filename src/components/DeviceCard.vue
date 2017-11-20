@@ -71,8 +71,9 @@
     display: inline-block;
     width: 25%;
     height: 75px;
-    margin: 10px;
-    border: 3px solid #73AD21;
+    margin: 55px 10px 10px 10px;
+    text-align: left;
+    /*border: 3px solid #73AD21;*/
   }
   .device-item {
     width: 30%;

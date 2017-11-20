@@ -208,6 +208,5 @@
     font-size: 20px;
     margin-top: 2%;
     padding-top: 150px;
-
   }
 </style>
