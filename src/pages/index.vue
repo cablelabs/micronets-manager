@@ -44,7 +44,7 @@
         </template>
         <template v-if="items.subnets.length == 0">
           <v-card>
-            <v-card-text class="no-subnets">No sub-nets are present. </v-card-text>
+            <v-card-text class="no-subnets">No Micro-nets found </v-card-text>
           </v-card>
         </template>
       </v-app>
@@ -67,7 +67,7 @@
     name: 'home',
     data: () => ({
       drawer: false,
-      eItemsTest: {
+      eItems: {
         subnets: []
       },
       items: {
@@ -191,8 +191,9 @@
     min-height: 300px;
     text-align: center;
     font-size: 20px;
+    font-weight: bold;
     margin-top: 2%;
-    padding-top: 150px;
+    padding-top: 120px;
   }
   .app {
     background-color:#fafafa;
