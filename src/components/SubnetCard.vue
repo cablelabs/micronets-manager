@@ -1,9 +1,9 @@
 <template>
-          <v-card class="subnet-card">
+          <v-card v-if="subnets" class="subnet-card">
             <v-card-title primary-title>
               <div>
-                <div class="headline">Personal</div>
-                <span v-if="!show" class="grey--text">3 Devices</span>
+                <div class="headline">{{ subnets.subnetName }}</div>
+                <span v-if="!show" class="grey--text" slot="text">{{`${subnets.deviceList.length} Devices`}}</span>
               </div>
               <v-spacer></v-spacer>
               <v-btn raised class="addDevice">ADD DEVICE</v-btn>
@@ -16,7 +16,7 @@
             <v-slide-y-transition>
               <v-card-text v-show="show">
                 <span class="card-text-title">Devices</span>
-                <DeviceCard/>
+                <DeviceCard :devices="subnets.deviceList"/>
               </v-card-text>
             </v-slide-y-transition>
           </v-card>
@@ -25,14 +25,19 @@
 <script>
   import VBtn from 'vuetify/es5/components/VBtn/VBtn'
   import DeviceCard from '../components/DeviceCard'
+  import VCardTitle from 'vuetify/src/components/VCard/VCardTitle'
 
   export default {
-    components: {VBtn, DeviceCard},
+    components: { VCardTitle, VBtn, DeviceCard },
     name: 'SubnetCard',
     data () {
+      console.log('\n SubnetCard property subnets : ' + JSON.stringify(this.subnets))
       return {
         show: false
       }
+    },
+    props: {
+      subnets: Object
     }
   }
 </script>
@@ -52,24 +57,20 @@
     display: inline-block;
     margin: 0 10px;
   }
-
   a {
     color: #42b983;
   }
-
   .subnet-card {
     min-width: 100%;
     margin-top: 20px;
     background-color: white;
   }
-
   .addDevice {
     color: #C41B20;
     background-color: #EEEEEE;
     font-size: 14px;
     font-family: Roboto;
   }
-
   .card-text-title {
     color: black;
     font-family: 'Roboto';
@@ -79,4 +80,5 @@
     margin-top: 5%;
     margin-bottom: -5%;
   }
+
 </style>

@@ -1,14 +1,14 @@
 <template>
     <v-container row wrap>
       <v-list class="device-list">
-        <template v-for="(item, index) in items">
+        <template v-for="(item, index) in devices">
           <div class="device-row">
             <span class="device-title">
               <h3>{{ item.deviceName }}</h3>
               <p>{{ item.deviceDescription }}</p>
             </span>
-            <span class="device-item">{{ item.macAddress }}</span>
-            <span class="device-item">{{ item.ipAddress }}</span>
+            <span class="device-item">{{ item.mac.eui48}}</span>
+            <span class="device-item">{{ item.ipv4.host }}</span>
               <v-btn raised class="configure-btn">Configure</v-btn>
             <v-btn flat icon class="more-icon">
               <v-icon>more_vert</v-icon>
@@ -30,53 +30,16 @@
       VListTileAction},
     name: 'DeviceCard',
     data () {
+      console.log('\n DeviceCard component devices prop : ' + JSON.stringify(this.devices))
       return {
-        selected: [2],
-        items: [
-          {
-            deviceName: 'Camera',
-            deviceDescription: 'Ovis Mini Cam?',
-            macAddress: '192.168.1.12',
-            ipAddress: '23.45.56.43.34.98.88'
-          },
-          {
-            deviceName: 'Tablet',
-            deviceDescription: 'Nexus tablet',
-            macAddress: '192.168.1.12',
-            ipAddress: '23.45.56.43.34.98.88'
-          },
-          {
-            deviceName: 'Computer',
-            deviceDescription: 'MacBook Pro 2015',
-            macAddress: '192.168.1.12',
-            ipAddress: '23.45.56.43.34.98.88'
-          },
-          {
-            deviceName: 'Mini cam',
-            deviceDescription: 'Mini Cam',
-            macAddress: '192.168.1.12',
-            ipAddress: '23.45.56.43.34.98.88'
-          },
-          {
-            deviceName: 'iPhone',
-            deviceDescription: 'iPhone X 2017',
-            macAddress: '192.168.1.12',
-            ipAddress: '23.45.56.43.34.98.88'
-          }
-        ]
       }
     },
 
-    methods: {
-      toggle (index) {
-        const i = this.selected.indexOf(index)
+    props: {
+      devices: Array
+    },
 
-        if (i > -1) {
-          this.selected.splice(i, 1)
-        } else {
-          this.selected.push(index)
-        }
-      }
+    methods: {
     }
   }
 </script>

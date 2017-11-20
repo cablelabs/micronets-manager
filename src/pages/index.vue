@@ -5,6 +5,7 @@
         <v-navigation-drawer
           fixed
           v-model="drawer"
+          disable-resize-watcher="true"
           right
           app
         >
@@ -20,9 +21,9 @@
               <v-list>
                 <template v-for="(message,index) in messages">
                   <v-divider/>
-                    <div class="message-list">
-                      <span class="messages">{{message.status}}</span>
-                    </div>
+                  <div class="message-list">
+                    <span class="messages">{{message.status}}</span>
+                  </div>
                 </template>
               </v-list>
             </v-card>
@@ -30,15 +31,22 @@
         </v-navigation-drawer>
         <v-toolbar color="#3A3A3A" dark fixed app>
           <header class="text-xs-center">
-            <img class="logo" src="../assets/cablelabs-logo.png" />
+            <img class="logo" src="../assets/cablelabs-logo.png"/>
           </header>
           <v-toolbar-title class="toolbar-title">Micronets Manager</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-btn flat icon @click.stop="drawer = !drawer">
-            <img class="logo" src="../assets/console-icon.png"/>
+            <img class="logo" src="../assets/console-logo.png"/>
           </v-btn>
         </v-toolbar>
-          <SubnetCard></SubnetCard>
+        <template v-if="items && items.subnets.length > 0" v-for="(item,index) in items.subnets">
+          <SubnetCard :subnets="item" :key="index"></SubnetCard>
+        </template>
+        <template v-else-if="items.subnets.length == 0">
+          <v-card>
+            <v-card-text class="no-subnets">No sub-nets are present / created. </v-card-text>
+          </v-card>
+        </template>
       </v-app>
     </v-container>
     <v-footer app>
@@ -58,6 +66,81 @@
     name: 'home',
     data: () => ({
       drawer: false,
+      items: {
+        'timestampUtc': '20171116T202706.000',
+        'statusCode': 0,
+        'statusText': 'Success!',
+        'logEvents': [
+          '20171116T202706.010: Created subnet Medical-001 (192.168.1.0)',
+          '20171116T202706.020: Added device Gram\'s Insulin Pump to subnet isolated-medical-001 (192.168.1.2)'
+        ],
+        'subnets': [{
+          'subnetId': 'a4b1c01c-7247-4e30-75b0-a8705783f9b9',
+          'subnetName': 'Medical',
+          'ipv4': {
+            'network': '192.168.1.0',
+            'netmask': '255.255.255.0',
+            'gateway': '192.168.1.1'
+          },
+          'deviceList': [{
+            'timestampUtc': '20171116T202706.005Z',
+            'deviceId': 'ab242b4fd36f8a05f872d68bec2cca09aa89bb2a555a82ddaab9c4748556f746',
+            'deviceName': 'Gram\'s Insulin Pump',
+            'deviceDescription': 'Pump-o-Matic 5000',
+            'mac': {
+              'eui48': '7A86B493840E'
+            },
+            'ipv4': {
+              'host': '192.168.1.2'
+            }
+          },
+          {
+            'timestampUtc': '20171116T202706.005Z',
+            'deviceId': 'ab242b4fd36f8a05f872d68bec2cca09aa89bb2a555a82ddaab9c4748556f746',
+            'deviceName': 'Gram\'s BP Monitor',
+            'deviceDescription': 'BP Monitor',
+            'mac': {
+              'eui48': '7A89G493840E'
+            },
+            'ipv4': {
+              'host': '192.168.1.3'
+            }
+          }]
+        },
+        {
+          'subnetId': 'd9b1c91c-7247-4e30-85b0-a8705783f9b8',
+          'subnetName': 'Personal',
+          'ipv4': {
+            'network': '192.169.1.0',
+            'netmask': '255.255.255.0',
+            'gateway': '192.169.1.1'
+          },
+          'deviceList': [{
+            'timestampUtc': '20171116T202706.005Z',
+            'deviceId': 'ab242b4fd36f8a05f872d68bec2cca09aa89bb2a555a82ddaab9c4748556f746',
+            'deviceName': 'Macbook Pro',
+            'deviceDescription': 'Personal computer',
+            'mac': {
+              'eui48': '7A86B493840E'
+            },
+            'ipv4': {
+              'host': '192.169.1.2'
+            }
+          },
+          {
+            'timestampUtc': '20171116T202706.005Z',
+            'deviceId': 'ab242b4fd36f8a05f872d68bec2cca09aa89bb2a555a82ddaab9c4748556f746',
+            'deviceName': 'iPhone X',
+            'deviceDescription': 'iPhone X',
+            'mac': {
+              'eui48': '7A86B493840E'
+            },
+            'ipv4': {
+              'host': '192.169.1.3'
+            }
+          }]
+        }]
+      },
       messages: [
         { status: '05/08/2017 14:45:36 Device Authenticated 192.168.1.4' },
         { status: '05/08/2017 13:45:36 Device Authenticated 192.168.1.5' },
@@ -76,25 +159,31 @@
   h1, h2 {
     font-weight: normal;
   }
+
   ul {
     list-style-type: none;
     padding: 0;
   }
+
   li {
     display: inline-block;
     margin: 0 10px;
   }
+
   a {
     color: #42b983;
   }
+
   .custom-icon {
     background-color: white !important;
     color: #9e9e9e !important;
   }
+
   .toolbar-title {
     font-size: 20px;
     font-family: "Roboto";
   }
+
   .messages {
     background-color: white !important;
     color: #757575 !important;
@@ -108,9 +197,16 @@
     margin-left: 0px;
     text-align: left;
     width: 360px;
-    min-height:30px;
+    min-height: 30px;
   }
-  .console-divider{
-    margin-left: 0px;
+  .no-subnets {
+    background-color: pink;
+    color: white;
+    min-height: 300px;
+    text-align: center;
+    font-size: 20px;
+    margin-top: 2%;
+    padding-top: 150px;
+
   }
 </style>
