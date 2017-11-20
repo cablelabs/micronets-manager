@@ -20,7 +20,7 @@
               </v-toolbar>
               <v-list>
                 <template v-for="(message,index) in items.logEvents">
-                  <v-divider/>
+                  <v-divider />
                   <div class="message-list">
                     <span class="messages" ><strong>{{ formatLogMessage(message) }}</strong></span>
                   </div>
@@ -57,13 +57,11 @@
 </template>
 
 <script>
-  import VIcon from 'vuetify/es5/components/VIcon/VIcon'
   import SubnetCard from '../components/SubnetCard.vue'
-  import VBtn from 'vuetify/es5/components/VBtn/VBtn'
   import Moment from 'moment'
 
   export default {
-    components: { VBtn, VIcon, SubnetCard },
+    components: { SubnetCard },
     name: 'home',
     data: () => ({
       drawer: false,
@@ -158,10 +156,11 @@
 
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="stylus" scoped>
+  @import '../style/main'
   .custom-icon {
-    background-color: white !important;
-    color: #9e9e9e !important;
+    background-color: $theme.white !important;
+    color: $theme.icon !important;
   }
 
   .toolbar-title {
@@ -170,8 +169,8 @@
   }
 
   .messages {
-    background-color: white !important;
-    color: #757575 !important;
+    background-color: $theme.white !important;
+    color: $theme.messages !important;
     font-family: "Roboto";
     font-size: 10px;
     margin-top: 0px;
@@ -186,8 +185,8 @@
 
   }
   .no-subnets {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: $theme.white;
+    color: $theme.black
     min-height: 300px;
     text-align: center;
     font-size: 20px;
@@ -196,6 +195,6 @@
     padding-top: 120px;
   }
   .app {
-    background-color:#fafafa;
+    background-color:$theme.background ;
   }
 </style>

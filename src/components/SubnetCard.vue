@@ -26,46 +26,27 @@
 </template>
 
 <script>
-  import VBtn from 'vuetify/es5/components/VBtn/VBtn'
-  import DeviceCard from '../components/DeviceCard'
-  import VCardTitle from 'vuetify/src/components/VCard/VCardTitle'
+    import DeviceCard from '../components/DeviceCard'
 
-  export default {
-    components: { VCardTitle, VBtn, DeviceCard },
-    name: 'SubnetCard',
-    data () {
-      return {
-        show: false
+    export default {
+      components: { DeviceCard },
+      name: 'SubnetCard',
+      data () {
+        return {
+          show: false
+        }
+      },
+      props: {
+        subnets: Object
       }
-    },
-    props: {
-      subnets: Object
     }
-  }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-  h1, h2 {
-    font-weight: normal;
-  }
-
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  li {
-    display: inline-block;
-    margin: 0 10px;
-  }
-  a {
-    color: #42b983;
-  }
+<style lang="stylus" scoped>
   .subnet-card {
     min-width: 100%;
     margin-top: 20px;
-    /*background-color: #EEEEEE;*/
   }
   .addDevice {
     color: #C41B20;
@@ -87,7 +68,7 @@
     width: 15px;
     height: 15px;
     padding: 8px;
-    background: #fff;
+    background: white;
     border: 2px solid black;
     color: black;
     text-align: center;
@@ -96,5 +77,4 @@
     font-family: Roboto, sans-serif;
     margin-left: 1%;
   }
-
 </style>

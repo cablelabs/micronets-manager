@@ -21,57 +21,56 @@
 </template>
 
 <script>
-  import VListTileAction from 'vuetify/es5/components/VList/VListTileAction'
-  import VContent from 'vuetify/es5/components/VGrid/VContent'
-
   export default {
-    components: {
-      VContent,
-      VListTileAction},
+    components: {},
     name: 'DeviceCard',
     data () {
       return {
       }
     },
-
     props: {
       devices: Array
     },
-
-    methods: {
-    }
+    methods: {}
   }
 </script>
 
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="stylus" scoped>
+  @import '../style/main'
   .configure-btn {
-    color: grey;
-    background-color: white;
+    color: $theme.grey;
+    background-color: $theme.white;
     font-size: 12px;
     font-family: Roboto;
     width: 5%;
     margin-left: 5%;
     margin-right: 5%;
+    margin-top: 1%;
   }
   .more-icon {
-    color: grey;
-    background-color: white;
+    color: $theme.grey;
+    background-color: $theme.white;
     margin-left: 5%;
+    margin-top: 1%;
   }
 
   .device-row {
     display: inline;
     min-width: 100%;
     max-height: 200px;
+    display: flex;
+    text-align: center;
+    margin-top: 20px;
   }
 
   .device-title {
     display: inline-block;
     width: 25%;
     height: 75px;
-    margin: 55px 10px 10px 10px;
+    padding-top: 1%;
+    /*margin: 55px 10px 10px 10px;*/
     text-align: left;
     /*border: 3px solid #73AD21;*/
   }
@@ -84,7 +83,7 @@
     padding-right: 0px;
   }
   .list-divider {
-    margin-left: 5px;
+    margin-left: 2px;
   }
 
 </style>
