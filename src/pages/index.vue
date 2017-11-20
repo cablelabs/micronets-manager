@@ -34,7 +34,9 @@
           </header>
           <v-toolbar-title class="toolbar-title">Micronets Manager</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+          <v-btn flat icon @click.stop="drawer = !drawer">
+            <img class="logo" src="../assets/console-icon.png"/>
+          </v-btn>
         </v-toolbar>
           <SubnetCard></SubnetCard>
       </v-app>
