@@ -75,8 +75,8 @@
     border: 3px solid #73AD21;
   }
   .device-item {
-    width: 25%;
-    margin: 20px;
+    width: 30%;
+    margin: 25px;
   }
   .device-list {
     min-width: 100%;

@@ -19,10 +19,10 @@
                 </v-btn>
               </v-toolbar>
               <v-list>
-                <template v-for="(message,index) in messages">
+                <template v-for="(message,index) in items.logEvents">
                   <v-divider/>
                   <div class="message-list">
-                    <span class="messages">{{message.status}}</span>
+                    <span class="messages" ><strong>{{ formatLogMessage(message) }}</strong></span>
                   </div>
                 </template>
               </v-list>
@@ -60,6 +60,7 @@
   import VIcon from 'vuetify/es5/components/VIcon/VIcon'
   import SubnetCard from '../components/SubnetCard.vue'
   import VBtn from 'vuetify/es5/components/VBtn/VBtn'
+  import Moment from 'moment'
 
   export default {
     components: { VBtn, VIcon, SubnetCard },
@@ -71,8 +72,8 @@
         'statusCode': 0,
         'statusText': 'Success!',
         'logEvents': [
-          '20171116T202706.010: Created subnet Medical-001 (192.168.1.0)',
-          '20171116T202706.020: Added device Gram\'s Insulin Pump to subnet isolated-medical-001 (192.168.1.2)'
+          '20171116T202706.010: Created subnet Medical-001',
+          '20171116T202706.020: Added device Gram\'s Insulin Pump'
         ],
         'subnets': [{
           'subnetId': 'a4b1c01c-7247-4e30-75b0-a8705783f9b9',
@@ -140,15 +141,14 @@
             }
           }]
         }]
-      },
-      messages: [
-        { status: '05/08/2017 14:45:36 Device Authenticated 192.168.1.4' },
-        { status: '05/08/2017 13:45:36 Device Authenticated 192.168.1.5' },
-        { status: '05/08/2017 14:45:33 Device Authenticated 192.168.1.6' }
-      ]
+      }
     }),
-    props: {
-      source: String
+    methods: {
+      formatLogMessage (log) {
+        var utcLogDateTimeStamp = log.split(':')[0]
+        var formattedLogMessage = Moment(utcLogDateTimeStamp).format('lll').concat(' ').concat(log.split(':')[1])
+        return formattedLogMessage
+      }
     }
   }
 </script>
@@ -198,6 +198,7 @@
     text-align: left;
     width: 360px;
     min-height: 30px;
+
   }
   .no-subnets {
     background-color: pink;
