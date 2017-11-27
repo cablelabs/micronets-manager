@@ -1,10 +1,12 @@
 var mongoose = require('mongoose')
-import subnetSchema from './subnet';
+var subnets = require('./subnet');
 
 var micronetSchema = mongoose.Schema({
   timestampUtc: { type: Date, default: Date.now },
-  statusCode: { type:Number },
+  statusCode: { type: Number },
   statusText: { type: String },
   logEvents: [{ type: Object}],
-  subnets: [{ type: subnetSchema }]
-})
+  subnets: [{ type: Object , schema:subnets }]
+});
+
+module.exports = mongoose.model('micronets' , micronetSchema)

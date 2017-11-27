@@ -1,7 +1,6 @@
 var mongoose = require('mongoose');
 
-export default subnetSchema = mongoose.Schema({
-  subnets: {
+var subnetSchema = mongoose.Schema({
     subnetId: { type: String },
     subnetName: { type: String },
     ipv4: {
@@ -21,5 +20,6 @@ export default subnetSchema = mongoose.Schema({
         host: { type: String }
       }
     }]
-  }
 })
+
+module.exports = mongoose.model('subnets' , subnetSchema)

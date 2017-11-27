@@ -7,10 +7,11 @@ const helmet = require('helmet');
 const favicon = require('serve-favicon');
 const bodyParser = require('body-parser');
 const logger = require('winston');
-
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/micronets')
 
 const app = express();
-// const micronets = require('./services/micronets')(app);
+const micronets = require('./services/micronets')(app);
 
 // Enable CORS, security, compression, favicon and body parsing
 app.use(cors());

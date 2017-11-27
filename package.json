@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/",
+    "start": "npm install && node src/",
     "dev": "cd client && npm install && npm run dev",
     "build": "cd client && npm install && npm run build"
   },
@@ -31,8 +31,8 @@
     "helmet": "^3.9.0",
     "http": "0.0.0",
     "lodash": "^4.17.4",
-    "mongo": "^0.1.0",
-    "mongoose": "^4.13.4",
+    "mongodb": "^2.2.33",
+    "mongoose": "^4.13.5",
     "nodemon": "^1.12.1",
     "path": "^0.12.7",
     "serve-favicon": "^2.4.5",
