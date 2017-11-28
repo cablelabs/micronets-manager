@@ -19,7 +19,7 @@
                 </v-btn>
               </v-toolbar>
               <v-list>
-                <template v-for="(message,index) in items.logEvents">
+                <template v-for="(message,index) in micronet[0].logEvents">
                   <v-divider />
                   <div class="message-list">
                     <span class="messages" ><strong>{{ formatLogMessage(message) }}</strong></span>
@@ -42,7 +42,15 @@
         <template v-if="items && items.subnets.length > 0" v-for="(item,index) in items.subnets">
           <SubnetCard :subnets="item" :key="index"></SubnetCard>
         </template>
-        <template v-if="items.subnets.length == 0">
+        <template v-if="micronet && micronet[0].subnets.length > 0" v-for="(item,index) in micronet[0].subnets">
+          <SubnetCard :subnets="item" :key="index"></SubnetCard>
+        </template>
+        <template>
+          <p> <strong>this.$store.getters.micronet value :</strong> {{this.$store.getters.micronet}}</p>
+          <p> <strong> micronet.subnets value :</strong> {{micronet[0].subnets}}</p>
+          <p> <strong>this.micronet value :</strong> {{this.micronet}}</p>
+        </template>
+        <template v-if="micronet[0].subnets.length == 0">
           <v-card>
             <v-card-text class="no-subnets">No Micro-nets found </v-card-text>
           </v-card>
@@ -60,18 +68,20 @@
   import SubnetCard from '../components/SubnetCard.vue'
   import Moment from 'moment'
   import axios from 'axios'
+  import { mapState, mapActions, mapGetters } from 'vuex'
 
   export default {
     components: { SubnetCard },
     name: 'home',
+    computed: {
+      ...mapState('view', ['micronet']),
+      ...mapGetters(['micronet'])
+    },
     data: () => ({
       drawer: false,
       eItems: {
         subnets: []
       },
-      realItems:{
-
-      }
       items: {
         'timestampUtc': '20171116T202706.000',
         'statusCode': 0,
@@ -149,11 +159,31 @@
       }
     }),
     methods: {
+      ...mapActions(['getMicronets']),
+      fetchMicronets () {
+        const url = `${process.env.BASE_URL || ''}/micronets`
+        return axios({
+          method: 'get',
+          url,
+          crossDomain: true,
+          headers: { 'Content-type': 'application/json' }
+        })
+          .then(response => {
+            console.log('\n response : ' + JSON.stringify(response))
+          })
+      },
       formatLogMessage (log) {
-        var utcLogDateTimeStamp = log.split(':')[0]
-        var formattedLogMessage = Moment(utcLogDateTimeStamp).format('lll').concat(' ').concat(log.split(':')[1])
-        return formattedLogMessage
+        console.log('\n log : ' + JSON.stringify(log))
+        if (log.indexOf(':') > -1) {
+          var utcLogDateTimeStamp = log.split(':')[0]
+          return Moment(utcLogDateTimeStamp).format('lll').concat(' ').concat(log.split(':')[1])
+        } else {
+          return Moment(new Date()).format('lll').concat(' ').concat(log)
+        }
       }
+    },
+    created () {
+      this.getMicronets()
     }
   }
 </script>
