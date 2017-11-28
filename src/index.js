@@ -15,7 +15,8 @@ const port = 3000
 
 
 // Enable CORS, security, compression, favicon and body parsing
-// app.use(cors());
+app.use(cors());
+app.options('*', cors())
 app.use(logger('dev'));
 app.use(helmet());
 app.use(compress());
@@ -24,7 +25,7 @@ app.use(bodyParser.urlencoded({extended:true}))
 // app.use(nrp)
 
 
-app.get("/", function(req, res) {
+app.get("/", cors(), function(req, res) {
   res.json({ message: "Express server is running " });
 });
 // catch 404 and forward to error handler

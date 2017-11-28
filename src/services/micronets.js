@@ -5,10 +5,11 @@ var utils = require('../utils');
 var redisConfig = require('../../config/default.json').redis
 var NRP = require('node-redis-pubsub');
 var nrp = new NRP(redisConfig);
+var cors = require('cors');
 
 module.exports = (app) => {
 
-  app.get('/initialize/:subnets/:hosts', (req, res , next) => {
+  app.get('/initialize/:subnets/:hosts', cors(), (req, res , next) => {
 
     const initialize =  axios({ method:'get', url:`http://127.0.0.1:18080/odl/mdl/test/publish/${req.params.subnets}/${req.params.hosts}`})
       .then(function(response) {
@@ -120,7 +121,7 @@ module.exports = (app) => {
 
   /* Read */
 
-  app.get('/micronets' , (req,res) => {
+  app.get('/micronets' , cors(), (req,res) => {
 
     console.log('\n inside get micronets')
 

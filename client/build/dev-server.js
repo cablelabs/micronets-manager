@@ -9,6 +9,7 @@ var opn = require('opn')
 var path = require('path')
 var express = require('express')
 var webpack = require('webpack')
+var cors = require('cors')
 var proxyMiddleware = require('http-proxy-middleware')
 var webpackConfig = require('./webpack.dev.conf')
 
@@ -48,6 +49,8 @@ Object.keys(proxyTable).forEach(function (context) {
   }
   app.use(proxyMiddleware(options.filter || context, options))
 })
+
+app.use(cors())
 
 // handle fallback for HTML5 history API
 app.use(require('connect-history-api-fallback')())
