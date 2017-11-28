@@ -5,20 +5,22 @@
   "author": "akadam <a.kadam@cablelabs.com>",
   "private": true,
   "scripts": {
-    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
-    "start": "npm run dev",
+    "dev": "node build/dev-server.js",
+    "start": "node build/dev-server.js",
     "build": "node build/build.js"
   },
   "dependencies": {
     "axios": "^0.17.1",
     "babel-polyfill": "^6.26.0",
+    "cors": "^2.8.4",
     "moment": "^2.19.2",
     "mongodb": "^2.2.33",
     "mongoose": "^4.13.4",
     "vue": "^2.5.3",
     "vue-router": "^2.7.0",
     "vuelidate": "^0.6.1",
-    "vuetify": "^0.17.0"
+    "vuetify": "^0.17.0",
+    "vuex": "^3.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
