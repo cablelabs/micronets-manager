@@ -59,6 +59,7 @@
 <script>
   import SubnetCard from '../components/SubnetCard.vue'
   import Moment from 'moment'
+  import axios from 'axios'
 
   export default {
     components: { SubnetCard },
@@ -68,6 +69,9 @@
       eItems: {
         subnets: []
       },
+      realItems:{
+
+      }
       items: {
         'timestampUtc': '20171116T202706.000',
         'statusCode': 0,

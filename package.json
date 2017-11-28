@@ -24,18 +24,20 @@
   },
   "homepage": "https://github.com/cablelabs/micronets-manager#readme",
   "dependencies": {
+    "axios": "^0.17.1",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "helmet": "^3.9.0",
-    "http": "0.0.0",
     "lodash": "^4.17.4",
     "mongodb": "^2.2.33",
     "mongoose": "^4.13.5",
+    "morgan": "^1.9.0",
+    "node-redis-pubsub": "^1.0.3",
     "nodemon": "^1.12.1",
     "path": "^0.12.7",
-    "serve-favicon": "^2.4.5",
-    "winston": "^2.4.0"
+    "redis": "^2.8.0",
+    "serve-favicon": "^2.4.5"
   }
 }
