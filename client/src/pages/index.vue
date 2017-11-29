@@ -5,7 +5,7 @@
         <v-navigation-drawer
           fixed
           v-model="drawer"
-          disable-resize-watcher="true"
+          disable-resize-watcher
           right
           app
         >
@@ -39,16 +39,12 @@
             <img class="logo" src="../assets/console-logo.png"/>
           </v-btn>
         </v-toolbar>
-        <template v-if="items && items.subnets.length > 0" v-for="(item,index) in items.subnets">
-          <SubnetCard :subnets="item" :key="index"></SubnetCard>
-        </template>
-        <!--<template v-if="micronet && micronet[0].subnets.length > 0" v-for="(item,index) in micronet[0].subnets">-->
+        <!--<template v-if="items && items.subnets.length > 0" v-for="(item,index) in items.subnets">-->
           <!--<SubnetCard :subnets="item" :key="index"></SubnetCard>-->
         <!--</template>-->
-        <template>
-          <p> <strong>this.$store.state value :</strong> {{this.$store.state}}</p>
-          <p> <strong>this.$store.getters.microNet value :</strong> {{this.$store.getters.micronet}}</p>
-          <p> <strong>this.micronet value :</strong> {{this.micronet}}</p>
+        <template v-for="(item,index) in micronet">
+          <p><strong> ITEM IN MICRONET</strong>{{item}}</p>
+          <SubnetCard :subnets="item.subnets" :key="index"></SubnetCard>
         </template>
         <!--<template v-if="micronet[0].subnets.length == 0">-->
           <!--<v-card>-->
@@ -67,15 +63,14 @@
 <script>
   import SubnetCard from '../components/SubnetCard.vue'
   import Moment from 'moment'
-  import axios from 'axios'
   import { mapGetters, mapState, mapActions } from 'vuex'
 
   export default {
     components: { SubnetCard },
     name: 'home',
     computed: {
-      ...mapGetters({micronet: 'micronet'}),
-      ...mapState({micronet: 'micronet'})
+      ...mapGetters(['micronet']),
+      ...mapState({micronet: x => x.micronet})
     },
     data: () => ({
       drawer: false,
@@ -159,22 +154,9 @@
       }
     }),
     methods: {
-      ...mapState(['micronet']),
       ...mapActions(['getMicronets']),
-      fetchMicronets () {
-        const url = `${process.env.BASE_URL || ''}/micronets`
-        return axios({
-          method: 'get',
-          url,
-          crossDomain: true,
-          headers: { 'Content-type': 'application/json' }
-        })
-          .then(response => {
-            console.log('\n response : ' + JSON.stringify(response))
-          })
-      },
       formatLogMessage (log) {
-        console.log('\n log : ' + JSON.stringify(log))
+       // console.log('\n log : ' + JSON.stringify(log))
         if (log.indexOf(':') > -1) {
           var utcLogDateTimeStamp = log.split(':')[0]
           return Moment(utcLogDateTimeStamp).format('lll').concat(' ').concat(log.split(':')[1])
@@ -183,17 +165,9 @@
         }
       }
     },
-    created () {
-      console.log('\n CREATED method ...')
-      this.$store.dispatch('getMicronets')
-    },
     mounted () {
-      console.log('\n MOUNTED method ...')
-      this.$store.dispatch('getMicronets')
-    },
-    init () {
-      console.log('\n INIT method ...')
-      this.$store.dispatch('getMicronets')
+      console.log('\n MOUNTED')
+      return this.$store.dispatch('getMicronets')
     }
   }
 </script>

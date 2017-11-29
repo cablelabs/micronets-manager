@@ -32,6 +32,7 @@
       components: { DeviceCard },
       name: 'SubnetCard',
       data () {
+        console.log('\n SUBNET CARD SUBNET PROPS : ' + JSON.stringify(this.subnets))
         return {
           show: false
         }

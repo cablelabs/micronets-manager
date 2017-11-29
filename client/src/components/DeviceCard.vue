@@ -25,6 +25,7 @@
     components: {},
     name: 'DeviceCard',
     data () {
+      console.log('\n DEVICE CARD DEVICES PROP : ' + JSON.stringify(this.devices))
       return {
       }
     },
