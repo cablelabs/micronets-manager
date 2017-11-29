@@ -1,23 +1,27 @@
 <template>
-  <v-card flat class="json-input-text">
-    <v-card-title class="orange--text">ADD SUBNET CARD</v-card-title>
-    <v-card-text>
-      <v-form ref="form">
-      <textarea-autosize
-        placeholder="Add JSON to add subnet / device"
-        ref="someName"
-        v-model="someValue"
-        :autosize="true"
-        :min-height="650"
-        :max-width="650"
-        @blur.native="onBlurTextarea"
-        @input.native="onInputChange">
-      </textarea-autosize>
-        <v-btn @click="submit">submit</v-btn>
-        <v-btn @click="clear">clear</v-btn>
-      </v-form>
-    </v-card-text>
-  </v-card>
+  <v-container row wrap>
+    <v-card flat class="json-input-text">
+      <v-card-title class="orange--text card-title"> ADD SUBNETS / DEVICES </v-card-title>
+      <v-card-text>
+        <v-form ref="form">
+          <textarea-autosize class="input-textarea"
+            placeholder="Add JSON to add subnet / device"
+            ref="someName"
+            v-model="someValue"
+            :autosize="true"
+            :min-width="800"
+            :min-height="800"
+            @blur.native="onBlurTextarea"
+            @input.native="onInputChange">
+          </textarea-autosize>
+          <div class="input-btns">
+          <v-btn @click="submit">submit</v-btn>
+          <v-btn @click="clear">clear</v-btn>
+          </div>
+        </v-form>
+      </v-card-text>
+    </v-card>
+  </v-container>
 </template>
 
 <script>
@@ -72,5 +76,20 @@
     padding-right: 5%;
     min-width: 100%;
     min-height: 50%;
+  }
+  .card-title {
+    margin-left: 30%
+    text-align: center
+    font-weight: bold
+    color: darkred !important;
+  }
+  .input-textarea {
+    width: 80%
+    height:50%
+  }
+  .input-btns {
+    display: block
+    margin-top: 1%
+    margin-left:30%
   }
 </style>
