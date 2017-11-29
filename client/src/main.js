@@ -8,9 +8,11 @@ import App from './App'
 import router from './router'
 import Vuelidate from 'vuelidate'
 import store from './store'
+import VueTextareaAutosize from 'vue-textarea-autosize'
 
 Vue.use(Vuelidate)
 Vue.use(Vuetify)
+Vue.use(VueTextareaAutosize)
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
