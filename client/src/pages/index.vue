@@ -42,15 +42,14 @@
         <!--<template v-if="items && items.subnets.length > 0" v-for="(item,index) in items.subnets">-->
           <!--<SubnetCard :subnets="item" :key="index"></SubnetCard>-->
         <!--</template>-->
+        <div>
+          <p><strong> MICRONET : </strong>{{micronet}}</p>
+        </div>
         <template v-for="(item,index) in micronet">
-          <p><strong> ITEM IN MICRONET</strong>{{item}}</p>
-          <SubnetCard :subnets="item.subnets" :key="index"></SubnetCard>
+          <template v-for="(subnetItem,subIndex) in item.subnets">
+            <SubnetCard :subnet="subnetItem" :key="subIndex"></SubnetCard>
+          </template>
         </template>
-        <!--<template v-if="micronet[0].subnets.length == 0">-->
-          <!--<v-card>-->
-            <!--<v-card-text class="no-subnets">No Micro-nets found </v-card-text>-->
-          <!--</v-card>-->
-        <!--</template>-->
       </v-app>
     </v-container>
     <v-footer app>
@@ -63,14 +62,15 @@
 <script>
   import SubnetCard from '../components/SubnetCard.vue'
   import Moment from 'moment'
-  import { mapGetters, mapState, mapActions } from 'vuex'
+  import { mapState, mapActions } from 'vuex'
 
   export default {
     components: { SubnetCard },
     name: 'home',
     computed: {
-      ...mapGetters(['micronet']),
-      ...mapState({micronet: x => x.micronet})
+      // ...mapGetters(['micronet']),
+      // ...mapState({micronet: x => x.micronet})
+      ...mapState(['micronet'])
     },
     data: () => ({
       drawer: false,
@@ -154,7 +154,7 @@
       }
     }),
     methods: {
-      ...mapActions(['getMicronets']),
+      ...mapActions(['fetchMicronets']),
       formatLogMessage (log) {
        // console.log('\n log : ' + JSON.stringify(log))
         if (log.indexOf(':') > -1) {
@@ -165,9 +165,18 @@
         }
       }
     },
+    // created () {
+    //   console.log('\n CREATED')
+    //   // return this.$store.dispatch('fetchMicronets')
+    //   return this.fetchMicronets()
+    // },
+    // init () {
+    //   console.log('\n INIT')
+    // },
     mounted () {
       console.log('\n MOUNTED')
-      return this.$store.dispatch('getMicronets')
+      // return this.$store.dispatch('fetchMicronets')
+      return this.fetchMicronets()
     }
   }
 </script>

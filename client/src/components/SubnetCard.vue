@@ -1,9 +1,9 @@
-<template>
-          <v-card v-if="subnets" class="subnet-card">
+<template >
+          <v-card  class="subnet-card">
             <v-card-title primary-title>
               <div>
-                <div class="headline">{{ subnets.subnetName }}</div>
-                <span v-if="!show" class="grey--text" slot="text">{{`${subnets.deviceList.length} Devices`}}</span>
+                <div class="headline">{{ subnet.subnetName }}</div>
+                <span v-if="!show" class="grey--text" slot="text">{{`${subnet.deviceList.length} Devices`}}</span>
               </div>
               <v-spacer></v-spacer>
               <v-btn raised class="addDevice">ADD DEVICE</v-btn>
@@ -16,10 +16,10 @@
             <v-slide-y-transition>
               <v-card-text v-show="show">
                 <span>
-                <span class="numberCircle">{{subnets.deviceList.length}}</span>
+                <span class="numberCircle">{{subnet.deviceList.length}}</span>
                 <span class="card-text-title">Devices</span>
                 </span>
-                <DeviceCard :devices="subnets.deviceList"/>
+                <DeviceCard :devices="subnet.deviceList"/>
               </v-card-text>
             </v-slide-y-transition>
           </v-card>
@@ -32,13 +32,13 @@
       components: { DeviceCard },
       name: 'SubnetCard',
       data () {
-        console.log('\n SUBNET CARD SUBNET PROPS : ' + JSON.stringify(this.subnets))
+        console.log('\n SUBNET CARD SUBNET PROPS : ' + JSON.stringify(this.subnet))
         return {
           show: false
         }
       },
       props: {
-        subnets: Object
+        subnet: Object
       }
     }
 </script>
