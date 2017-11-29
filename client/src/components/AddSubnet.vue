@@ -78,9 +78,10 @@
     min-height: 50%;
   }
   .card-title {
-    margin-left: 30%
+    margin-left: 25%
     text-align: center
     font-weight: bold
+    font-size: 20px
     color: darkred !important;
   }
   .input-textarea {
