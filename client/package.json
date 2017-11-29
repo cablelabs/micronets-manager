@@ -16,6 +16,7 @@
     "moment": "^2.19.2",
     "mongodb": "^2.2.33",
     "mongoose": "^4.13.4",
+    "nodemon": "^1.12.1",
     "vue": "^2.5.3",
     "vue-router": "^2.7.0",
     "vuelidate": "^0.6.1",

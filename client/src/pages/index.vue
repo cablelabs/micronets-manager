@@ -19,7 +19,7 @@
                 </v-btn>
               </v-toolbar>
               <v-list>
-                <template v-for="(message,index) in micronet[0].logEvents">
+                <template v-for="(message,index) in items.logEvents">
                   <v-divider />
                   <div class="message-list">
                     <span class="messages" ><strong>{{ formatLogMessage(message) }}</strong></span>
@@ -42,19 +42,19 @@
         <template v-if="items && items.subnets.length > 0" v-for="(item,index) in items.subnets">
           <SubnetCard :subnets="item" :key="index"></SubnetCard>
         </template>
-        <template v-if="micronet && micronet[0].subnets.length > 0" v-for="(item,index) in micronet[0].subnets">
-          <SubnetCard :subnets="item" :key="index"></SubnetCard>
-        </template>
+        <!--<template v-if="micronet && micronet[0].subnets.length > 0" v-for="(item,index) in micronet[0].subnets">-->
+          <!--<SubnetCard :subnets="item" :key="index"></SubnetCard>-->
+        <!--</template>-->
         <template>
-          <p> <strong>this.$store.getters.micronet value :</strong> {{this.$store.getters.micronet}}</p>
-          <p> <strong> micronet.subnets value :</strong> {{micronet[0].subnets}}</p>
+          <p> <strong>this.$store.state value :</strong> {{this.$store.state}}</p>
+          <p> <strong>this.$store.getters.microNet value :</strong> {{this.$store.getters.micronet}}</p>
           <p> <strong>this.micronet value :</strong> {{this.micronet}}</p>
         </template>
-        <template v-if="micronet[0].subnets.length == 0">
-          <v-card>
-            <v-card-text class="no-subnets">No Micro-nets found </v-card-text>
-          </v-card>
-        </template>
+        <!--<template v-if="micronet[0].subnets.length == 0">-->
+          <!--<v-card>-->
+            <!--<v-card-text class="no-subnets">No Micro-nets found </v-card-text>-->
+          <!--</v-card>-->
+        <!--</template>-->
       </v-app>
     </v-container>
     <v-footer app>
@@ -68,14 +68,14 @@
   import SubnetCard from '../components/SubnetCard.vue'
   import Moment from 'moment'
   import axios from 'axios'
-  import { mapState, mapActions, mapGetters } from 'vuex'
+  import { mapGetters, mapState, mapActions } from 'vuex'
 
   export default {
     components: { SubnetCard },
     name: 'home',
     computed: {
-      ...mapState('view', ['micronet']),
-      ...mapGetters(['micronet'])
+      ...mapGetters({micronet: 'micronet'}),
+      ...mapState({micronet: 'micronet'})
     },
     data: () => ({
       drawer: false,
@@ -159,6 +159,7 @@
       }
     }),
     methods: {
+      ...mapState(['micronet']),
       ...mapActions(['getMicronets']),
       fetchMicronets () {
         const url = `${process.env.BASE_URL || ''}/micronets`
@@ -183,7 +184,16 @@
       }
     },
     created () {
-      this.getMicronets()
+      console.log('\n CREATED method ...')
+      this.$store.dispatch('getMicronets')
+    },
+    mounted () {
+      console.log('\n MOUNTED method ...')
+      this.$store.dispatch('getMicronets')
+    },
+    init () {
+      console.log('\n INIT method ...')
+      this.$store.dispatch('getMicronets')
     }
   }
 </script>
