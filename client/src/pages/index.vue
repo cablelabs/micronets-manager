@@ -43,7 +43,7 @@
           <!--<SubnetCard :subnets="item" :key="index"></SubnetCard>-->
         <!--</template>-->
         <div>
-          <p><strong> MICRONET : </strong>{{micronet}}</p>
+          <!--<p><strong> MICRONET : </strong>{{micronet}}</p>-->
         </div>
         <template v-for="(item,index) in micronet">
           <template v-for="(subnetItem,subIndex) in item.subnets">

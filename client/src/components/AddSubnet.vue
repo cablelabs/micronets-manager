@@ -1,7 +1,7 @@
 <template>
   <v-container row wrap>
     <div>
-      <p>Add Device Card</p>
+      <p>Add SUBNET CARD</p>
     </div>
 
   </v-container>
@@ -13,6 +13,7 @@
     components: {},
     name: 'AddSubnet',
     data () {
+      console.log('\n ADD SUBNET CARD')
       return {
       }
     },

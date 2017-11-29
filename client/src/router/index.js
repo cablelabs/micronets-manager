@@ -12,7 +12,7 @@ export default new Router({
       component: Home
     },
     {
-      path: '/',
+      path: '/add/subnet',
       name: 'AddSubnet',
       component: AddSubnet
     }

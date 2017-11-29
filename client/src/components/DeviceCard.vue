@@ -9,7 +9,7 @@
             </span>
             <span class="device-item">{{ item.mac.eui48}}</span>
             <span class="device-item">{{ item.ipv4.host }}</span>
-              <v-btn raised class="configure-btn">Configure</v-btn>
+              <v-btn raised class="configure-btn" disabled>Configure</v-btn>
             <v-btn flat icon class="more-icon">
               <v-icon>more_vert</v-icon>
             </v-btn>
