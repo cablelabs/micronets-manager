@@ -1,39 +1,46 @@
 <template>
   <v-content fluid class="app">
-  <v-container row grow wrap >
-    <v-app id="app" class="app" >
-    <Layout></Layout>
-    <v-card flat class="json-input-text" color="#fafafa">
-      <v-card-title class="orange--text card-title"> ADD SUBNETS / DEVICES </v-card-title>
-      <v-card-text>
-        <v-form ref="form">
-          <textarea-autosize class="input-textarea"
-            placeholder="Add JSON to add subnet / device"
-            ref="someName"
-            v-model="someValue"
-            :autosize="true"
-            :min-width="800"
-            :min-height="800"
-            @blur.native="onBlurTextarea"
-            @input.native="onInputChange">
-          </textarea-autosize>
-          <div class="input-btns">
-          <v-btn @click="submit">submit</v-btn>
-          <v-btn @click="clear">clear</v-btn>
-          </div>
-        </v-form>
-      </v-card-text>
-    </v-card>
+    <v-app class="app">
+      <v-container row grow wrap>
+        <v-layout row wrap align-center>
+          <v-flex class="text-xs-center">
+        <Layout></Layout>
+        <v-card flat class="json-input-text">
+          <v-flex row>
+            <v-card-title class="orange--text card-title"> ADD SUBNETS / DEVICES</v-card-title>
+            <v-card-text>
+              <v-form ref="form">
+                <textarea-autosize class="input-textarea"
+                                   placeholder="Add JSON to add subnet / device"
+                                   ref="someName"
+                                   v-model="someValue"
+                                   :autosize="true"
+                                   :min-width="800"
+                                   :min-height="800"
+                                   @blur.native="onBlurTextarea"
+                                   @input.native="onInputChange">
+                </textarea-autosize>
+                <div class="input-btns">
+                  <v-btn @click="submit">submit</v-btn>
+                  <v-btn class="btn" @click="clear">clear</v-btn>
+                </div>
+              </v-form>
+            </v-card-text>
+          </v-flex>
+        </v-card>
+          </v-flex>
+        </v-layout>
+      </v-container>
     </v-app>
-  </v-container>
   </v-content>
 </template>
 
 <script>
   import { mapState, mapActions } from 'vuex'
   import Layout from './Layout.vue'
+
   export default {
-    components: { Layout },
+    components: {Layout},
     name: 'AddSubnet',
     data: () => ({
       someValue: '',
@@ -76,39 +83,49 @@
 <style lang="stylus" scoped>
   @import '../style/main'
   .json-input-text {
-    background-color: #fafafa;
+    background-color: $theme.background;
     margin-left: 5%;
     margin-right: 5%;
     margin-top: 5%;
     padding-left: 5%;
     padding-right: 5%;
-    min-width: 100%;
+    min-width: 90%;
     min-height: 50%;
   }
+
   .card-title {
-    margin-left: 25%
-    text-align: center
+    margin-left: 33%
+    text-align: center !important
     font-weight: bold
     font-size: 20px
     color: darkred !important;
   }
+
   .input-textarea {
     width: 80%
-    height:50%
-    border:2px solid #dadada;
-    border-radius:7px;
+    height: 50%
+    border: 2px solid #dadada;
+    border-radius: 7px;
   }
+
   .input-btns {
     display: block
-    margin-top: 1%
-    margin-left:30%
+    margin-top: 2%
+    margin-left: 25%
+    margin-right: 25%
   }
+
+  .btn {
+    margin-left: 10%
+  }
+
   .toolbar-title {
     font-size: 20px;
     font-family: "Roboto";
   }
+
   .app {
-    background-color:$theme.background ;
+    background-color: '#fafafa';
   }
 
 </style>
