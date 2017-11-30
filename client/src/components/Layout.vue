@@ -53,12 +53,9 @@
     methods: {
       ...mapActions(['fetchMicronets']),
       mounted () {
-        console.log('\n MOUNTED')
-        // return this.$store.dispatch('fetchMicronets')
         return this.fetchMicronets()
       },
       formatLogMessage (log) {
-        // console.log('\n log : ' + JSON.stringify(log))
         if (log.indexOf(':') > -1) {
           var utcLogDateTimeStamp = log.split(':')[0]
           return Moment(utcLogDateTimeStamp).format('lll').concat(' ').concat(log.split(':')[1])

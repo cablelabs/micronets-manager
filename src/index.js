@@ -25,25 +25,12 @@ app.use(logger('dev'));
 app.use(helmet());
 app.use(compress());
 
-// app.configure(function(){
-//   app.use(bodyParser.json());
-//   app.use(bodyParser.urlencoded({extended:true}))
-//   app.use(app.router);
-// });
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-
 app.get("/", cors(), function(req, res) {
   res.json({ message: "Express server is running " });
-});
-
-// TODO : DELETE LATER
-app.put("/someRoute", function(req, res) {
-  console.log(req.body);
-  res.json({ status: 'SUCCESS' ,items:req.body });
 });
 
 // catch 404 and forward to error handler

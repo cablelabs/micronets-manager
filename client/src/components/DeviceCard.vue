@@ -25,7 +25,6 @@
     components: {},
     name: 'DeviceCard',
     data () {
-      console.log('\n DEVICE CARD DEVICES PROP : ' + JSON.stringify(this.devices))
       return {
         inset: false
       }
@@ -79,6 +78,7 @@
   .device-item {
     width: 30%;
     margin: 30px;
+    margin-left: 1%
   }
   .device-list {
     min-width: 100%;

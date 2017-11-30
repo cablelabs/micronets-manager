@@ -12,8 +12,7 @@
               <v-form ref="form">
                 <textarea-autosize class="input-textarea"
                                    placeholder="JSON to add subnet / device"
-                                   ref="someName"
-                                   v-model="someValue"
+                                   ref="textAreaInput"
                                    :autosize="true"
                                    :min-width="800"
                                    :min-height="800"
@@ -47,8 +46,7 @@
     components: {Layout},
     name: 'AddSubnet',
     data: () => ({
-      someValue: '',
-      someName: ''
+      textAreaInput: ''
     }),
     computed: {
       ...mapState(['micronet'])
@@ -58,15 +56,12 @@
       onInputChange () {},
       onBlurTextarea () {},
       submit (micronetId) {
-        console.log('\n SUBMIT micronetID : ' + JSON.stringify(micronetId))
-        console.log('\n SUBMIT this.$refs.someName.$el.value : ' + JSON.stringify(this.$refs.someName.$el.value))
-        const inputJson = this.$refs.someName.$el.value
-        console.log('\n SUBMIT inputJson : ' + JSON.stringify(inputJson))
+        const inputJson = this.$refs.textAreaInput.$el.value
         this.updateMicronets({id: micronetId, data: inputJson})
       },
       clear () {
         this.$refs.form.reset()
-        this.$refs.someName.$el.value = ''
+        this.$refs.textAreaInput.$el.value = ''
       }
     },
     mounted () {

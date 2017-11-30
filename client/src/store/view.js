@@ -10,15 +10,12 @@ export const getters = {
 
 export const mutations = {
   setMicronets (state, list) {
-    console.log('\n STATE BEFORE MUTATIONS : ' + JSON.stringify(state) + '\t\t\t LIST : ' + JSON.stringify(list))
     state.micronet = list.items
-    console.log('\n STATE AFTER  MUTATIONS :  ' + JSON.stringify(state))
   }
 }
 
 export const actions = {
   fetchMicronets ({ commit }) {
-    console.log('\n\n ACTIONS FETCH MICRO-NETS  ')
     const url = `${process.env.BASE_URL}/micronets`
     return axios({
       method: 'get',
@@ -27,18 +24,30 @@ export const actions = {
       headers: { 'Content-type': 'application/json' }
     })
       .then(response => {
-        console.log('\n AXIOS RESPONSE : ' + JSON.stringify(response.data))
         const { data } = response
-        commit('setMicronets', data)
-        return data
+        if (data.items.length > 0) {
+          commit('setMicronets', data)
+          return data
+        } else {
+          axios({
+            method: 'get',
+            url: `${process.env.BASE_URL}/initialize/1/3`,
+            crossDomain: true,
+            headers: { 'Content-type': 'application/json' }
+          })
+            .then(response => {
+              const { data } = response
+              if (data.items && data.statusCode === 200) {
+                commit('setMicronets', data.items)
+                return data
+              } else {}
+            })
+        }
       })
   },
   updateMicronets ({ commit }, {id, data}) {
-    console.log('\n\n ACTIONS UPDATE MICRO-NETS ID : ' + JSON.stringify(id) + '\t\t DATA : ' + JSON.stringify(data))
     const url = `${process.env.BASE_URL}/micronets/${id}`
    // const mdlUrl = 'http://127.0.0.1:18080/odl/mdl/test/publish?subnets=1&hosts=2'
-    console.log('\n ACTION UPDATE MICRONETS URL : ' + JSON.stringify(url))
-
     axios({
       method: 'put',
       url: url,
@@ -47,7 +56,7 @@ export const actions = {
       headers: {'Content-type': 'application/json'}
     }).then((err, response) => {
       if (err) {
-        console.log('\n error : ' + JSON.stringify(err))
+        console.log('\n Error : ' + JSON.stringify(err))
       }
       console.log('\n old response : ' + JSON.stringify(response))
     })
