@@ -15,7 +15,8 @@ import {
   VTextField,
   VCardTitle,
   VContent,
-  VListTileAction
+  VListTileAction,
+  VForm
 } from 'vuetify'
 
 Vue.use(Vuetify, {
@@ -33,6 +34,7 @@ Vue.use(Vuetify, {
     VTextField,
     VCardTitle,
     VContent,
-    VListTileAction
+    VListTileAction,
+    VForm
   }
 })

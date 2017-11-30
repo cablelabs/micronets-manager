@@ -1,0 +1,23 @@
+{
+  "host": "localhost",
+  "port": 3000,
+  "public": "../public/",
+  "paginate": {
+    "default": 10,
+    "max": 50
+  },
+  "mongodb": "mongodb://localhost:27017/micronets",
+  "redis": {
+    "port": 6379,
+    "host": "localhost"
+  },
+  "odl":{
+    "port": 18080,
+    "host": "http://127.0.0.1",
+    "initializeUrl": "odl/mdl/test/publish"
+  },
+  "channels":{
+    "publish":"MTC:MDL_1.0.0",
+    "subscribe":"MM:MDL_1.0.0"
+  }
+}

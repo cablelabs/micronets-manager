@@ -1,0 +1,4 @@
+client/build/*.js
+config/*.js
+client/src/*.js
+client/src/*.vue
