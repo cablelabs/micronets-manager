@@ -1,6 +1,7 @@
 <template>
   <v-container row wrap>
     <v-card flat class="json-input-text">
+      <p>{{micronet}}</p>
       <v-card-title class="orange--text card-title"> ADD SUBNETS / DEVICES </v-card-title>
       <v-card-text>
         <v-form ref="form">
@@ -25,14 +26,18 @@
 </template>
 
 <script>
-  import axios from 'axios'
+  import { mapState, mapActions } from 'vuex'
 
   export default {
     data: {
       someValue: '',
       someName: ''
     },
+    computed: {
+      ...mapState(['micronet'])
+    },
     methods: {
+      ...mapActions(['fetchMicronets', 'updateMicronets']),
       onInputChange () {
         console.log('\n onInputChange called')
         const jsonValue = this.$refs.someName.$el.value
@@ -46,19 +51,24 @@
         console.log('\n SUBMIT this.$refs.someName.$el.value : ' + JSON.stringify(this.$refs.someName.$el.value))
         const inputJson = this.$refs.someName.$el.value
         console.log('\n SUBMIT inputJson : ' + JSON.stringify(inputJson))
-        if (this.$refs.form.validate()) {
+        this.updateMicronets({id: this.micronet._id, data: inputJson})
+        // if (this.$refs.form.validate()) {
           // Native form submission is not yet supported
-          axios.put('/api/micronets', {
-            json: inputJson
-          }).then((response) => {
-            console.log('\n AXIOS PUT MICRONETS RESPONSE : ' + JSON.stringify(response))
-          })
-        }
+          // axios.put(`/api/micronets/${this.micronet._id}`, {
+          //   json: inputJson
+          // }).then((response) => {
+          //   console.log('\n AXIOS PUT MICRONETS RESPONSE : ' + JSON.stringify(response))
+          // })
+        // }
       },
       clear () {
         this.$refs.form.reset()
         this.$refs.someName.$el.value = ''
       }
+    },
+    mounted () {
+      console.log('\n MOUNTED ADD SUBNET')
+      return this.fetchMicronets()
     }
   }
 </script>

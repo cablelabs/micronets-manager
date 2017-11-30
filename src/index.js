@@ -1,6 +1,7 @@
 const path = require('path');
 const express= require('express')
 const compress = require('compression');
+var methodOverride = require('method-override')
 const cors = require('cors');
 const helmet = require('helmet');
 const favicon = require('serve-favicon');
@@ -13,24 +14,38 @@ const app = express();
 const micronets = require('./services/micronets')(app);
 const port = 3000
 
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended:true}))
+//Handles put requests
+// app.use(methodOverride());
 
 // Enable CORS, security, compression, favicon and body parsing
 app.use(cors());
-app.options('*', cors())
 app.use(logger('dev'));
 app.use(helmet());
 app.use(compress());
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended:true}))
-// app.use(nrp)
+
+// app.configure(function(){
+//   app.use(bodyParser.json());
+//   app.use(bodyParser.urlencoded({extended:true}))
+//   app.use(app.router);
+// });
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+
 app.get("/", cors(), function(req, res) {
   res.json({ message: "Express server is running " });
 });
+
+// TODO : DELETE LATER
+app.put("/someRoute", function(req, res) {
+  console.log(req.body);
+  res.json({ status: 'SUCCESS' ,items:req.body });
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

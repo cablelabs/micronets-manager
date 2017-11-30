@@ -165,14 +165,6 @@
         }
       }
     },
-    // created () {
-    //   console.log('\n CREATED')
-    //   // return this.$store.dispatch('fetchMicronets')
-    //   return this.fetchMicronets()
-    // },
-    // init () {
-    //   console.log('\n INIT')
-    // },
     mounted () {
       console.log('\n MOUNTED')
       // return this.$store.dispatch('fetchMicronets')
