@@ -2,41 +2,22 @@ var _ = require('lodash')
 var axios = require('axios')
 var Micronets = require('../models/micronet')
 var utils = require('../utils')
-var redisConfig = require('../../config/default.json').redis
-var NRP = require('node-redis-pubsub')
-var nrp = new NRP(redisConfig)
+var config = require('../../config/default.json')
 var cors = require('cors')
-const dummyData = {
-  'subnets': [{
-    'subnetId': '60a271d3-5856-4d7f-8e57-8cf7c88d6d3d',
-    'subnetName': 'avast-lamas-pretences-beekeeper-brig',
-    'ipv4': {'network': '192.168.1.0', 'netmask': '255.255.255.0', 'gateway': '192.168.1.1'},
-    'deviceList': [{
-      'timestampUtc': '20171128T045252.031Z',
-      'deviceId': '7d404c00e6909f9e8bab11f93247dead67e356808cd777bda81e7b3eaf4d58bc',
-      'deviceName': 'landscapes.jamestown.taiwanese.snowdrifts',
-      'deviceDescription': 'bother caroms pilaf eta saddles gibbeting kitchenettes theorems tailcoats',
-      'mac': {'eui48': '96DD541A4C16'},
-      'ipv4': {'host': '192.168.1.2'}
-    }, {
-      'timestampUtc': '20171128T045252.032Z',
-      'deviceId': '6c7a4708e4e2de1950e05c7c043c6a9d6f7a51e577af3c529553647a750934e8',
-      'deviceName': 'lott.flours.feasts.distinctive.lu',
-      'deviceDescription': 'handfuls head mashes initiatives aback stove diagramed brigandages',
-      'mac': {'eui48': '7A1D70648E95'},
-      'ipv4': {'host': '192.168.1.3'}
-    }]
-  }],
-  'logEvents': ['promotes tome muddy inspectors misdiagnose', 'departmentalized', 'tottering domineered evisceration faded Altair utilitarians nightclothes', 'PowerPoints shortcomings', 'Delawares scorpion Hart']
-}
+
+const {redis , odl , channels} = config;
+
+var NRP = require('node-redis-pubsub')
+var nrp = new NRP(redis)
 
 module.exports = (app) => {
 
   app.get('/initialize/:subnets/:hosts', cors(), (req, res, next) => {
 
+    const { host, port , initializeUrl } = odl;
     const initialize = axios({
       method: 'get',
-      url: `http://127.0.0.1:18080/odl/mdl/test/publish/${req.params.subnets}/${req.params.hosts}`
+      url: `${host}:${port}/${initializeUrl}/${req.params.subnets}/${req.params.hosts}`
     })
       .then(function (response) {
         console.log('\n AXIOS RESPONSE  : ' + JSON.stringify(response.data))
@@ -99,6 +80,7 @@ module.exports = (app) => {
   })
 
   /* Create */
+
   app.post('/micronet', cors(), (req, res) => {
 
     var newMicronet = new Micronets(req.body)
@@ -119,7 +101,6 @@ module.exports = (app) => {
     console.log('\n URL : ' + JSON.stringify(url))
 
     // AXIOS POST REQUEST
-
     // axios({
     //   method: 'post',
     //   url: url,
@@ -167,14 +148,6 @@ module.exports = (app) => {
   /* Read */
 
   app.get('/micronets', cors(), (req, res) => {
-
-    console.log('\n inside get micronets')
-
-    // nrp.on('MM:MDL_1.0.0',function(data){
-    //   console.log('\n\n\n MM:MDL_1.0.0 Data' + JSON.stringify(data));
-    //   res.json(data)
-    // });
-
     Micronets.find((err, micronets) => {
       if (err) {
         res.json({statusCode: 500, error: err})

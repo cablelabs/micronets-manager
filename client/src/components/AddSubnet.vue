@@ -1,7 +1,9 @@
 <template>
-  <v-container row wrap>
-    <v-card flat class="json-input-text">
-      <p>{{micronet}}</p>
+  <v-content fluid class="app">
+  <v-container row grow wrap >
+    <v-app id="app" class="app" >
+    <Layout></Layout>
+    <v-card flat class="json-input-text" color="#fafafa">
       <v-card-title class="orange--text card-title"> ADD SUBNETS / DEVICES </v-card-title>
       <v-card-text>
         <v-form ref="form">
@@ -22,17 +24,21 @@
         </v-form>
       </v-card-text>
     </v-card>
+    </v-app>
   </v-container>
+  </v-content>
 </template>
 
 <script>
   import { mapState, mapActions } from 'vuex'
-
+  import Layout from './Layout.vue'
   export default {
-    data: {
+    components: { Layout },
+    name: 'AddSubnet',
+    data: () => ({
       someValue: '',
       someName: ''
-    },
+    }),
     computed: {
       ...mapState(['micronet'])
     },
@@ -52,14 +58,6 @@
         const inputJson = this.$refs.someName.$el.value
         console.log('\n SUBMIT inputJson : ' + JSON.stringify(inputJson))
         this.updateMicronets({id: this.micronet._id, data: inputJson})
-        // if (this.$refs.form.validate()) {
-          // Native form submission is not yet supported
-          // axios.put(`/api/micronets/${this.micronet._id}`, {
-          //   json: inputJson
-          // }).then((response) => {
-          //   console.log('\n AXIOS PUT MICRONETS RESPONSE : ' + JSON.stringify(response))
-          // })
-        // }
       },
       clear () {
         this.$refs.form.reset()
@@ -78,7 +76,7 @@
 <style lang="stylus" scoped>
   @import '../style/main'
   .json-input-text {
-    background-color: white;
+    background-color: #fafafa;
     margin-left: 5%;
     margin-right: 5%;
     margin-top: 5%;
@@ -97,10 +95,21 @@
   .input-textarea {
     width: 80%
     height:50%
+    border:2px solid #dadada;
+    border-radius:7px;
   }
   .input-btns {
     display: block
     margin-top: 1%
     margin-left:30%
   }
+  .toolbar-title {
+    font-size: 20px;
+    font-family: "Roboto";
+  }
+  .app {
+    background-color:$theme.background ;
+  }
+
 </style>
+

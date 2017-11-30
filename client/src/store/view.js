@@ -39,7 +39,7 @@ export const actions = {
     const url = `${process.env.BASE_URL}/micronets/${id}`
    // const mdlUrl = 'http://127.0.0.1:18080/odl/mdl/test/publish?subnets=1&hosts=2'
     console.log('\n ACTION UPDATE MICRONETS URL : ' + JSON.stringify(url))
-    // POST INTERNAL
+
     axios({
       method: 'post',
       url: url,

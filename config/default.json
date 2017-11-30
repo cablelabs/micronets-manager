@@ -13,7 +13,8 @@
   },
   "odl":{
     "port": 18080,
-    "host": "http://127.0.0.1"
+    "host": "http://127.0.0.1",
+    "initializeUrl": "odl/mdl/test/publish"
   },
   "channels":{
     "publish":"MTC:MDL_1.0.0",
