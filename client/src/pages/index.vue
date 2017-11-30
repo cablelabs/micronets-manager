@@ -6,10 +6,15 @@
         <!--<div>-->
           <!--<p><strong> MICRONET : </strong>{{micronet}}</p>-->
         <!--</div>-->
-        <template v-for="(item,index) in micronet">
+        <template v-if="micronet.length > 0" v-for="(item,index) in micronet">
           <template v-for="(subnetItem,subIndex) in item.subnets">
             <SubnetCard :subnet="subnetItem" :key="subIndex"></SubnetCard>
           </template>
+        </template>
+        <template v-if="micronet.length == 0">
+          <v-card>
+            <v-card-text class="no-subnets">No Micro-nets found </v-card-text>
+          </v-card>
         </template>
       </v-app>
     </v-container>
@@ -23,7 +28,6 @@
 <script>
   import SubnetCard from '../components/SubnetCard.vue'
   import Layout from '../components/Layout.vue'
-  import Moment from 'moment'
   import { mapState, mapActions } from 'vuex'
 
   export default {
@@ -41,20 +45,9 @@
       }
     }),
     methods: {
-      ...mapActions(['fetchMicronets']),
-      formatLogMessage (log) {
-       // console.log('\n log : ' + JSON.stringify(log))
-        if (log.indexOf(':') > -1) {
-          var utcLogDateTimeStamp = log.split(':')[0]
-          return Moment(utcLogDateTimeStamp).format('lll').concat(' ').concat(log.split(':')[1])
-        } else {
-          return Moment(new Date()).format('lll').concat(' : ').concat(log)
-        }
-      }
+      ...mapActions(['fetchMicronets'])
     },
     mounted () {
-      console.log('\n MOUNTED')
-      // return this.$store.dispatch('fetchMicronets')
       return this.fetchMicronets()
     }
   }

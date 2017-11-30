@@ -14,7 +14,7 @@
               <v-icon>more_vert</v-icon>
             </v-btn>
           </div>
-          <v-divider v-if="index + 1 < devices.length" :key="index" inset="false" class="list-divider"></v-divider>
+          <v-divider v-if="index + 1 < devices.length" :key="index" :inset="inset" class="list-divider"></v-divider>
         </template>
       </v-list>
     </v-container>
@@ -27,6 +27,7 @@
     data () {
       console.log('\n DEVICE CARD DEVICES PROP : ' + JSON.stringify(this.devices))
       return {
+        inset: false
       }
     },
     props: {
@@ -48,13 +49,13 @@
     width: 5%;
     margin-left: 5%;
     margin-right: 5%;
-    margin-top: 1%;
+    margin-top: 25px;
   }
   .more-icon {
     color: $theme.grey;
     background-color: $theme.white;
     margin-left: 5%;
-    margin-top: 1%;
+    margin-top: 25px;
   }
 
   .device-row {
@@ -68,7 +69,7 @@
 
   .device-title {
     display: inline-block;
-    width: 25%;
+    width: 35%;
     height: 75px;
     padding-top: 1%;
     /*margin: 55px 10px 10px 10px;*/
@@ -77,7 +78,7 @@
   }
   .device-item {
     width: 30%;
-    margin: 25px;
+    margin: 30px;
   }
   .device-list {
     min-width: 100%;
@@ -85,6 +86,8 @@
   }
   .list-divider {
     margin-left: 2px;
+    margin-top: 20px;
+    margin-bottom: 10px
   }
 
 </style>

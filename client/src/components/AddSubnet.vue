@@ -11,7 +11,7 @@
             <v-card-text>
               <v-form ref="form">
                 <textarea-autosize class="input-textarea"
-                                   placeholder="Add JSON to add subnet / device"
+                                   placeholder="JSON to add subnet / device"
                                    ref="someName"
                                    v-model="someValue"
                                    :autosize="true"
@@ -21,7 +21,7 @@
                                    @input.native="onInputChange">
                 </textarea-autosize>
                 <div class="input-btns">
-                  <v-btn @click="submit">submit</v-btn>
+                  <v-btn @click="submit(micronet[0]._id)">submit</v-btn>
                   <v-btn class="btn" @click="clear">clear</v-btn>
                 </div>
               </v-form>
@@ -32,6 +32,10 @@
         </v-layout>
       </v-container>
     </v-app>
+    <v-footer app>
+      <span class="black--text">&copy; 2017 CableLabs.</span>
+      <v-spacer></v-spacer>
+    </v-footer>
   </v-content>
 </template>
 
@@ -51,20 +55,14 @@
     },
     methods: {
       ...mapActions(['fetchMicronets', 'updateMicronets']),
-      onInputChange () {
-        console.log('\n onInputChange called')
-        const jsonValue = this.$refs.someName.$el.value
-        console.log('\n JSON VALUE onInputChange : ' + JSON.stringify(jsonValue))
-        // console.log('\n V-MODEL someValue onInputChange  : ' + JSON.stringify(this.someValue))
-      },
-      onBlurTextarea () {
-        console.log('\n onBlurTextarea called')
-      },
-      submit () {
+      onInputChange () {},
+      onBlurTextarea () {},
+      submit (micronetId) {
+        console.log('\n SUBMIT micronetID : ' + JSON.stringify(micronetId))
         console.log('\n SUBMIT this.$refs.someName.$el.value : ' + JSON.stringify(this.$refs.someName.$el.value))
         const inputJson = this.$refs.someName.$el.value
         console.log('\n SUBMIT inputJson : ' + JSON.stringify(inputJson))
-        this.updateMicronets({id: this.micronet._id, data: inputJson})
+        this.updateMicronets({id: micronetId, data: inputJson})
       },
       clear () {
         this.$refs.form.reset()
@@ -72,7 +70,6 @@
       }
     },
     mounted () {
-      console.log('\n MOUNTED ADD SUBNET')
       return this.fetchMicronets()
     }
   }
@@ -92,7 +89,6 @@
     min-width: 90%;
     min-height: 50%;
   }
-
   .card-title {
     margin-left: 33%
     text-align: center !important
@@ -100,32 +96,27 @@
     font-size: 20px
     color: darkred !important;
   }
-
   .input-textarea {
     width: 80%
     height: 50%
     border: 2px solid #dadada;
     border-radius: 7px;
   }
-
   .input-btns {
     display: block
     margin-top: 2%
     margin-left: 25%
     margin-right: 25%
   }
-
   .btn {
     margin-left: 10%
   }
-
   .toolbar-title {
     font-size: 20px;
     font-family: "Roboto";
   }
-
   .app {
-    background-color: '#fafafa';
+    background-color:  $theme.background;
   }
 
 </style>

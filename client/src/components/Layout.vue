@@ -16,7 +16,7 @@
                   <v-icon class="custom-icon">close</v-icon>
                 </v-btn>
               </v-toolbar>
-              <v-list>
+              <v-list v-if="micronet.length > 0">
                 <template v-for="(message,index) in micronet[0].logEvents">
                   <div class="message-list">
                     <span class="messages" >{{ formatLogMessage(message) }}</span>

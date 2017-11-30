@@ -33,15 +33,14 @@ export const actions = {
         return data
       })
   },
-  updateMicronets ({ commit }, {dbId, data}) {
+  updateMicronets ({ commit }, {id, data}) {
     console.log('\n\n ACTIONS UPDATE MICRO-NETS ID : ' + JSON.stringify(id) + '\t\t DATA : ' + JSON.stringify(data))
-    const id = '5a1ceba4b2b1903f62048235'
     const url = `${process.env.BASE_URL}/micronets/${id}`
    // const mdlUrl = 'http://127.0.0.1:18080/odl/mdl/test/publish?subnets=1&hosts=2'
     console.log('\n ACTION UPDATE MICRONETS URL : ' + JSON.stringify(url))
 
     axios({
-      method: 'post',
+      method: 'put',
       url: url,
       data: data,
       crossDomain: true,
@@ -61,7 +60,6 @@ export const actions = {
     //   headers: {'Content-type': 'application/json'}
     // })
     //   .then(response => {
-    //     console.log('\n UPDATE MICRONETS AXIOS RESPONSE : ' + JSON.stringify(response))
     //     const { data } = response
     //     // commit('setMicronets', data)
     //     return data
