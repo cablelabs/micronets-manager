@@ -26,22 +26,21 @@
 </template>
 
 <script>
-    import DeviceCard from '../components/DeviceCard'
-    import AddSubnet from '../components/AddSubnet.vue'
+import DeviceCard from '../components/DeviceCard'
 
-    export default {
-      components: { DeviceCard, AddSubnet },
-      name: 'SubnetCard',
-      data () {
-        console.log('\n SUBNET CARD SUBNET PROPS : ' + JSON.stringify(this.subnet))
-        return {
-          show: false
-        }
-      },
-      props: {
-        subnet: Object
-      }
+export default {
+  components: { DeviceCard },
+  name: 'SubnetCard',
+  data () {
+    console.log('\n SUBNET CARD SUBNET PROPS : ' + JSON.stringify(this.subnet))
+    return {
+      show: false
     }
+  },
+  props: {
+    subnet: Object
+  }
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

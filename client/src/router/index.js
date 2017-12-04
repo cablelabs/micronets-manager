@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Home from '@/pages'
-import AddSubnet from '../components/AddSubnet'
+import Home from '@/pages/home'
+import AddSubnet from '@/pages/add-subnet'
 Vue.use(Router)
 
 export default new Router({

@@ -10,10 +10,24 @@ import Vuelidate from 'vuelidate'
 import store from './store'
 import VueTextareaAutosize from 'vue-textarea-autosize'
 
-Vue.use(Vuelidate)
-Vue.use(Vuetify)
-Vue.use(VueTextareaAutosize)
 Vue.config.productionTip = false
+Vue.use(Vuelidate)
+Vue.use(VueTextareaAutosize)
+Vue.use(Vuetify, {
+  theme: {
+    primary: '#264A5B',
+    accent: '#EB5646',
+    secondary: '#EB5646',
+    primaryDark: '#002232',
+    background: '#fafafa',
+    white: '#FFFFFF',
+    black: '#000000',
+    message: '#757575',
+    warning: '#ffa000',
+    error: '#d50000',
+    success: '#81c784'
+  }
+})
 
 /* eslint-disable no-new */
 new Vue({
