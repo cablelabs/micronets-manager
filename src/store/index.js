@@ -4,7 +4,6 @@ const axios = require('axios')
 
 const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id'])
 
-
 class Store {
   constructor(context) {
     this.publish = context.publish
@@ -20,10 +19,7 @@ class Store {
     return this[methodName]({ dispatch: this.dispatch }, data)
   }
   initialize ({ dispatch }) {
-    return Promise.all([
-      dispatch('connectToMtc'),
-      dispatch('checkForMockMicronet', { body: { subnets: 3, hosts: 3 } })
-    ])
+    return dispatch('connectToMtc')
   }
   callToMtc ({ dispatch }, { message } = {}) {
     const { publish, subscribe } = this
@@ -43,16 +39,10 @@ class Store {
       return message
     })
   }
-  checkForMockMicronet ({ dispatch }, { body }) {
+  createMockMicronet ({ dispatch }, { body }) {
     const { odl } = this.config
-    return Micronets.find().exec().then(
-      list => {
-        if (list.length) return true
-        return axios(`${odl.host}:${odl.port}/${odl.initializeUrl}/${body.subnets}/${body.hosts}`)
-          .then(message => dispatch('upsertMicronet', { body: message.data } ))
-      },
-      console.error
-    )
+    return axios(`${odl.host}:${odl.port}/${odl.initializeUrl}/${body.subnets}/${body.hosts}`)
+      .then(message => dispatch('upsertMicronet', { body: message.data } ))
   }
   upsertMicronet ({ dispatch }, { body, params = {} }) {
     const message = Object.assign(omitOperationalStateMeta(body), { timestampUtc: (new Date()).toISOString() })
