@@ -1,58 +1,63 @@
-const path = require('path');
-const express= require('express')
-const compress = require('compression');
-var methodOverride = require('method-override')
-const cors = require('cors');
-const helmet = require('helmet');
-const favicon = require('serve-favicon');
-const bodyParser = require('body-parser');
-const logger = require('morgan');
-const mongoose = require('mongoose');
-const dbConfig = require('../config/default.json').mongodb
-mongoose.connect('mongodb://localhost/micronets')
-const app = express();
-const micronets = require('./services/micronets')(app);
-const port = 3000
+const path = require('path')
+const express = require('express')
+const compress = require('compression')
+const cors = require('cors')
+const helmet = require('helmet')
+const favicon = require('serve-favicon')
+const bodyParser = require('body-parser')
+const logger = require('morgan')
+const NRP = require('node-redis-pubsub')
+const connectToDb = require('./services/db')
+// const methodOverride = require('method-override')
 
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended:true}))
-//Handles put requests
-// app.use(methodOverride());
+const ENV = process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
+const config = require('../config/default.json')[ENV]
 
-// Enable CORS, security, compression, favicon and body parsing
-app.use(cors());
-app.use(logger('dev'));
-app.use(helmet());
-app.use(compress());
+// CONNECT
+const messenger = new NRP(config.redis)
+const publish = data => messenger.emit(config.channels.publish, data)
+const subscribe = cb => messenger.on(config.channels.subscribe, cb)
+const context = { config, publish, subscribe }
+const store = require('./store')(context)
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+return Promise.all([
+  connectToDb(config.mongodb),
+  store.dispatch('initialize')
+])
+.then(() => store.dispatch('loadDefaultMicronet'))
+.then(connectionHandler, console.error)
 
-app.get("/", cors(), function(req, res) {
-  res.json({ message: "Express server is running " });
-});
+function connectionHandler () {
+  const app = express()
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
+  // Enable CORS, security, compression, favicon and body parsing
+  app.use(cors())
+  app.use(logger('dev'))
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(helmet())
+  app.use(compress())
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  // Handles put requests
+  // app.use(methodOverride());
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+  function handleRequest (actionName) {
+    return (req, res) => store.dispatch(actionName, { body: req.body, params: req.params }).then(
+      result => { res.status(result.statusCode || 200).json(result.data) },
+      error => { res.status(error.statusCode || 500).json({ error }) }
+    )
+  }
 
-var server = app.listen(port,() => {
-console.log('> Starting dev server...')
-console.log('\n Server running at port '+ port)
+  app.post('/micronets', handleRequest('upsertMicronet'))
+  app.put('/micronets/:id', handleRequest('upsertMicronet'))
+  app.get('/micronets', handleRequest('queryMicronets'))
+  app.get('/micronets/:id', handleRequest('getMicronetById'))
 
-})
+  app.get('/', cors(), function (req, res) {
+    res.json({ message: 'Express server is running ' })
+  })
+
+  const server = app.listen(env.port, () => {
+    console.log('\n Server running at port ' + env.port)
+  })
+}

@@ -29,22 +29,23 @@
     components: {Layout},
     name: 'AddSubnet',
     data: () => ({
-      textAreaInput: ''
+      textAreaInput: '',
+      saving: false
     }),
     computed: {
       ...mapState(['micronets'])
     },
     methods: {
-      ...mapActions(['fetchMicronets', 'updateMicronets']),
+      ...mapActions(['fetchMicronets', 'upsertMicronet']),
       onInputChange () {},
       onBlurTextarea () {},
       submit (micronetId) {
-        // const inputJson = this.$refs.textAreaInput.$el.value
-        this.updateMicronets({ id: micronetId, data: this.textAreaInput })
+        this.saving = true
+        return this.upsertMicronet({ id: micronetId, data: this.textAreaInput })
+          .then(() => { this.saving = false })
       },
       clear () {
         this.textAreaInput = ''
-        // this.$refs.textAreaInput.$el.value = ''
       }
     },
     mounted () {
