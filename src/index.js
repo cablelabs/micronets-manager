@@ -24,7 +24,6 @@ return Promise.all([
   connectToDb(config.mongodb),
   store.dispatch('initialize')
 ])
-.then(() => store.dispatch('loadDefaultMicronet'))
 .then(connectionHandler, console.error)
 
 function connectionHandler () {
@@ -57,7 +56,7 @@ function connectionHandler () {
     res.json({ message: 'Express server is running ' })
   })
 
-  const server = app.listen(env.port, () => {
-    console.log('\n Server running at port ' + env.port)
+  const server = app.listen(config.port, () => {
+    console.log('\n Server running at port ' + config.port)
   })
 }

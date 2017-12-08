@@ -21,15 +21,14 @@ class Store {
   }
   initialize ({ dispatch }) {
     return Promise.all([
-      dispatch('connectToMtc').then(() => { console.log('connected to MTC!') })
-      // dispatch('checkForMockMicronet', { body: { subnets: 3, hosts: 3 } })
+      dispatch('connectToMtc'),
+      dispatch('checkForMockMicronet', { body: { subnets: 3, hosts: 3 } })
     ])
   }
   callToMtc ({ dispatch }, { message } = {}) {
     const { publish, subscribe } = this
     return new Promise(resolve => {
       function handler (message) {
-        console.log('handler', message);
         unsubscribe(handler)
         resolve(message)
       }
@@ -50,7 +49,7 @@ class Store {
       list => {
         if (list.length) return true
         return axios(`${odl.host}:${odl.port}/${odl.initializeUrl}/${body.subnets}/${body.hosts}`)
-          .then(message => dispatch('upsertMicronet', { body: message } ))
+          .then(message => dispatch('upsertMicronet', { body: message.data } ))
       },
       console.error
     )
