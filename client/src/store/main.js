@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 const micronetsUrl = `${process.env.BASE_URL}/micronets`
+const apiInit = { crossDomain: true, headers: { 'Content-type': 'application/json' } }
 
 export const initialState = {
   micronets: []
@@ -21,16 +22,17 @@ export const mutations = {
 }
 
 export const actions = {
-  fetchMicronets ({ commit, dispatch }) {
-    const init = {
-      method: 'get',
-      url: micronetsUrl,
-      crossDomain: true,
-      headers: { 'Content-type': 'application/json' }
-    }
+  initializeMicronets ({ commit }) {
+    const init = { ...apiInit, method: 'post', url: `${process.env.BASE_URL}/create-mock-micronet`, data: { subnets: 1, hosts: 3 } }
     return axios(init).then(({ data }) => {
-      if (!data.items.length) return dispatch('initializeMicronets', init)
-      commit('setMicronets', data.items)
+      commit('setMicronets', [data])
+    })
+  },
+  fetchMicronets ({ commit, dispatch }) {
+    const init = { ...apiInit, method: 'get', url: micronetsUrl }
+    return axios(init).then(({ data }) => {
+      if (!data.length) return dispatch('initializeMicronets', init)
+      commit('setMicronets', data)
       return data
     })
   },

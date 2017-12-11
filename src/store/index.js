@@ -12,7 +12,7 @@ class Store {
     this.dispatch = this.dispatch.bind(this)
   }
   dispatch (methodName, data) {
-    console.log('dispatch', methodName);
+    console.log('***dispatch***', methodName);
     if (typeof this[methodName] !== 'function') {
       throw new Error(`Dispatched unknown method: ${methodName}`)
     }
@@ -21,12 +21,13 @@ class Store {
   initialize ({ dispatch }) {
     return dispatch('connectToMtc')
   }
-  callToMtc ({ dispatch }, { message } = {}) {
+  callToMtc ({ dispatch }, message) {
     const { publish, subscribe } = this
     return new Promise(resolve => {
-      function handler (message) {
+      function handler (response) {
+        if (!response) return void 0
         unsubscribe(handler)
-        resolve(message)
+        resolve(response)
       }
       const unsubscribe = subscribe(handler)
       if (message) publish(message)
@@ -46,7 +47,7 @@ class Store {
   }
   upsertMicronet ({ dispatch }, { body, params = {} }) {
     const message = Object.assign(omitOperationalStateMeta(body), { timestampUtc: (new Date()).toISOString() })
-    return dispatch('callToMtc', { message }).then(response => {
+    return dispatch('callToMtc', message).then(response => {
       if (response.status === 1000) {
         const error = new Error('Failed to create micronet')
         error.logEvents = response.logEvents
@@ -58,10 +59,10 @@ class Store {
     })
   }
   queryMicronets () {
-    return Micronets.find().exec()
+    return Micronets.find().exec().then(data => ({ data }))
   }
   getMicronetById (_, { params }) {
-    return Micronets.findById(params.id)
+    return Micronets.findById(params.id).then(data => ({ data }))
   }
 }
 
