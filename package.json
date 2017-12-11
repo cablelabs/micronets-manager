@@ -39,6 +39,7 @@
     "node-redis-pubsub": "^1.0.3",
     "nodemon": "^1.12.1",
     "path": "^0.12.7",
+    "ramda": "^0.25.0",
     "redis": "^2.8.0",
     "serve-favicon": "^2.4.5"
   }

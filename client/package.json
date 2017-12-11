@@ -17,6 +17,7 @@
     "mongodb": "^2.2.33",
     "mongoose": "^4.13.4",
     "nodemon": "^1.12.1",
+    "ramda": "^0.25.0",
     "vue": "^2.5.3",
     "vue-router": "^2.7.0",
     "vue-textarea-autosize": "^1.0.3",
