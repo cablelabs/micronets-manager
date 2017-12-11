@@ -1,8 +1,8 @@
 <template>
   <Layout>
-    <template v-if="micronets.length > 0" v-for="(item,index) in micronets">
-      <template v-for="(subnetItem,subIndex) in item.subnets">
-        <SubnetCard :subnet="subnetItem" :key="subIndex"></SubnetCard>
+    <template v-if="micronets.length > 0" v-for="micronet in micronets">
+      <template v-for="subnet in micronet.subnets">
+        <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id"></SubnetCard>
       </template>
     </template>
     <template v-if="micronets.length == 0">

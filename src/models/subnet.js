@@ -1,4 +1,5 @@
 var mongoose = require('mongoose')
+const { deviceSchema } = require('./device')
 
 module.exports.subnetSchema = mongoose.Schema({
   subnetId: { type: String },
@@ -8,16 +9,5 @@ module.exports.subnetSchema = mongoose.Schema({
     netmask: { type: String },
     gateway: { type: String }
   },
-  deviceList: [{
-    timestampUtc: { type: String },
-    deviceId: { type: String },
-    deviceName: { type: String },
-    deviceDescription: { type: String },
-    mac: {
-      eui48: { type: String }
-    },
-    ipv4: {
-      host: { type: String }
-    }
-  }]
-});
+  deviceList: [deviceSchema]
+}, { _id : false });

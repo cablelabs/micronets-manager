@@ -43,7 +43,10 @@ function connectionHandler () {
   function handleRequest (actionName) {
     return (req, res) => store.dispatch(actionName, { body: req.body, params: req.params }).then(
       result => { res.status(result.statusCode || 200).json(result.data) },
-      error => { res.status(error.statusCode || 500).json({ error }) }
+      error => {
+        console.log('IN ERROR HANDLER', error)
+        res.status(error.statusCode || 500).send(error.message)
+      }
     )
   }
 

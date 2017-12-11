@@ -1,39 +1,37 @@
 <template>
-    <v-container row wrap>
-      <v-list class="device-list">
-        <template v-for="(item, index) in devices">
-          <div class="device-row" :key="index">
-            <span class="device-title">
-              <h3>{{ item.deviceName }}</h3>
-              <p>{{ item.deviceDescription }}</p>
-            </span>
-            <span class="device-item">{{ item.mac.eui48}}</span>
-            <span class="device-item">{{ item.ipv4.host }}</span>
-            <v-btn class="configure-btn" disabled>Configure</v-btn>
-            <v-btn flat icon class="more-icon" color="grey">
-              <v-icon>more_vert</v-icon>
-            </v-btn>
-          </div>
-          <v-divider v-if="index + 1 < devices.length" :key="index" :inset="inset" class="list-divider"></v-divider>
-        </template>
-      </v-list>
-    </v-container>
+  <div class="device-row">
+    <span class="device-title">
+      <h3>{{ device.deviceName }}</h3>
+      <p>{{ device.deviceDescription }}</p>
+    </span>
+    <span class="device-item">{{ device.mac.eui48}}</span>
+    <span class="device-item">{{ device.ipv4.host }}</span>
+    <v-btn class="configure-btn" @click.native.stop="configureMicronet">Configure</v-btn>
+    <v-btn flat icon class="more-icon" color="grey">
+      <v-icon>more_vert</v-icon>
+    </v-btn>
+  </div>
 </template>
 
 <script>
-  export default {
-    components: {},
-    name: 'DeviceCard',
-    data () {
-      return {
-        inset: false
-      }
-    },
-    props: {
-      devices: Array
-    },
-    methods: {}
+import { mapMutations } from 'vuex'
+
+export default {
+  components: {},
+  name: 'DeviceCard',
+  props: {
+    device: Object,
+    subnetId: String,
+    micronetId: String
+  },
+  methods: {
+    ...mapMutations(['setEditTargetIds']),
+    configureMicronet () {
+      this.setEditTargetIds({ micronetId: this.micronetId, subnetId: this.subnetId, deviceId: this.device.deviceId })
+      this.$router.push('/configure-micronet')
+    }
   }
+}
 </script>
 
 

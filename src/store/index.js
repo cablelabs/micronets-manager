@@ -2,7 +2,7 @@ const Micronets = require('../models/micronet')
 const omit = require('ramda/src/omit')
 const axios = require('axios')
 
-const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id'])
+const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v'])
 
 class Store {
   constructor(context) {
@@ -51,6 +51,7 @@ class Store {
       if (response.status === 1000) {
         const error = new Error('Failed to create micronet')
         error.logEvents = response.logEvents
+        error.statusCode = 400
         throw error
       }
       return params.id

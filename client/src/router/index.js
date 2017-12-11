@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from '@/pages/home'
-import AddSubnet from '@/pages/add-subnet'
+import ConfigureMicronet from '@/pages/configure-micronet'
 Vue.use(Router)
 
 export default new Router({
@@ -12,9 +12,9 @@ export default new Router({
       component: Home
     },
     {
-      path: '/add/subnet',
-      name: 'AddSubnet',
-      component: AddSubnet
+      path: '/configure-micronet',
+      name: 'ConfigureMicronet',
+      component: ConfigureMicronet
     }
   ]
 })

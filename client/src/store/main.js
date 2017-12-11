@@ -1,21 +1,33 @@
 import axios from 'axios'
+import { findIndex, propEq, find, lensPath, view, set } from 'ramda'
 
+const setState = prop => (state, value) => { state[prop] = value }
 const micronetsUrl = `${process.env.BASE_URL}/micronets`
 const apiInit = { crossDomain: true, headers: { 'Content-type': 'application/json' } }
 
 export const initialState = {
-  micronets: []
+  micronets: [],
+  editTargetIds: null
 }
 
 export const getters = {
+
+  editTarget (state) {
+    if (!state.editTargetIds) return null
+    const { micronetId, subnetId, deviceId } = state.editTargetIds
+    const micronet = state.micronets.filter(x => x._id === micronetId)[0]
+    const subnet = micronet.subnets.filter(x => x.subnetId === subnetId)[0]
+    return !deviceId ? subnet : subnet.deviceList.filter(x => x.deviceId === deviceId)[0]
+  }
 }
 
 export const mutations = {
-  setMicronets (state, list) {
-    state.micronets = list
+  setMicronets: setState('micronets'),
+  setEditTargetIds (state, { micronetId, subnetId, deviceId }) {
+    state.editTargetIds = { micronetId, subnetId, deviceId }
   },
   replaceMicronet (state, micronet) {
-    const index = state.micronets.findIndex(x => x._id === micronet._id)
+    const index = findIndex(propEq('_id', micronet._id), state.micronets)
     if (index < 0) return state.micronets.push(micronet)
     return state.micronets.splice(index, 1, micronet)
   }
@@ -45,7 +57,19 @@ export const actions = {
       headers: { 'Content-type': 'application/json' }
     })
     .then(response => commit('replaceMicronet', response.data))
-    .catch(console.error)
+    .catch(error => {
+      console.log('AXIOS error', error.response)
+    })
+  },
+  saveMicronet ({ state, dispatch }, data) {
+    const { micronetId, subnetId, deviceId } = state.editTargetIds
+    const micronet = find(propEq('_id', micronetId))(state.micronets)
+    const subnetIndex = findIndex(propEq('subnetId', subnetId))(micronet.subnets)
+    const subnetLens = lensPath(['subnets', subnetIndex])
+    if (!deviceId) return dispatch('upsertMicronet', { id: micronetId, data: set(subnetLens, data, micronet) })
+    const deviceIndex = findIndex(propEq('deviceId', deviceId), view(subnetLens, micronet).deviceList)
+    const deviceLens = lensPath(['subnets', subnetIndex, 'deviceList', deviceIndex])
+    return dispatch('upsertMicronet', { id: micronetId, data: set(deviceLens, data, micronet) })
   }
 }
 
