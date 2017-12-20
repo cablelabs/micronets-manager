@@ -1,36 +1,48 @@
 <template>
   <Layout>
-    <template v-if="micronets.length > 0" v-for="micronet in micronets">
+    <template v-for="(micronet, index) in micronets">
+      <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
       <template v-for="subnet in micronet.subnets">
         <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id"></SubnetCard>
       </template>
+      <hr class="mt-4" v-if="index < micronets.length - 1" />
     </template>
-    <template v-if="micronets.length == 0">
+    <template v-if="!micronets.length">
       <v-card>
         <v-card-text class="no-subnets">No Micro-nets found </v-card-text>
       </v-card>
     </template>
+    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px">
+      <AddSubnetForm v-if="editTarget ":data="editTarget" @submit="addSubnet" />
+    </v-dialog>
   </Layout>
 </template>
 
 <script>
-  import SubnetCard from '../components/SubnetCard.vue'
-  import Layout from '../components/Layout.vue'
-  import { mapState, mapActions } from 'vuex'
+  import SubnetCard from '../components/SubnetCard'
+  import Layout from '../components/Layout'
+  import AddSubnetForm from '../components/AddSubnetForm'
+  import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 
   export default {
-    components: { SubnetCard, Layout },
+    components: { SubnetCard, Layout, AddSubnetForm },
     name: 'home',
     computed: {
-      ...mapState(['micronets'])
+      ...mapState(['micronets']),
+      ...mapGetters(['editTarget'])
     },
     data: () => ({
       drawer: false
     }),
     methods: {
-      ...mapActions(['fetchMicronets'])
+      ...mapMutations(['setEditTargetIds']),
+      ...mapActions(['fetchMicronets', 'addSubnet']),
+      openAddMicronet (micronetId) {
+        this.setEditTargetIds({ micronetId })
+      }
     },
     created () {
+      this.setEditTargetIds({})
       return this.fetchMicronets()
     }
   }
