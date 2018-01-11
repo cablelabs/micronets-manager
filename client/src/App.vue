@@ -12,5 +12,6 @@
   }
 </script>
 
-<style>
+<style lang="stylus">
+  @import './style/main.styl'
 </style>
