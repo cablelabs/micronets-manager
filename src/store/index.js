@@ -53,7 +53,7 @@ class Store {
     const message = Object.assign(omitOperationalStateMeta(body), { timestampUtc: this.timestamp() })
     // console.log(JSON.stringify(message, null, 2))
     return dispatch('callToMtc', message).then(response => {
-      if (response.status === 1000) {
+      if (response.status >= 1000) {
         const error = new Error('Failed to create micronet')
         error.logEvents = response.logEvents
         error.statusCode = 400
