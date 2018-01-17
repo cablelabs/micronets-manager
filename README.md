@@ -43,13 +43,13 @@ Please follow the instructions ( https://community.cablelabs.com/wiki/display/~m
 4. Start your server in dev mode
 
     ```
-    npm run server-dev
+    npm run server
     ```
 
 5. Start your client in dev mode
 
     ```
-    npm run client-dev
+    npm run client
     ```
 
 
