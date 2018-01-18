@@ -21,7 +21,7 @@ This project uses Redis, an open source (BSD licensed), in-memory data structure
 
 This project uses MTC , a Java/SpringBoot/Tomcat daemon that serves a NB REST maintenance/debug API and is a SB RESTCONF client to OpenDaylight. MTC converts MTL messages published by the MM.
 
-Please follow the instructions ( https://community.cablelabs.com/wiki/display/~mdeazley/Micronets+Topology+Controller+%28MTC%29+Daemon ) to have MTC jar running locally. mtc-0.2.8.jar is the latest version.Before running the MTC make sure to have a MongoDB and Redis connection.
+Please follow the instructions ( https://community.cablelabs.com/wiki/display/~mdeazley/Micronets+Topology+Controller+%28MTC%29+Daemon ) to have MTC jar running locally. mtc-0.2.8.jar is the latest version.The current url to download the mtc jar is http://impala.cablelabs.com/mdeazley/mtc/. Before running the MTC make sure to have a MongoDB and Redis connection.
 
 ### Getting Started
 
