@@ -7,8 +7,7 @@ The Micronets manager is an application that enables to create / update / view m
 
 ## Development
 
-This project is a full stack Javascript application comprised mainly of [ExpressJS](https://expressjs.com/) and [VueJS](https://vuejs.org/).
-Express, the server logic, is in the `src` folder.  Vue, the UI code, is in the `client` folder.
+This project is a full stack Javascript application comprised mainly of [ExpressJS](https://expressjs.com/) and [VueJS](https://vuejs.org/). Express, the server logic, is in the `src` folder.  Vue, the UI code, is in the `client` folder.
 
 ### Mongo
 
