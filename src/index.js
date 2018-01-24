@@ -9,7 +9,6 @@ const logger = require('morgan')
 const NRP = require('node-redis-pubsub')
 const connectToDb = require('./services/db')
 // const methodOverride = require('method-override')
-
 const ENV = process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
 const config = require('../config/default.json')[ENV]
 
@@ -22,12 +21,13 @@ const store = require('./store')(context)
 
 return Promise.all([
   connectToDb(config.mongodb),
+  connectionHandler(),
   store.dispatch('initialize')
 ])
-.then(connectionHandler, console.error)
+.then(()=> { console.error })
 
 function connectionHandler () {
-  const app = express()
+ const app = express()
 
   // Enable CORS, security, compression, favicon and body parsing
   app.use(cors())
