@@ -9,8 +9,9 @@
       <v-text-field v-model="macAddress" label="Mac Address" />
     </v-card-text>
     <v-card-actions>
-      <v-btn color="primary" flat @click.stop="$emit('cancel')">cancel</v-btn>
+      <v-spacer></v-spacer>
       <v-btn color="primary" @click.stop="submit">Add Subnet</v-btn>
+      <v-spacer></v-spacer>
     </v-card-actions>
   </v-card>
 </template>

@@ -1,7 +1,7 @@
 <template>
   <Layout>
     <template v-for="(micronet, index) in micronets">
-      <v-btn class="mt-4 primary" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
+      <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
       <template v-for="subnet in micronet.subnets">
         <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id"></SubnetCard>
       </template>
@@ -15,8 +15,13 @@
         </v-card-actions>
       </v-card>
     </template>
-    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px">
+    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px" v-model="dialog" transition="dialog-bottom-transition" scrollable>
+      <div class="add-subnet-form">
+      <v-btn icon @click.native="dialog = false" class="close-btn">
+        <v-icon>close</v-icon>
+      </v-btn>
       <AddSubnetForm v-if="editTarget ":data="editTarget" @submit="addSubnet" />
+      </div>
     </v-dialog>
   </Layout>
 </template>
@@ -35,12 +40,14 @@
       ...mapGetters(['editTarget'])
     },
     data: () => ({
+      dialog: false,
       drawer: false
     }),
     methods: {
       ...mapMutations(['setEditTargetIds']),
       ...mapActions(['fetchMicronets', 'addSubnet']),
       openAddMicronet (micronetId) {
+        this.dialog = true
         this.setEditTargetIds({ micronetId })
       }
     },
@@ -66,5 +73,14 @@
     margin-left 43%
     margin-right 40%
     margin-bottom : 5%
+  }
+  .add-subnet-form {
+    background-color white!important
+    min-width 100%
+  }
+  .close-btn {
+    background-color white!important
+    margin-left 90%
+
   }
 </style>
