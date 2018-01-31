@@ -24,7 +24,7 @@ return Promise.all([
   connectionHandler(),
   store.dispatch('initialize')
 ])
-.then(()=> { console.error })
+.then(()=> {}, console.error )
 
 function connectionHandler () {
  const app = express()
