@@ -15,12 +15,12 @@
         </v-card-actions>
       </v-card>
     </template>
-    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px" v-model="dialog" transition="dialog-bottom-transition" scrollable>
+    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px" v-model="dialog"  transition="dialog-bottom-transition" scrollable>
       <div class="add-subnet-form">
       <v-btn icon @click.native="dialog = false" class="close-btn">
         <v-icon>close</v-icon>
       </v-btn>
-      <AddSubnetForm v-if="editTarget ":data="editTarget" @submit="addSubnet" />
+      <AddSubnetForm v-if="editTarget ":data="editTarget" @submit="addSubnet" :parentDialog="dialog" @close="close" />
       </div>
     </v-dialog>
   </Layout>
@@ -49,6 +49,9 @@
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
+      },
+      close (data) {
+        this.dialog = data
       }
     },
     created () {

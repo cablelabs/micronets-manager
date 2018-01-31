@@ -21,6 +21,7 @@ import pick from 'ramda/src/pick'
 
 export default {
   name: 'add-subnet-form',
+  props: ['parentDialog'],
   data () {
     return {
       subnetId: '',
@@ -28,12 +29,15 @@ export default {
       macAddress: '',
       deviceName: '',
       subnetName: '',
-      deviceDescription: ''
+      deviceDescription: '',
+      childDialog: this.parentDialog
     }
   },
   methods: {
     submit () {
       this.$emit('submit', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
+      this.childDialog = !this.childDialog
+      this.$emit('close', this.childDialog)
     }
   }
 }
