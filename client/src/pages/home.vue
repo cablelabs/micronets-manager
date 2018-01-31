@@ -9,11 +9,19 @@
     </template>
     <template v-if="!micronets.length">
       <v-card>
-        <v-card-text class="no-subnets">No Micro-nets found </v-card-text>
+        <v-card-title class="no-subnets">No Micro-nets found</v-card-title>
+        <v-card-actions>
+          <v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>
+        </v-card-actions>
       </v-card>
     </template>
-    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px">
-      <AddSubnetForm v-if="editTarget ":data="editTarget" @submit="addSubnet" />
+    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px" v-model="dialog"  transition="dialog-bottom-transition" scrollable>
+      <div class="add-subnet-form">
+      <v-btn icon @click.native="dialog = false" class="close-btn">
+        <v-icon>close</v-icon>
+      </v-btn>
+      <AddSubnetForm v-if="editTarget ":data="editTarget" @submit="addSubnet" :parentDialog="dialog" @close="close" />
+      </div>
     </v-dialog>
   </Layout>
 </template>
@@ -32,13 +40,18 @@
       ...mapGetters(['editTarget'])
     },
     data: () => ({
+      dialog: false,
       drawer: false
     }),
     methods: {
       ...mapMutations(['setEditTargetIds']),
       ...mapActions(['fetchMicronets', 'addSubnet']),
       openAddMicronet (micronetId) {
+        this.dialog = true
         this.setEditTargetIds({ micronetId })
+      },
+      close (data) {
+        this.dialog = data
       }
     },
     created () {
@@ -52,11 +65,25 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="stylus" scoped>
   .no-subnets {
-    min-height: 300px;
-    text-align: center;
     font-size: 20px;
     font-weight: bold;
     margin-top: 2%;
+    margin-left 40%
+    margin-right 40%
     padding-top: 120px;
+  }
+  .configure-micronet {
+    margin-left 43%
+    margin-right 40%
+    margin-bottom : 5%
+  }
+  .add-subnet-form {
+    background-color white!important
+    min-width 100%
+  }
+  .close-btn {
+    background-color white!important
+    margin-left 90%
+
   }
 </style>
