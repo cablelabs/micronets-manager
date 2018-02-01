@@ -86,11 +86,11 @@ export default {
   methods: {
     submit () {
       this.$emit('submit', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
-      this.childDialog = !this.childDialog
+      this.childDialog = false
       this.$emit('close', this.childDialog)
     },
     close () {
-      this.childDialog = !this.childDialog
+      this.childDialog = false
       this.$emit('close', this.childDialog)
     }
   }
