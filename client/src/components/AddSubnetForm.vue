@@ -1,7 +1,7 @@
 <template>
-  <v-card class="add-subnet-form">
+  <v-card>
     <v-card-text>
-      <v-text-field v-model="subnetId" label="Subnet ID"  @input="$v.subnetId.$touch()" required />
+      <v-text-field v-model="subnetId" label="Subnet ID"  @blur="$v.subnetId.$touch()" required />
       <div>
       <span class="red--text mb-4 mt-3" v-if="!$v.subnetId.required">Subnet ID is required</span>
       <span class="red--text mb-4 mt-3" v-if="!$v.subnetId.minLength">Subnet ID must have at least {{$v.subnetId.$params.minLength.min}} characters.</span>
@@ -31,7 +31,8 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="primary" @click.stop="submit" :disabled=isDisabled >Add Subnet</v-btn>
+      <v-btn color="primary" @click.stop="submit" :disabled=isDisabled class="add-subnet-btn">Add Subnet</v-btn>
+      <v-btn color="primary" @click.stop="close">Close</v-btn>
       <v-spacer></v-spacer>
     </v-card-actions>
   </v-card>
@@ -87,24 +88,20 @@ export default {
       this.$emit('submit', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
       this.childDialog = !this.childDialog
       this.$emit('close', this.childDialog)
+    },
+    close () {
+      this.childDialog = !this.childDialog
+      this.$emit('close', this.childDialog)
     }
   }
 }
 </script>
 
 <style lang="css">
-  add-subnet-form {
-    min-height: auto
+  .add-subnet-btn {
+     margin-right: 10%;
   }
-  error-message {
-    background-color: darkred!important;
-    color: darkred!important;
-  }
-  .error {
-    border-color: darkred;
-    background: white;
-  }
-  .error:focus {
-    outline-color: green;
+  .close-btn {
+    margin-left: 15%;
   }
 </style>
