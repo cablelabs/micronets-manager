@@ -63,11 +63,11 @@ export default {
   validations: {
     subnetId: {
       required,
-      minLength: minLength(16)
+      minLength: minLength(32)
     },
     deviceId: {
       required,
-      minLength: minLength(16)
+      minLength: minLength(32)
     },
     macAddress: {
       required,

@@ -14,6 +14,15 @@
         <v-btn to="/">done</v-btn>
       </div>
     </v-form>
+    <v-snackbar
+      :timeout="timeout"
+      :color="color"
+      :multi-line="mode === 'multi-line'"
+      :vertical="mode === 'vertical'"
+      v-model="toast.show"
+    >
+      {{ toast.value }}
+    </v-snackbar>
   </Layout>
 </template>
 
@@ -26,10 +35,13 @@
     name: 'AddSubnet',
     data: () => ({
       textAreaInput: '',
-      saving: false
+      saving: false,
+      color: 'error',
+      mode: '',
+      timeout: 2000
     }),
     computed: {
-      ...mapState(['editTargetIds']),
+      ...mapState(['editTargetIds', 'toast']),
       ...mapGetters(['editTarget'])
     },
     methods: {
