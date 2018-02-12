@@ -44,7 +44,7 @@ module.exports.Definitions = {
                     properties: {
                       eui48: {
                         type: 'string',
-                        pattern:'^([0-9A-F]{2}){5}([0-9A-F]{2})$' // matches 01:23:45:67:89:AB
+                        pattern:'^([0-9A-F]{2}){5}([0-9A-F]{2})$' // matches 0123456789AB
                       }
                     }
                   }
