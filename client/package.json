@@ -15,8 +15,6 @@
     "babel-polyfill": "^6.26.0",
     "cors": "^2.8.4",
     "moment": "^2.20.1",
-    "mongodb": "^2.2.34",
-    "mongoose": "^4.13.10",
     "nodemon": "^1.14.12",
     "ramda": "^0.25.0",
     "vue": "^2.5.13",

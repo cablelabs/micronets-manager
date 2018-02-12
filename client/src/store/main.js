@@ -71,6 +71,7 @@ export const actions = {
   upsertMicronet ({ commit }, { id, data }) {
     const dataFormatCheck = Object.assign(omitOperationalStateMeta(data), { timestampUtc: (new Date()).toISOString() })
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
+    console.log('\n VALID : ' + JSON.stringify(valid) + '\t\t\t  AJV ERRORS : ' + JSON.stringify(ajv.errors))
     return valid === true ? axios(Object.assign({}, apiInit, {
       method: id ? 'put' : 'post',
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
