@@ -13,7 +13,7 @@ module.exports.Definitions = {
           properties: {
             subnetId: {
               type: 'string',
-              minLength: 32
+              format:'uuid'
             },
             subnetName: {
               type: 'string',
@@ -29,7 +29,7 @@ module.exports.Definitions = {
                   },
                   deviceId: {
                     type: 'string',
-                    minLength: 32
+                    minLength:63
                   },
                   deviceName: {
                     type: 'string',
@@ -43,12 +43,13 @@ module.exports.Definitions = {
                     type: 'object',
                     properties: {
                       eui48: {
-                        type: 'string'
+                        type: 'string',
+                        pattern:'^([0-9A-F]{2}){5}([0-9A-F]{2})$' // matches 01:23:45:67:89:AB
                       }
                     }
                   }
                 },
-                required: ['deviceId', 'deviceName', 'deviceDescription', 'mac']
+                required: ['deviceId', 'deviceName', 'deviceDescription', 'mac','timestampUtc']
               }
             }
           },
