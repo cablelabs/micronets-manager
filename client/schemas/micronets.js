@@ -12,8 +12,7 @@ module.exports.Definitions = {
           type: 'object',
           properties: {
             subnetId: {
-              type: 'string',
-              format:'uuid'
+              type: 'string'
             },
             subnetName: {
               type: 'string',
@@ -29,7 +28,7 @@ module.exports.Definitions = {
                   },
                   deviceId: {
                     type: 'string',
-                    minLength:63
+                    minLength:64
                   },
                   deviceName: {
                     type: 'string',
