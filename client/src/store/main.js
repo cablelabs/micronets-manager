@@ -1,13 +1,20 @@
 import axios from 'axios'
-import { findIndex, propEq, find, lensPath, view, set } from 'ramda'
-
+import { findIndex, propEq, find, lensPath, view, set, omit } from 'ramda'
 const setState = prop => (state, value) => { state[prop] = value }
 const micronetsUrl = `${process.env.BASE_URL}/micronets`
 const apiInit = { crossDomain: true, headers: { 'Content-type': 'application/json' } }
+const Ajv = require('ajv')
+const ajv = new Ajv()
+const Schema = require('../../schemas/micronets')
+const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v'])
 
 export const initialState = {
   micronets: [],
-  editTargetIds: {}
+  editTargetIds: {},
+  toast: {
+    show: false,
+    value: ''
+  }
 }
 
 export const getters = {
@@ -30,6 +37,10 @@ export const mutations = {
     const index = findIndex(propEq('_id', micronet._id), state.micronets)
     if (index < 0) return state.micronets.push(micronet)
     return state.micronets.splice(index, 1, micronet)
+  },
+  setToast (state, { show, value }) {
+    const formattedValue = value.charAt(0).toUpperCase() + value.slice(1)
+    state.toast = { show, value: formattedValue }
   }
 }
 
@@ -58,7 +69,10 @@ export const actions = {
     })
   },
   upsertMicronet ({ commit }, { id, data }) {
-    return axios(Object.assign({}, apiInit, {
+    let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), { timestampUtc: (new Date()).toISOString() })
+    const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
+    console.log('\n VALID : ' + JSON.stringify(valid) + '\t\t\t  AJV ERRORS : ' + JSON.stringify(ajv.errors))
+    return valid === true ? axios(Object.assign({}, apiInit, {
       method: id ? 'put' : 'post',
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
       data
@@ -66,7 +80,7 @@ export const actions = {
     .then(response => commit('replaceMicronet', response.data))
     .catch(error => {
       console.log('AXIOS error', error.response)
-    })
+    }) : commit('setToast', { show: true, value: ajv.errors[0].message })
   },
   saveMicronet ({ state, dispatch }, data) {
     const { micronetId, subnetId, deviceId } = state.editTargetIds

@@ -40,7 +40,8 @@
 
 <script>
 import pick from 'ramda/src/pick'
-import { required, minLength, macAddress } from 'vuelidate/lib/validators'
+import { required, minLength, macAddress, or } from 'vuelidate/lib/validators'
+
 export default {
   name: 'add-subnet-form',
   props: ['parentDialog'],
@@ -63,24 +64,27 @@ export default {
   validations: {
     subnetId: {
       required,
-      minLength: minLength(16)
+      minLength: minLength(32)
     },
     deviceId: {
       required,
-      minLength: minLength(16)
+      minLength: minLength(32)
     },
     macAddress: {
       required,
-      macAddress: macAddress(':')
+      macAddress: or(macAddress(':'), macAddress(''))
     },
     deviceName: {
-      required
+      required,
+      minLength: minLength(1)
     },
     subnetName: {
-      required
+      required,
+      minLength: minLength(1)
     },
     deviceDescription: {
-      required
+      required,
+      minLength: minLength(1)
     }
   },
   methods: {

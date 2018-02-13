@@ -10,8 +10,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "npm install && node src/",
-    "client": "cd client && npm install && npm run dev",
+    "server": "npm install && nodemon src/",
+    "client": "cd client  && nodemon client/ && npm install && npm run dev",
     "build": "cd client && npm install && npm run build"
   },
   "repository": {
@@ -31,13 +31,13 @@
     "express": "^4.16.2",
     "helmet": "^3.10.0",
     "jade": "^1.11.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "method-override": "^2.3.10",
     "mongodb": "^2.2.34",
-    "mongoose": "^4.13.9",
+    "mongoose": "^4.13.10",
     "morgan": "^1.9.0",
     "node-redis-pubsub": "^1.0.3",
-    "nodemon": "^1.14.11",
+    "nodemon": "^1.14.12",
     "path": "^0.12.7",
     "ramda": "^0.25.0",
     "redis": "^2.8.0",
