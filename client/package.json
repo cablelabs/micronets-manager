@@ -58,7 +58,7 @@
     "ora": "^1.4.0",
     "rimraf": "^2.6.0",
     "semver": "^5.5.0",
-    "shelljs": "^0.7.6",
+    "shelljs": "^0.7.8",
     "stylus": "^0.54.5",
     "stylus-loader": "^3.0.1",
     "url-loader": "^0.5.8",

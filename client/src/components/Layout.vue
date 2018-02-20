@@ -16,10 +16,25 @@
       </v-toolbar>
       <v-list v-if="micronets.length > 0">
         <template v-for="(message,index) in micronets[0].logEvents">
-          <div class="message-list">
+            <v-container
+              style="max-height: max-content"
+              class="scroll-y"
+              id="scroll-target"
+            >
+              <v-layout
+                column
+                align-center
+                justify-center
+                v-scroll:#scroll-target="onScroll"
+                style="height: auto"
+              >
+             <div class="message-list">
             <span class="message--text message-content" >{{ formatLogMessage(message) }}</span>
-            <v-divider v-if="index + 1 < micronets[0].logEvents.length" :key="index" class="message-divider"/>
-          </div>
+            <v-divider v-if="index + 1 < micronets[0].logEvents.length" :key="index" class="message-divider" />
+             </div>
+              </v-layout>
+            </v-container>
+
         </template>
       </v-list>
     </v-navigation-drawer>
@@ -39,7 +54,7 @@
       </v-container>
     </v-content>
     <v-footer app>
-      <span class="black--text">&copy; 2017 CableLabs.</span>
+      <span class="black--text">&copy; 2018 CableLabs.</span>
       <v-spacer></v-spacer>
     </v-footer>
   </v-app>
@@ -54,7 +69,8 @@
       ...mapState(['micronets'])
     },
     data: () => ({
-      drawer: false
+      drawer: false,
+      offsetTop: 0
     }),
     methods: {
       ...mapActions(['fetchMicronets']),
@@ -68,6 +84,9 @@
         } else {
           return Moment(new Date()).format('lll').concat(' : ').concat(log)
         }
+      },
+      onScroll (e) {
+        this.offsetTop = e.target.scrollTop
       }
     }
   }
@@ -84,19 +103,16 @@
     font-family: "Roboto";
     font-size: 10px;
     font-weight: bold;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    margin-left: 10px;
+    margin-top: -15px;
     overflow-wrap: break-word;
     word-wrap: break-word;
     display inline-block
   }
   .message-list {
     margin-left: 0px;
+    margin-top:-3px
     text-align: left;
     width: 100%
-    min-height: 35px;
-
   }
   .message-divider {
     margin-top: 10px;
