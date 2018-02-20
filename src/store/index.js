@@ -60,7 +60,12 @@ class Store {
         throw error
       }
       return params.id
-        ? Micronets.update({ _id: params.id }, response).then(data => ({ data }))
+        ? Micronets.findById(params.id).then((data) => {
+          let prevLogEvents = data.logEvents
+          let allLogEvents = R.concat(prevLogEvents, response.logEvents)
+          let updatedResponse = Object.assign(response ,{ logEvents: allLogEvents })
+          return Micronets.update({ _id: params.id }, updatedResponse).then(data => ({ data }))
+        })
         : (new Micronets(response)).save().then(data => ({ statusCode: 201, data }))
     })
   }

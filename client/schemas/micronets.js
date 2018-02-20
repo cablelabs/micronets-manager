@@ -28,7 +28,7 @@ module.exports.Definitions = {
                   },
                   deviceId: {
                     type: 'string',
-                    minLength:64
+                    minLength:32
                   },
                   deviceName: {
                     type: 'string',
