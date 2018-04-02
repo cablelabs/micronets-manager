@@ -9,6 +9,7 @@ var micronetSchema = mongoose.Schema({
   subnets: [subnetSchema],
   id:{ type: String },
   name:{ type: String },
+  ssid:{ type: String },
   devices: [registeredDevicesSchema]
 });
 

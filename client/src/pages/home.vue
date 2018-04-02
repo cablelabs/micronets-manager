@@ -1,7 +1,7 @@
 <template>
   <Layout>
     <template v-for="(micronet, index) in micronets">
-         <Subscriber :subscriberId=micronet.id  :subscriberName="micronet.name" :devices=micronet.devices :index=index :id="micronet._id"/>
+         <Subscriber :subscriberId=micronet.id  :subscriberName="micronet.name" :ssId="micronet.ssid" :devices=micronet.devices :index=index :id="micronet._id"/>
     </template>
     <template v-if="!micronets.length">
       <v-card>

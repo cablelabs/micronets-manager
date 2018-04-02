@@ -7,8 +7,8 @@
             <v-flex xs12 md6>
             <v-card-title primary-title>
               <div>
-                <h3 class="headline mb-0">{{this.subscriberName}}</h3>
-                <h2 class="headline mb-0">{{this.subscriberId}}</h2>
+                <h4 class="headline mb-0">{{this.subscriberName}}</h4>
+                <h1 class="headline mb-0">{{this.ssId}}</h1>
               </div>
             </v-card-title>
             <v-card-actions>
@@ -40,7 +40,8 @@
       subscriberId: String,
       subscriberName: String,
       devices: Array,
-      id: String
+      id: String,
+      ssId: String
     }
   }
 </script>
