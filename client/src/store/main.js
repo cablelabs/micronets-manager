@@ -61,7 +61,6 @@ export const actions = {
     })
       .then((response) => {
         let {data} = response.data
-        // data = Object.assign([], omitStateMeta(data))
         data.map((subscriber, index) => {
           subscriber = Object.assign({}, omitStateMeta(subscriber))
           axios({

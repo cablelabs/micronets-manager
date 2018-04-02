@@ -82,7 +82,6 @@ class Store {
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
     const message = Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()})
-    //message = Object.assign({}, omitMergedMicronetState(message))
     return dispatch('callToMtc', message).then(response => {
       if (response.status >= 1000) {
         const error = new Error('Failed to create micronet')
