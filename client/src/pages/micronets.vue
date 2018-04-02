@@ -1,7 +1,16 @@
 <template>
   <Layout>
     <template v-for="(micronet, index) in micronets">
-         <Subscriber :subscriberId=micronet.id  :subscriberName="micronet.name" :devices=micronet.devices :index=index :id="micronet._id"/>
+      <template v-if="micronet.id==$route.params.subscriberId">
+      <!--<p> Printing Routing paramaters : {{/*$route.params*/}} </p>-->
+      <!--<p> Printing Micronet.id  : {{/*micronet.id*/}} </p>-->
+      <!--<p> Printing Micronet  : {{/*micronet*/}} </p>-->
+      <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
+      <template v-for="subnet in micronet.subnets">
+        <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id"></SubnetCard>
+      </template>
+      <!--<hr class="mt-4" v-if="index < micronets.length - 1"/>-->
+      </template>
     </template>
     <template v-if="!micronets.length">
       <v-card>
@@ -11,11 +20,11 @@
         </v-card-actions>
       </v-card>
     </template>
-    <!--<v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px"  v-model="dialog"-->
-              <!--transition="dialog-bottom-transition"-->
-              <!--scrollable>-->
-      <!--<AddSubnetForm v-if="editTarget ":data="editTarget" @submit="addSubnet" :parentDialog="dialog" @close="close" />-->
-    <!--</v-dialog>-->
+    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px" v-model="dialog"
+              transition="dialog-bottom-transition"
+              scrollable>
+      <AddSubnetForm v-if="editTarget " :data="editTarget" @submit="addSubnet" :parentDialog="dialog" @close="close"/>
+    </v-dialog>
   </Layout>
 </template>
 
@@ -23,12 +32,11 @@
   import SubnetCard from '../components/SubnetCard'
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
-  import Subscriber from '../components/Subscriber'
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 
   export default {
-    components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
-    name: 'home',
+    components: { SubnetCard, Layout, AddSubnetForm },
+    name: 'micronets',
     computed: {
       ...mapState(['micronets']),
       ...mapGetters(['editTarget'])
@@ -48,9 +56,10 @@
         this.dialog = data
       }
     },
-    mounted () {
+    mounted () {},
+    created () {
       this.setEditTargetIds({})
-      this.fetchSubscribers().then(({data}) => {})
+      return this.fetchMicronets(this.$router.currentRoute.params.id)
     }
   }
 </script>
