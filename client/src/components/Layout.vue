@@ -53,9 +53,10 @@
           >
             <template v-for="(micronet, index) in micronets">
               <template v-for="(message,msgIndex) in micronet.logEvents">
-                <div class="message-list" :key="msgIndex">
+                <div class="message-list">
                   <span class="message--text message-content">{{ formatLogMessage(message) }}</span>
-                  <v-divider v-if="msgIndex + 1 < micronet.logEvents.length" :key="msgIndex" class="message-divider"/>
+                  <v-divider v-if="msgIndex + 1 < micronet.logEvents.length" class="message-divider"/>
+                  <v-spacer></v-spacer>
                 </div>
               </template>
             </template>
@@ -131,11 +132,23 @@
     font-family: "Roboto";
   }
 
-  .message-content {
+  /* .message-content {
     font-family: "Roboto";
     font-size: 10px;
     font-weight: bold;
     margin-top: -15px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    display inline-block
+  }
+  */
+
+  .message-content {
+    font-family: "Roboto";
+    font-size: 10px;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-bottom 10px;
     overflow-wrap: break-word;
     word-wrap: break-word;
     display inline-block
@@ -149,6 +162,6 @@
   }
 
   .message-divider {
-    margin-top: 10px;
+    margin-top: 5px;
   }
 </style>
