@@ -28,7 +28,6 @@ module.exports.Definitions = {
                   },
                   deviceId: {
                     type: 'string',
-                    minLength:32
                   },
                   deviceName: {
                     type: 'string',
@@ -42,8 +41,8 @@ module.exports.Definitions = {
                     type: 'object',
                     properties: {
                       eui48: {
-                        type: 'string',
-                        pattern:'^([0-9A-F]{2}){5}([0-9A-F]{2})$' // matches 0123456789AB
+                        type: 'string'
+                        // pattern:'^([0-9A-F]{2}[:]){5}([0-9A-F]{2})$' // matches 0123456789AB
                       }
                     }
                   }

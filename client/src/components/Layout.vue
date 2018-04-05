@@ -106,7 +106,6 @@
     methods: {
       ...mapActions(['fetchMicronets']),
       formatLogMessage (log) {
-        console.log('\n Layout formatMessage method Log value : ' + JSON.stringify(log))
         if (log.indexOf(':') > -1) {
           var utcLogDateTimeStamp = log.split(':')[0]
           return Moment(utcLogDateTimeStamp).format('lll').concat(' ').concat(log.split(':')[1])
