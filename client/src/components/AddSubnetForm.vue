@@ -76,7 +76,7 @@ export default {
       subnetId: '',
       subnetIdRules: [
         v => !!v || 'SubnetId is required',
-        v => (v && v.length >= 32) || 'SubnetId must be atleast 32 characters'
+        v => /^[A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i.test(v) || 'SubnetID should be UUIDv4'
       ],
       deviceId: '',
       macAddress: '',
