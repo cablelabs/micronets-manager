@@ -14,28 +14,53 @@
           <v-icon class="grey--text">close</v-icon>
         </v-btn>
       </v-toolbar>
-      <v-list v-if="micronets.length > 0">
-        <template v-for="(message,index) in micronets[0].logEvents">
-            <v-container
-              style="max-height: max-content"
-              class="scroll-y"
-              id="scroll-target"
+      <v-list v-if="micronets.length > 0 && micronetIndex!= -1">
+        <template v-for="(message,index) in micronets[micronetIndex].logEvents">
+          <v-container
+            style="max-height: max-content"
+            class="scroll-y"
+            id="scroll-target"
+          >
+            <v-layout
+              column
+              align-center
+              justify-center
+              v-scroll:#scroll-target="onScroll"
+              style="height: auto"
             >
-              <v-layout
-                column
-                align-center
-                justify-center
-                v-scroll:#scroll-target="onScroll"
-                style="height: auto"
-              >
-             <div class="message-list">
-            <span class="message--text message-content" >{{ formatLogMessage(message) }}</span>
-            <v-divider v-if="index + 1 < micronets[0].logEvents.length" :key="index" class="message-divider" />
-             </div>
-              </v-layout>
-            </v-container>
-
+              <div class="message-list">
+                <span class="message--text message-content">{{ formatLogMessage(message) }}</span>
+                <v-divider v-if="index + 1 < micronets[micronetIndex].logEvents.length" :key="index"
+                           class="message-divider"/>
+              </div>
+            </v-layout>
+          </v-container>
         </template>
+      </v-list>
+      <v-list v-if="micronets.length > 0 && micronetIndex == -1">
+        <v-subheader>All Logs</v-subheader>
+        <v-container
+          style="max-height: max-content"
+          class="scroll-y"
+          id="scroll-target"
+        >
+          <v-layout
+            column
+            align-center
+            justify-center
+            v-scroll:#scroll-target="onScroll"
+            style="height: auto"
+          >
+            <template v-for="(micronet, index) in micronets">
+              <template v-for="(message,msgIndex) in micronet.logEvents">
+                <div class="message-list" :key="msgIndex">
+                  <span class="message--text message-content">{{ formatLogMessage(message) }}</span>
+                  <v-divider v-if="msgIndex + 1 < micronet.logEvents.length" :key="msgIndex" class="message-divider"/>
+                </div>
+              </template>
+            </template>
+          </v-layout>
+        </v-container>
       </v-list>
     </v-navigation-drawer>
     <v-toolbar color="#3A3A3A" dark fixed app>
@@ -50,7 +75,7 @@
     </v-toolbar>
     <v-content>
       <v-container fluid>
-        <slot />
+        <slot/>
       </v-container>
     </v-content>
     <v-footer app>
@@ -63,10 +88,16 @@
 <script>
   import { mapState, mapActions } from 'vuex'
   import Moment from 'moment'
+  import { propEq, findIndex } from 'ramda'
+
   export default {
     name: 'Layout',
     computed: {
-      ...mapState(['micronets'])
+      ...mapState(['micronets']),
+      micronetIndex () {
+        const micronetIndex = findIndex(propEq('_id', this.$route.params.id))(this.micronets)
+        return micronetIndex
+      }
     },
     data: () => ({
       drawer: false,
@@ -74,10 +105,8 @@
     }),
     methods: {
       ...mapActions(['fetchMicronets']),
-      mounted () {
-        return this.fetchMicronets()
-      },
       formatLogMessage (log) {
+        console.log('\n Layout formatMessage method Log value : ' + JSON.stringify(log))
         if (log.indexOf(':') > -1) {
           var utcLogDateTimeStamp = log.split(':')[0]
           return Moment(utcLogDateTimeStamp).format('lll').concat(' ').concat(log.split(':')[1])
@@ -88,12 +117,15 @@
       onScroll (e) {
         this.offsetTop = e.target.scrollTop
       }
+    },
+    created () {
+      return this.fetchMicronets()
     }
   }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang="stylus">
+<style lang="stylus" scoped>
   .toolbar-title {
     font-size: 20px;
     font-family: "Roboto";
@@ -108,12 +140,14 @@
     word-wrap: break-word;
     display inline-block
   }
+
   .message-list {
     margin-left: 0px;
-    margin-top:-3px
+    margin-top: 3px
     text-align: left;
     width: 100%
   }
+
   .message-divider {
     margin-top: 10px;
   }
