@@ -4,19 +4,24 @@ import { findIndex, propEq, find, lensPath, view, set, omit, merge } from 'ramda
 const setState = prop => (state, value) => { state[prop] = value }
 const micronetsUrl = `${process.env.BASE_URL}/micronets`
 const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
-const msoPortalApiInit = {
-  crossDomain: true,
-  headers: {
-    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyIsInR5cGUiOiJhY2Nlc3MifQ.eyJjbGllbnRJRCI6Imh0dHBzOi8vYXBwbGVoZWFsdGgub3JnLyIsImRldmljZUlEIjoiOTkwYzlhYTBhOWU1OTVjOGNhYTllOTI5OGM2ZmRiYjQ4Njk5OTA4ODU1OWQ0NTk5NWZjNGM4ODQxY2Y1NWY4ZSIsInZlbmRvciI6IkFwcGxlIGdvbGQgc2hpdCIsImR0eXBlIjoiQXBwbGUgZ29sZCBzaGl0IiwibW9kZWwiOiJBcHBsZSBnb2xkIHNoaXQiLCJzZXJpYWwiOiJGQi05OTk5OSIsIm1hY0FkZHJlc3MiOiIwOTowMDo5OTo5OTowOTpGQiIsImlhdCI6MTUyMjYzNTU1NiwiZXhwIjoxNTIyNzIxOTU2LCJhdWQiOiJtaWNyb25ldHMuY29tIiwiaXNzIjoiaHR0cHM6Ly9tc28tcG9ydGFsLm1pY3JvbmV0cy5jb20iLCJzdWIiOiJJbml0aWF0ZSByZWdpc3RyYXRpb24gdG8gb24tYm9hcmQgZGV2aWNlIiwianRpIjoiODRiMDUyOGItZWJiMC00ZWZhLWE5OWItNThjMWJhNjM4NjliIn0.iVd1a8wqax7NUW-q90cARNjjn6I1q2ab7SnjZQGmPLc',
-    'Content-type': 'application/json'
-  }
+const msoPortalAuthPostConfig = {
+  'clientID': 'https://coloradohealthcare.org/',
+  'deviceID': '440c4aa0a4e595c4caa1e4294c6fdcc446444044441d44445fc4c4441cf44f1d',
+  'vendor': 'Colorado healthcare',
+  'dtype': 'Colorado Bot',
+  'model': 'Colorado Bot',
+  'serial': 'GG-555555',
+  'macAddress': '03:30:93:39:03:3B'
 }
+const authTokenUri = 'http://localhost:3210/portal/registration/token'
+const sessionUri = 'http://localhost:3210/portal/session'
 const Ajv = require('ajv')
 const ajv = new Ajv()
 const Schema = require('../../schemas/micronets')
 const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v'])
 const omitStateMeta = omit(['_id', '__v'])
 export const initialState = {
+  authToken: '',
   micronets: [],
   editTargetIds: {},
   toast: {
@@ -53,11 +58,17 @@ export const mutations = {
 }
 
 export const actions = {
-  initializeMicronets ({commit}) {
+  initializeMicronets ({commit}, {token}) {
     return axios({
-      ...msoPortalApiInit,
+      ...{
+        crossDomain: true,
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      },
       method: 'get',
-      url: 'http://localhost:3210/portal/session'
+      url: sessionUri
     })
       .then((response) => {
         let {data} = response.data
@@ -78,6 +89,16 @@ export const actions = {
         return data
       })
   },
+  fetchAuthToken ({commit, dispatch}) {
+    return axios({
+      ...apiInit,
+      method: 'post',
+      url: authTokenUri,
+      data: msoPortalAuthPostConfig
+    }).then(({data}) => {
+      return dispatch('initializeMicronets', {token: data.accessToken})
+    })
+  },
   fetchSubscribers ({commit, dispatch}, id) {
     return axios({
       ...apiInit,
@@ -85,7 +106,7 @@ export const actions = {
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
-        if (!id && !data.length) return dispatch('initializeMicronets')
+        if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
       })
@@ -97,7 +118,7 @@ export const actions = {
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
-        if (!id && !data.length) return dispatch('initializeMicronets')
+        // if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
       })
