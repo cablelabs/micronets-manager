@@ -15,27 +15,26 @@
         </v-btn>
       </v-toolbar>
       <v-list v-if="micronets.length > 0 && micronetIndex!= -1">
-        <template v-for="(message,index) in micronets[micronetIndex].logEvents">
-          <v-container
-            style="max-height: max-content"
-            class="scroll-y"
-            id="scroll-target"
+        <v-container
+          style="max-height: max-content"
+          class="scroll-y"
+          id="scroll-target"
+        >
+          <v-layout
+            column
+            align-center
+            justify-center
+            v-scroll:#scroll-target="onScroll"
+            style="height: auto"
           >
-            <v-layout
-              column
-              align-center
-              justify-center
-              v-scroll:#scroll-target="onScroll"
-              style="height: auto"
-            >
+            <template v-for="(message,index) in micronets[micronetIndex].logEvents">
               <div class="message-list">
                 <span class="message--text message-content">{{ formatLogMessage(message) }}</span>
-                <v-divider v-if="index + 1 < micronets[micronetIndex].logEvents.length" :key="index"
-                           class="message-divider"/>
+                <v-divider v-if="index + 1 < micronets[micronetIndex].logEvents.length" :key="index" class="message-divider"/>
               </div>
-            </v-layout>
-          </v-container>
-        </template>
+            </template>
+          </v-layout>
+        </v-container>
       </v-list>
       <v-list v-if="micronets.length > 0 && micronetIndex == -1">
         <v-subheader>All Logs</v-subheader>
@@ -131,18 +130,6 @@
     font-size: 20px;
     font-family: "Roboto";
   }
-
-  /* .message-content {
-    font-family: "Roboto";
-    font-size: 10px;
-    font-weight: bold;
-    margin-top: -15px;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    display inline-block
-  }
-  */
-
   .message-content {
     font-family: "Roboto";
     font-size: 10px;
@@ -153,14 +140,12 @@
     word-wrap: break-word;
     display inline-block
   }
-
   .message-list {
     margin-left: 0px;
     margin-top: 3px
     text-align: left;
     width: 100%
   }
-
   .message-divider {
     margin-top: 5px;
   }
