@@ -71,7 +71,7 @@ export const actions = {
           })
             .then(({data}) => {
               let mergedMicronet = merge(subscriber, data)
-              commit('setMicronets', [data])
+              commit('setMicronets', mergedMicronet)
             })
         })
         commit('setMicronets', data)

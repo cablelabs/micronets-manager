@@ -97,7 +97,7 @@ export default {
   },
   methods: {
     submit () {
-      // console.log('\n Submit method for add-subnet form this.$refs.form : ' + JSON.stringify(this.$refs.form))
+      // console.log('\n Submit this.$refs.form : ' + JSON.stringify(this.$refs.form))
       this.$emit('submit', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
       this.childDialog = false
       this.$emit('close', this.childDialog)

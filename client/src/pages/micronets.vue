@@ -2,9 +2,6 @@
   <Layout>
     <template v-for="(micronet, index) in micronets">
       <template v-if="micronet.id==$route.params.subscriberId">
-      <!--<p> Printing Routing paramaters : {{/*$route.params*/}} </p>-->
-      <!--<p> Printing Micronet.id  : {{/*micronet.id*/}} </p>-->
-      <!--<p> Printing Micronet  : {{/*micronet*/}} </p>-->
       <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
       <template v-for="subnet in micronet.subnets">
         <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id"></SubnetCard>

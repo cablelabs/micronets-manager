@@ -11,11 +11,6 @@
         </v-card-actions>
       </v-card>
     </template>
-    <!--<v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px"  v-model="dialog"-->
-              <!--transition="dialog-bottom-transition"-->
-              <!--scrollable>-->
-      <!--<AddSubnetForm v-if="editTarget ":data="editTarget" @submit="addSubnet" :parentDialog="dialog" @close="close" />-->
-    <!--</v-dialog>-->
   </Layout>
 </template>
 
