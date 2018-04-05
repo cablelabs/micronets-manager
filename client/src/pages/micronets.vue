@@ -23,7 +23,7 @@
     <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px" v-model="dialog"
               transition="dialog-bottom-transition"
               scrollable>
-      <AddSubnetForm v-if="editTarget " :data="editTarget" @submit="addSubnet" :parentDialog="dialog" @close="close"/>
+      <AddSubnetForm v-if="editTarget " :data="editTarget" @submit="addSubnet" :parentDialog="dialog" @close="close" :micronets="this.micronets"/>
     </v-dialog>
   </Layout>
 </template>
