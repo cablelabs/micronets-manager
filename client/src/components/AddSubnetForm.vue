@@ -1,37 +1,38 @@
 <template>
   <v-card>
     <v-card-text>
-      <v-text-field v-model="subnetId" label="Subnet ID"  @blur="$v.subnetId.$touch()" required />
+      <v-form v-model="valid" ref="form" lazy-validation>
+      <v-text-field v-model="subnetId" label="Subnet ID"  required :rules="subnetIdRules" />
+      <v-text-field v-model="subnetName" label="Subnet Name" required :rules="subnetNameRules"/>
       <div>
-      <span class="red--text mb-4 mt-3" v-if="!$v.subnetId.required">Subnet ID is required</span>
-      <span class="red--text mb-4 mt-3" v-if="!$v.subnetId.minLength">Subnet ID must have at least {{$v.subnetId.$params.minLength.min}} characters.</span>
+        <v-select
+          :items="configureRegisteredDevices.deviceIds"
+          label="Select Device ID"
+          v-model="deviceId"
+          class="input-group--focused"
+          item-value="text"
+          :rules="[v => !!v || 'Device ID is required']"
+          required
+        ></v-select>
       </div>
-      <v-text-field v-model="subnetName" label="Subnet Name" @input="$v.subnetName.$touch()" required/>
+      <v-text-field v-model="deviceName" label="Device Name"  required :rules="deviceNameRules"/>
+      <v-text-field v-model="deviceDescription" label="Device Description"  required :rules="deviceDescriptionRules" />
       <div>
-        <span class="red--text mb-4 mt-3" v-if="!$v.subnetName.required">Subnet Name is required</span>
+        <v-select
+          :items="configureRegisteredDevices.macAddresses"
+          label="Select Mac Address"
+          v-model="macAddress"
+          class="input-group--focused"
+          item-value="text"
+          :rules="[v => !!v || 'Mac Address is required']"
+          required
+        ></v-select>
       </div>
-      <v-text-field v-model="deviceId" label="Device ID" @input="$v.deviceId.$touch()" required />
-      <div>
-        <span class="red--text mb-4 mt-3" v-if="!$v.subnetName.required">Device ID is required</span>
-        <span class="red--text mb-4 mt-3" v-if="!$v.deviceId.minLength">Device ID must have at least {{$v.subnetId.$params.minLength.min}} characters.</span>
-      </div>
-      <v-text-field v-model="deviceName" label="Device Name" @input="$v.deviceName.$touch()" required />
-      <div>
-        <span class="red--text mb-4 mt-3" v-if="!$v.deviceName.required">Device Name is required</span>
-      </div>
-      <v-text-field v-model="deviceDescription" label="Device Description" @input="$v.deviceDescription.$touch()" required />
-      <div>
-        <span class="red--text mb-4 mt-3" v-if="!$v.deviceDescription.required">Device Description is required</span>
-      </div>
-      <v-text-field v-model="macAddress" label="Mac Address" @input="$v.macAddress.$touch()" required/>
-      <div>
-        <span class="red--text mb-4 mt-3" v-if="!$v.macAddress.required">Mac Address is required</span>
-        <span class="red--text mb-4 mt-3" v-if="!$v.macAddress.macAddress">Invalid Mac Address.</span>
-      </div>
+      </v-form>
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="primary" @click.stop="submit" :disabled=isDisabled class="add-subnet-btn">Add Subnet</v-btn>
+      <v-btn color="primary" @click.stop="submit"  :disabled="!valid" class="add-subnet-btn">Add Subnet</v-btn>
       <v-btn color="primary" @click.stop="close">Close</v-btn>
       <v-spacer></v-spacer>
     </v-card-actions>
@@ -40,55 +41,63 @@
 
 <script>
 import pick from 'ramda/src/pick'
-import { required, minLength, macAddress, or } from 'vuelidate/lib/validators'
+import { find, propEq } from 'ramda'
 
 export default {
   name: 'add-subnet-form',
-  props: ['parentDialog'],
+  props: {
+    parentDialog: Boolean,
+    micronets: Array
+  },
+  computed: {
+    configureRegisteredDevices () {
+      const micronet = find(propEq('_id', this.$route.params.id))(this.micronets)
+      // let micronetDevices = micronet.devices.map((device, index) => {
+      //   return {
+      //     deviceIds: device.deviceId,
+      //     index: index,
+      //     macAddress: device.macAddress
+      //   }
+      // })
+
+      let deviceIds = micronet.devices.map((device, index) => {
+        // const deviceIdIndex = findIndex(propEq('deviceId', device.deviceId))(micronet.devices)
+        return device.deviceId
+      })
+      let macAddresses = micronet.devices.map((device, index) => {
+        return device.macAddress
+      })
+      return { micronet, deviceIds, macAddresses }
+    }
+  },
   data () {
     return {
+      valid: true,
       subnetId: '',
+      subnetIdRules: [
+        v => !!v || 'SubnetId is required',
+        v => /^[A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i.test(v) || 'SubnetID should be UUIDv4'
+      ],
       deviceId: '',
       macAddress: '',
       deviceName: '',
+      deviceNameRules: [
+        v => !!v || 'Device Name is required'
+      ],
       subnetName: '',
+      subnetNameRules: [
+        v => !!v || 'Subnet Name is required'
+      ],
       deviceDescription: '',
-      childDialog: this.parentDialog
-    }
-  },
-  computed: {
-    isDisabled: function () {
-      return this.$v.$invalid === true
-    }
-  },
-  validations: {
-    subnetId: {
-      required,
-      minLength: minLength(32)
-    },
-    deviceId: {
-      required,
-      minLength: minLength(32)
-    },
-    macAddress: {
-      required,
-      macAddress: or(macAddress(':'), macAddress(''))
-    },
-    deviceName: {
-      required,
-      minLength: minLength(1)
-    },
-    subnetName: {
-      required,
-      minLength: minLength(1)
-    },
-    deviceDescription: {
-      required,
-      minLength: minLength(1)
+      deviceDescriptionRules: [
+        v => !!v || 'Device Description is required'
+      ],
+      childDialog: this.parentDialogs
     }
   },
   methods: {
     submit () {
+      // console.log('\n Submit this.$refs.form : ' + JSON.stringify(this.$refs.form))
       this.$emit('submit', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
       this.childDialog = false
       this.$emit('close', this.childDialog)
@@ -96,7 +105,8 @@ export default {
     close () {
       this.childDialog = false
       this.$emit('close', this.childDialog)
-    }
+    },
+    created () {}
   }
 }
 </script>
