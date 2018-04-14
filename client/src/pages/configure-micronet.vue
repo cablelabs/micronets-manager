@@ -18,8 +18,8 @@
     <p>ShowDevices: {{ showDevices }}</p>
     <!--<p>ShowDevices Updated array : {{ showDevices[0].show }}</p>-->
     <!--<p v-model="currentMicronet.subnets" placeholder="add multiple lines" />-->
-    <v-layout>
-      <v-flex>
+    <!--<v-layout>-->
+      <!--<v-flex>-->
         <template v-for="(subnet, subnetIndex) in micronet.subnets">
           <v-form class="text-xs-center subnet-form" ref="form">
             <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetId" label="Subnet ID" required/>
@@ -30,13 +30,13 @@
                           required/>
             <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.ipv4.network" label="Subnet IPv4 NetWork"
                           required/>
-            <div>
-              <h3 v-if="subnet.deviceList" class="device-header">Devices</h3>
+            <div class="devices">
+              <h1 v-if="subnet.deviceList" class="device-header">Devices</h1>
               <v-btn color="success" @click.stop="addDeviceForm">Add Device</v-btn>
             </div>
             <v-container fluid>
               <v-layout row wrap>
-                <v-flex xs6>
+                <!--<v-flex xs12 sm6>-->
                   <template v-for="(device, deviceIndex) in subnet.deviceList">
                     <div class="cards">
                       <v-card class="device-card" v-show="true">
@@ -83,7 +83,7 @@
                       </v-btn>
                     </v-card>
                   </template>
-                </v-flex>
+                <!--</v-flex>-->
               </v-layout>
             </v-container>
             <div class="form-btns">
@@ -101,8 +101,8 @@
         >
           {{ toast.value }}
         </v-snackbar>
-      </v-flex>
-    </v-layout>
+      <!--</v-flex>-->
+    <!--</v-layout>-->
   </Layout>
 </template>
 
@@ -261,10 +261,8 @@
   }
 
   .device-header {
-    padding: 50px 50px 50px 50px
-    margin-left -100em
-    float left float
-    display block
+    padding-top: 50px
+    margin-left -58em
   }
 
   .form-btns {
@@ -286,5 +284,8 @@
 
   .cards {
     margin-bottom 20px
+  }
+  .devices {
+    display inline-block
   }
 </style>
