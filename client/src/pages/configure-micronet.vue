@@ -165,7 +165,7 @@
         idIndex > -1 ? this.micronet.subnets[subnetIndex].deviceList.splice(idIndex, 1) : this.micronet
       },
       addDeviceForm () {
-        this.showAddDeviceForm = !this.showAddDeviceForm
+        this.showAddDeviceForm = true
       },
       addDeviceToSubnet (subnetId, subnetIndex, deviceName, deviceDescription, deviceId, deviceMacAddress) {
         this.micronet.subnets[subnetIndex].deviceList.push(
