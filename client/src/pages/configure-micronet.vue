@@ -14,12 +14,6 @@
     <!--<v-btn to="/">done</v-btn>-->
     <!--</div>-->
     <!--</v-form>-->
-    <p>Current Micronet : {{ micronet }}</p>
-    <p>ShowDevices: {{ showDevices }}</p>
-    <!--<p>ShowDevices Updated array : {{ showDevices[0].show }}</p>-->
-    <!--<p v-model="currentMicronet.subnets" placeholder="add multiple lines" />-->
-    <!--<v-layout>-->
-      <!--<v-flex>-->
         <template v-for="(subnet, subnetIndex) in micronet.subnets">
           <v-form class="text-xs-center subnet-form" ref="form">
             <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetId" label="Subnet ID" required/>
@@ -32,12 +26,11 @@
                           required/>
             <div class="devices">
               <h1 v-if="subnet.deviceList" class="device-header">Devices</h1>
-              <v-btn color="success" @click.stop="addDeviceForm">Add Device</v-btn>
             </div>
             <v-container fluid>
               <v-layout row wrap>
-                <!--<v-flex xs12 sm6>-->
                   <template v-for="(device, deviceIndex) in subnet.deviceList">
+                    <v-flex xs12 sm6>
                     <div class="cards">
                       <v-card class="device-card" v-show="true">
                         <v-btn flat icon dark color="red darken-5" class="close-btn"
@@ -70,9 +63,14 @@
                         <!--<v-btn color="error" @click.stop="deleteDevice(subnet.subnetId, device.deviceId, subnetIndex,deviceIndex)">Delete</v-btn>-->
                       </v-card>
                     </div>
+                    </v-flex>
                   </template>
                   <template v-if="showAddDeviceForm == true">
+                    <v-flex xs12 sm6>
                     <v-card class="device-card">
+                      <v-btn flat icon dark color="red darken-5" class="close-btn" @click.stop="showAddDeviceForm=!showAddDeviceForm">
+                        <v-icon>close</v-icon>
+                      </v-btn>
                       <v-text-field v-model="newDeviceName" label="Device Name" required/>
                       <v-text-field v-model="newDeviceDescription" label="Device Description" required/>
                       <v-text-field v-model="newDeviceId" label="Device ID" required/>
@@ -82,13 +80,14 @@
                         Add
                       </v-btn>
                     </v-card>
+                    </v-flex>
                   </template>
-                <!--</v-flex>-->
               </v-layout>
             </v-container>
             <div class="form-btns">
+              <v-btn color="success" @click.stop="addDeviceForm">Add Device</v-btn>
               <v-btn color="primary" @click.stop="submitForm(subnetIndex)">Submit</v-btn>
-              <v-btn>Done</v-btn>
+              <v-btn @click.stop="routeToMicronet">Done</v-btn>
             </div>
           </v-form>
         </template>
@@ -101,8 +100,6 @@
         >
           {{ toast.value }}
         </v-snackbar>
-      <!--</v-flex>-->
-    <!--</v-layout>-->
   </Layout>
 </template>
 
@@ -132,7 +129,6 @@
       ...mapState(['editTargetIds', 'toast', 'micronets']),
       ...mapGetters(['editTarget']),
       currentMicronet () {
-        console.log('\n currentMicronet method called ... ')
         const index = findIndex(propEq('_id', this.editTargetIds.micronetId))(this.micronets)
         console.log('\n currentMicronet Index : ' + JSON.stringify(index))
         const currentMicronet = this.micronets[index]
@@ -148,65 +144,43 @@
     },
     methods: {
       ...mapActions(['saveMicronet']),
-      onInputChange () {},
-      onBlurTextarea () {},
+      routeToMicronet () {
+        this.$router.push(`${this.micronet.id}/micronets/${this.editTargetIds.micronetId}`)
+      },
       submit () {
         this.saving = true
         return this.saveMicronet(JSON.parse(this.textAreaInput))
           .then(() => { this.saving = false })
       },
       submitForm (subnetIndex) {
-        console.log('\n SubmitForm called subnetIndex : ' + JSON.stringify(subnetIndex))
-        // console.log('\n SubmitForm called this.$refs.form : ' + JSON.stringify(this.$refs.form.subnetId))
-        console.log('\n SubnetForm accessing values subnetName: ' + JSON.stringify(this.micronet.subnets[subnetIndex].subnetName))
-        console.log('\n SubnetForm accessing values subnetId: ' + JSON.stringify(this.micronet.subnets[subnetIndex].subnetId))
-        console.log('\n SubnetForm accessing NEW VALUES : ' + JSON.stringify(this.micronet))
         // this.$emit('submitForm', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
         return this.saveMicronet(this.micronet.subnets[subnetIndex])
           .then(() => { this.saving = false })
       },
       updateDevice (subnetId, deviceId, subnetIndex, deviceIndex) {
-        console.log('\n updateDevice called deviceIndex : ' + JSON.stringify(deviceIndex) + '\t\t SubnetIndex : ' + JSON.stringify(subnetIndex))
-        console.log('\n updateDevice called subnetId : ' + JSON.stringify(subnetId) + '\t\t\t DeviceId : ' + JSON.stringify(deviceId))
-        console.log('\n updateDevice called deviceName : ' + JSON.stringify(this.micronet.subnets[subnetIndex].deviceList[deviceIndex].deviceName))
         this.$emit('updateDeviceInSubnet', pick(['deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
       },
       deleteDevice (subnetId, deviceId, subnetIndex, deviceIndex) {
-        console.log('\n deleteDevice called subnetId : ' + JSON.stringify(subnetId) + '\t\t\t DeviceId : ' + JSON.stringify(deviceId))
-        console.log('\n deleteDevice called subnetIndex : ' + JSON.stringify(subnetIndex) + '\t\t\t DeviceIndex : ' + JSON.stringify(deviceIndex))
-        console.log('\n deleteDevice called this.$refs.subnetForm : ' + JSON.stringify(this.$refs.subnetForm))
-        // this.$emit('submitForm', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
-        // this.showDevices[deviceIndex].show = false
-        console.log('\n this.micronet : ' + JSON.stringify(this.micronet))
         const idIndex = findIndex(propEq('deviceId', `${deviceId}`))(this.micronet.subnets[subnetIndex].deviceList)
-        console.log('\n\n Device to delete index : ' + JSON.stringify(idIndex))
-        const newMicronet = idIndex > -1 ? this.micronet.subnets[subnetIndex].deviceList.splice(idIndex, 1) : this.micronet
-        console.log('\n new Micro-net : ' + JSON.stringify(newMicronet))
+        idIndex > -1 ? this.micronet.subnets[subnetIndex].deviceList.splice(idIndex, 1) : this.micronet
       },
       addDeviceForm () {
-        console.log('\n addDeviceForm called')
-        console.log('\n this.micronet : ' + JSON.stringify(this.micronet))
-        console.log('\n this.addDeviceForm : ' + JSON.stringify(this.showAddDeviceForm))
         this.showAddDeviceForm = !this.showAddDeviceForm
       },
       addDeviceToSubnet (subnetId, subnetIndex, deviceName, deviceDescription, deviceId, deviceMacAddress) {
-        console.log('\n addDeviceToSubnetcalled subnetId : ' + JSON.stringify(subnetId) + '\t\t\t subnetIndex : ' + JSON.stringify(subnetIndex))
-        console.log('\n addDeviceToSubnet called device deviceName : ' + JSON.stringify(deviceName) + '\t\t\t deviceDescription : ' + JSON.stringify(deviceDescription) + '\t\t\t deviceId : ' + JSON.stringify(deviceId) + '\t\t\t DeviceMacAddress : ' + JSON.stringify(deviceMacAddress))
-        console.log('\n this.micronet : ' + JSON.stringify(this.micronet))
         this.micronet.subnets[subnetIndex].deviceList.push(
           {
             deviceDescription: deviceDescription,
             deviceName: deviceName,
             deviceId: deviceId,
-            timestampUtc: '2018-04-09T19:33:55.681Z',
+            timestampUtc: (new Date()).toISOString(),
             ipv4: {
-              host: '192.168.0.2'
+              host: '192.168.0.2' // Remove fake IP
             },
             mac: {
               eui48: deviceMacAddress
             }
           })
-        console.log('\n New Micronet after adding device : ' + JSON.stringify(this.micronet))
         this.showAddDeviceForm = !this.showAddDeviceForm
       },
       reset () {
@@ -214,13 +188,10 @@
       }
     },
     created () {
-      console.log('\n configure-micronet created called ... ')
       this.reset()
     },
     mounted () {
-      console.log('\n configure-micronet mounted called ... ')
       const index = findIndex(propEq('_id', this.editTargetIds.micronetId))(this.micronets)
-      console.log('\n currentMicronet Index : ' + JSON.stringify(index))
       const currentMicronet = this.micronets[index]
       // let deviceIds = currentMicronet.devices.map((device, index) => {
       //   // const deviceIdIndex = findIndex(propEq('deviceId', device.deviceId))(micronet.devices)
@@ -233,8 +204,6 @@
       currentMicronet.subnets[0].deviceList.map((device, index) => {
         this.showDevices.push({deviceId: device.deviceId, show: true})
       })
-      console.log('\n Mounted this.micro-net : ' + JSON.stringify(this.micronet))
-      console.log('\n Mounted this.showDevices : ' + JSON.stringify(this.showDevices))
     }
   }
 </script>
@@ -257,12 +226,11 @@
   .device-card {
     padding: 50px 50px 50px 50px
     border-left: 6px solid green
-    margin-top: 100px
+    margin-top: 50px
   }
 
   .device-header {
-    padding-top: 50px
-    margin-left -58em
+    padding-top: 10px
   }
 
   .form-btns {
@@ -270,12 +238,9 @@
   }
 
   .subnet-form {
-    /*background-color white*/
+    margin-top 50px
     padding: 50px 50px 50px 50px
-    /*border darkred*/
     border-style: solid
-    /*background-color: lightgrey;*/
-    /*border-left: 6px solid red;*/
   }
 
   .close-btn {
@@ -283,7 +248,7 @@
   }
 
   .cards {
-    margin-bottom 20px
+    margin-right 30px
   }
   .devices {
     display inline-block
