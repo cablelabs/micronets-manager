@@ -1,85 +1,91 @@
 <template>
-  <v-container fluid>
+  <Layout>
+    <h2 class="text-xs-center orange--text title">Configure {{editTargetIds.deviceId ? 'Device' : 'Subnet'}}</h2>
+    <h3 class="text-xs-center caption grey--text">
+      Micronet: {{editTargetIds.micronetId}}<br/>
+      Subnet: {{editTargetIds.subnetId}}<br/>
+      {{editTargetIds.deviceId ? `Device: ${editTargetIds.deviceId}` : ''}}
+    </h3>
+    <!--<v-form class="text-xs-center">-->
+    <!--<v-text-field class="input-textarea" v-model="textAreaInput" auto-grow multi-line rows="10" light textarea/>-->
+    <!--<div class="text-xs-center mt-3">-->
+    <!--<v-btn @click="reset">reset</v-btn>-->
+    <!--<v-btn class="ml-4 mr-4 primary " @click="submit">save</v-btn>-->
+    <!--<v-btn to="/">done</v-btn>-->
+    <!--</div>-->
+    <!--</v-form>-->
+    <p>Current Micronet : {{ micronet }}</p>
+    <p>ShowDevices: {{ showDevices }}</p>
+    <!--<p>ShowDevices Updated array : {{ showDevices[0].show }}</p>-->
+    <!--<p v-model="currentMicronet.subnets" placeholder="add multiple lines" />-->
     <v-layout>
-      <Layout>
-        <h2 class="text-xs-center orange--text title">Configure {{editTargetIds.deviceId ? 'Device' : 'Subnet'}}</h2>
-        <h3 class="text-xs-center caption grey--text">
-          Micronet: {{editTargetIds.micronetId}}<br/>
-          Subnet: {{editTargetIds.subnetId}}<br/>
-          {{editTargetIds.deviceId ? `Device: ${editTargetIds.deviceId}` : ''}}
-        </h3>
-        <!--<v-form class="text-xs-center">-->
-        <!--<v-text-field class="input-textarea" v-model="textAreaInput" auto-grow multi-line rows="10" light textarea/>-->
-        <!--<div class="text-xs-center mt-3">-->
-        <!--<v-btn @click="reset">reset</v-btn>-->
-        <!--<v-btn class="ml-4 mr-4 primary " @click="submit">save</v-btn>-->
-        <!--<v-btn to="/">done</v-btn>-->
-        <!--</div>-->
-        <!--</v-form>-->
-        <p>Current Micronet : {{ micronet }}</p>
-        <p>ShowDevices: {{ showDevices }}</p>
-        <!--<p>ShowDevices Updated array : {{ showDevices[0].show }}</p>-->
-        <!--<p v-model="currentMicronet.subnets" placeholder="add multiple lines" />-->
+      <v-flex>
         <template v-for="(subnet, subnetIndex) in micronet.subnets">
           <v-form class="text-xs-center subnet-form" ref="form">
-            <v-text-field v-model="subnet.subnetId" label="Subnet ID" required/>
-            <v-text-field v-model="subnet.subnetName" label="Subnet Name" required/>
-            <v-text-field v-model="subnet.ipv4.gateway" label="Subnet IPv4 Gateway" required/>
-            <v-text-field v-model="subnet.ipv4.netmask" label="Subnet IPv4 NetMask" required/>
-            <v-text-field v-model="subnet.ipv4.network" label="Subnet IPv4 NetWork" required/>
+            <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetId" label="Subnet ID" required/>
+            <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetName" label="Subnet Name" required/>
+            <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.ipv4.gateway" label="Subnet IPv4 Gateway"
+                          required/>
+            <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.ipv4.netmask" label="Subnet IPv4 NetMask"
+                          required/>
+            <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.ipv4.network" label="Subnet IPv4 NetWork"
+                          required/>
             <div>
               <h3 v-if="subnet.deviceList" class="device-header">Devices</h3>
               <v-btn color="success" @click.stop="addDeviceForm">Add Device</v-btn>
             </div>
-            <v-flex>
-              <div class="cards">
-                <v-card class="device-card" v-show="true">
+            <v-container fluid>
+              <v-layout row wrap>
+                <v-flex xs6>
                   <template v-for="(device, deviceIndex) in subnet.deviceList">
-                    <v-btn flat icon dark color="red darken-5" class="close-btn"
-                           @click.stop="deleteDevice(subnet.subnetId, device.deviceId, subnetIndex, deviceIndex)">
-                      <v-icon>close</v-icon>
-                    </v-btn>
-                    <v-text-field v-model="device.deviceName" label="Device Name" required/>
-                    <v-text-field v-model="device.deviceDescription" label="Device Description" required/>
-                    <v-select
-                      :items="currentMicronet.deviceIds"
-                      label="Select Device ID"
-                      v-model="device.deviceId"
-                      class="input-group--focused"
-                      item-value="text"
-                      required
-                    ></v-select>
-                    <v-text-field v-model="device.ipv4.host" label="Device IPv4 HOST" required/>
-                    <v-select
-                      :items="currentMicronet.macAddresses"
-                      label="Select Device Mac Address"
-                      v-model="device.mac.eui48"
-                      class="input-group--focused"
-                      item-value="text"
-                      required
-                    ></v-select>
-                    <v-btn color="success"
-                           @click.stop="updateDevice(subnet.subnetId, device.deviceId, subnetIndex, deviceIndex)">Update
-                    </v-btn>
-                    <!--<v-btn color="error" @click.stop="deleteDevice(subnet.subnetId, device.deviceId, subnetIndex,deviceIndex)">Delete</v-btn>-->
+                    <div class="cards">
+                      <v-card class="device-card" v-show="true">
+                        <v-btn flat icon dark color="red darken-5" class="close-btn"
+                               @click.stop="deleteDevice(subnet.subnetId, device.deviceId, subnetIndex, deviceIndex)">
+                          <v-icon>close</v-icon>
+                        </v-btn>
+                        <v-text-field v-model="device.deviceName" label="Device Name" required/>
+                        <v-text-field v-model="device.deviceDescription" label="Device Description" required/>
+                        <v-select
+                          :items="currentMicronet.deviceIds"
+                          label="Select Device ID"
+                          v-model="device.deviceId"
+                          class="input-group--focused"
+                          item-value="text"
+                          required
+                        ></v-select>
+                        <v-text-field v-model="device.ipv4.host" label="Device IPv4 HOST" required/>
+                        <v-select
+                          :items="currentMicronet.macAddresses"
+                          label="Select Device Mac Address"
+                          v-model="device.mac.eui48"
+                          class="input-group--focused"
+                          item-value="text"
+                          required
+                        ></v-select>
+                        <v-btn color="success"
+                               @click.stop="updateDevice(subnet.subnetId, device.deviceId, subnetIndex, deviceIndex)">
+                          Update
+                        </v-btn>
+                        <!--<v-btn color="error" @click.stop="deleteDevice(subnet.subnetId, device.deviceId, subnetIndex,deviceIndex)">Delete</v-btn>-->
+                      </v-card>
+                    </div>
                   </template>
-                </v-card>
-              </div>
-              <div class="cards">
-                <template v-if="showAddDeviceForm == true">
-                  <v-card class="device-card">
-                    <v-text-field v-model="newDeviceName" label="Device Name" required/>
-                    <v-text-field v-model="newDeviceDescription" label="Device Description" required/>
-                    <v-text-field v-model="newDeviceId" label="Device ID" required/>
-                    <v-text-field v-model="newDeviceMacAddress" label="Device Mac Address" required/>
-                    <v-btn color="success"
-                           @click.stop="addDeviceToSubnet(subnet.subnetId, subnetIndex, newDeviceName, newDeviceDescription, newDeviceId, newDeviceMacAddress)">
-                      Add
-                    </v-btn>
-                  </v-card>
-                </template>
-              </div>
-            </v-flex>
+                  <template v-if="showAddDeviceForm == true">
+                    <v-card class="device-card">
+                      <v-text-field v-model="newDeviceName" label="Device Name" required/>
+                      <v-text-field v-model="newDeviceDescription" label="Device Description" required/>
+                      <v-text-field v-model="newDeviceId" label="Device ID" required/>
+                      <v-text-field v-model="newDeviceMacAddress" label="Device Mac Address" required/>
+                      <v-btn color="success"
+                             @click.stop="addDeviceToSubnet(subnet.subnetId, subnetIndex, newDeviceName, newDeviceDescription, newDeviceId, newDeviceMacAddress)">
+                        Add
+                      </v-btn>
+                    </v-card>
+                  </template>
+                </v-flex>
+              </v-layout>
+            </v-container>
             <div class="form-btns">
               <v-btn color="primary" @click.stop="submitForm(subnetIndex)">Submit</v-btn>
               <v-btn>Done</v-btn>
@@ -95,9 +101,9 @@
         >
           {{ toast.value }}
         </v-snackbar>
-      </Layout>
+      </v-flex>
     </v-layout>
-  </v-container>
+  </Layout>
 </template>
 
 <script>
@@ -251,8 +257,7 @@
   .device-card {
     padding: 50px 50px 50px 50px
     border-left: 6px solid green
-    margin 20px 20px 20px 20px
-    margin-bottom 50px
+    margin-top: 100px
   }
 
   .device-header {
@@ -280,6 +285,6 @@
   }
 
   .cards {
-    margin 20px 20px 20px 20px
+    margin-bottom 20px
   }
 </style>
