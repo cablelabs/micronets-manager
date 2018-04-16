@@ -12,9 +12,9 @@
     <template v-if="!micronets.length">
       <v-card>
         <v-card-title class="no-subnets">No Micro-nets found</v-card-title>
-        <v-card-actions>
-          <v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>
-        </v-card-actions>
+        <!--<v-card-actions>-->
+          <!--<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>-->
+        <!--</v-card-actions>-->
       </v-card>
     </template>
     <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px" v-model="dialog"

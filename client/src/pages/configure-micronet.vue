@@ -58,7 +58,7 @@
                       required
                     ></v-select>
                     <v-btn color="success"
-                           @click.stop="updateDevice(subnet.subnetId, device.deviceId, subnetIndex, deviceIndex)">
+                           @click.stop="updateDevice(subnet.subnetId, device.deviceId, subnetIndex, deviceIndex, device.deviceName, device.deviceDescription, device.ipv4.host, device.mac.eui48)">
                       Update
                     </v-btn>
                     <!--<v-btn color="error" @click.stop="deleteDevice(subnet.subnetId, device.deviceId, subnetIndex,deviceIndex)">Delete</v-btn>-->
@@ -159,7 +159,8 @@
         return this.saveMicronet(this.micronet.subnets[subnetIndex])
           .then(() => { this.saving = false })
       },
-      updateDevice (subnetId, deviceId, subnetIndex, deviceIndex) {
+      updateDevice (subnetId, deviceId, subnetIndex, deviceIndex, deviceName, deviceDescription, deviceIpv4Host, deviceMacAdd) {
+        this.micronet = this.micronet
         this.$emit('updateDeviceInSubnet', pick(['deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
       },
       deleteDevice (subnetId, deviceId, subnetIndex, deviceIndex) {
