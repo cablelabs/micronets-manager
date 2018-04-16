@@ -14,7 +14,6 @@
         <!--<v-btn to="/">done</v-btn>-->
       <!--</div>-->
     <!--</v-form>-->
-    <p>{{micronet}}</p>
     <template v-for="(subnet, subnetIndex) in micronet.subnets">
       <v-form class="text-xs-center subnet-form" ref="form">
         <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetId" label="Subnet ID" required/>
