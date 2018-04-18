@@ -126,6 +126,7 @@ export const actions = {
   upsertMicronet ({commit}, {id, data}) {
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
+    console.log('\n AJV ERRORS : ' + JSON.stringify(ajv.errors))
     return valid === true ? axios(Object.assign({}, apiInit, {
       method: id ? 'put' : 'post',
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
@@ -155,7 +156,9 @@ export const actions = {
     if (!deviceId) return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
     const deviceIndex = findIndex(propEq('deviceId', deviceId), view(subnetLens, micronet).deviceList)
     const deviceLens = lensPath(['subnets', subnetIndex, 'deviceList', deviceIndex])
-    return dispatch('upsertMicronet', {id: micronetId, data: set(deviceLens, data, micronet)})
+    console.log('\n DeviceLens : ' + JSON.stringify(deviceLens))
+  // return dispatch('upsertMicronet', {id: micronetId, data: set(deviceLens, data, micronet)})
+    return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
   },
   addSubnet ({state, commit, dispatch}, data) {
     const {micronetId} = state.editTargetIds

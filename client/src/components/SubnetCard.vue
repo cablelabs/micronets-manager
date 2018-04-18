@@ -21,7 +21,8 @@
         </span>
         <v-list class="device-list">
           <template v-for="(device, deviceIndex) in subnet.deviceList">
-            <DeviceCard :device="device" :key="device.deviceId" :subnetId="subnet.subnetId" :micronetId="micronetId" />
+            <!--<DeviceCard :device="device" :key="device.deviceId" :subnetId="subnet.subnetId" :micronetId="micronetId" />-->
+            <DeviceCard :device="device" :subnetId="subnet.subnetId" :micronetId="micronetId" />
             <v-divider v-if="deviceIndex + 1 < subnet.deviceList.length" :inset="false" class="list-divider"/>
           </template>
         </v-list>
