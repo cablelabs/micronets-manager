@@ -7,16 +7,18 @@
       {{editTargetIds.deviceId ? `Device: ${editTargetIds.deviceId}` : ''}}
     </h3>
     <!--<v-form class="text-xs-center">-->
-      <!--<v-text-field class="input-textarea" v-model="textAreaInput" auto-grow multi-line rows="10" light textarea/>-->
-      <!--<div class="text-xs-center mt-3">-->
-        <!--<v-btn @click="reset">reset</v-btn>-->
-        <!--<v-btn class="ml-4 mr-4 primary " @click="submit">save</v-btn>-->
-        <!--<v-btn to="/">done</v-btn>-->
-      <!--</div>-->
+    <!--<v-text-field class="input-textarea" v-model="textAreaInput" auto-grow multi-line rows="10" light textarea/>-->
+    <!--<div class="text-xs-center mt-3">-->
+    <!--<v-btn @click="reset">reset</v-btn>-->
+    <!--<v-btn class="ml-4 mr-4 primary " @click="submit">save</v-btn>-->
+    <!--<v-btn to="/">done</v-btn>-->
+    <!--</div>-->
     <!--</v-form>-->
+    <!--<p>EditTargetIds.subnetId : {{editTargetIds.subnetId}}</p>-->
     <template v-for="(subnet, subnetIndex) in micronet.subnets">
-      <v-form class="text-xs-center subnet-form" ref="form">
-        <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetId" label="Subnet ID" required/>
+      <!--<p>Subnet.ID : {{subnet.subnetId}}</p>-->
+      <v-form v-if="subnet.subnetId === editTargetIds.subnetId" class="text-xs-center subnet-form" ref="form">
+        <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetId" label="Subnet ID" required disabled/>
         <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetName" label="Subnet Name" required/>
         <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.ipv4.gateway" label="Subnet IPv4 Gateway"
                       required/>
@@ -39,15 +41,18 @@
                     </v-btn>
                     <v-text-field v-model="device.deviceName" label="Device Name" required/>
                     <v-text-field v-model="device.deviceDescription" label="Device Description" required/>
-                    <v-select
-                      :items="currentMicronet.deviceIds"
-                      label="Select Device ID"
-                      v-model="device.deviceId"
-                      class="input-group--focused"
-                      item-value="text"
-                      required
-                    ></v-select>
-                    <v-text-field v-if="device.ipv4!=undefined" v-model="device.ipv4.host" label="Device IPv4 HOST" required/>
+                    <!--<v-select-->
+                    <!--:items="currentMicronet.deviceIds"-->
+                    <!--label="Select Device ID"-->
+                    <!--v-model="device.deviceId"-->
+                    <!--class="input-group&#45;&#45;focused"-->
+                    <!--item-value="text"-->
+                    <!--required-->
+                    <!--disabled-->
+                    <!--&gt;</v-select>-->
+                    <v-text-field v-model="device.deviceId" label="Device ID" required disabled/>
+                    <v-text-field v-if="device.ipv4!=undefined" v-model="device.ipv4.host" label="Device IPv4 HOST"
+                                  required/>
                     <v-select
                       :items="currentMicronet.macAddresses"
                       label="Select Device Mac Address"
@@ -107,7 +112,7 @@
 <script>
   import { mapState, mapGetters, mapActions } from 'vuex'
   import Layout from '@/components/Layout.vue'
-  import { findIndex, propEq, pick } from 'ramda'
+  import { findIndex, propEq } from 'ramda'
 
   export default {
     components: {Layout},
@@ -127,11 +132,10 @@
       timeout: 2000
     }),
     computed: {
-      ...mapState(['editTargetIds', 'toast', 'micronets']),
+      ...mapState(['editTargetIds', 'toast', 'micronets', 'dhcpSubnets', 'dhcpSubnetDevices']),
       ...mapGetters(['editTarget']),
       currentMicronet () {
         const index = findIndex(propEq('_id', this.editTargetIds.micronetId))(this.micronets)
-        console.log('\n currentMicronet Index : ' + JSON.stringify(index))
         const currentMicronet = this.micronets[index]
         let deviceIds = currentMicronet.devices.map((device, index) => {
           // const deviceIdIndex = findIndex(propEq('deviceId', device.deviceId))(micronet.devices)
@@ -144,9 +148,9 @@
       }
     },
     methods: {
-      ...mapActions(['saveMicronet']),
+      ...mapActions(['saveMicronet', 'fetchDhcpSubnets', 'fetchDhcpSubnetDevices', 'upsertDhcpSubnet', 'deleteDhcpSubnet', 'fetchDhcpSubnetDevices', 'upsertDhcpSubnetDevice', 'deleteDhcpSubnetDevice']),
       routeToMicronet () {
-        this.$router.push(`${this.micronet.id}/micronets/${this.editTargetIds.micronetId}`)
+        this.$router.push(`/${this.micronet.id}/micronets/${this.editTargetIds.micronetId}`)
       },
       submit () {
         this.saving = true
@@ -160,11 +164,20 @@
       },
       updateDevice (subnetId, deviceId, subnetIndex, deviceIndex, deviceName, deviceDescription, deviceIpv4Host, deviceMacAdd) {
         this.micronet = this.micronet
-        this.$emit('updateDeviceInSubnet', pick(['deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
+        const dhcpDeviceUpdate = Object.assign(
+          {
+            deviceId: deviceId,
+            macAddress: deviceMacAdd,
+            networkAddress: {
+              ipv4: deviceIpv4Host
+            }
+          })
+        this.$emit('upsertDhcpSubnetDevice', {subnetId: subnetId, deviceId: deviceId, data: dhcpDeviceUpdate})
       },
       deleteDevice (subnetId, deviceId, subnetIndex, deviceIndex) {
         const idIndex = findIndex(propEq('deviceId', `${deviceId}`))(this.micronet.subnets[subnetIndex].deviceList)
         idIndex > -1 ? this.micronet.subnets[subnetIndex].deviceList.splice(idIndex, 1) : this.micronet
+        this.$emit('deleteDhcpSubnetDevice', {subnetId: subnetId, deviceId: deviceId})
       },
       addDeviceForm () {
         this.showAddDeviceForm = true
@@ -180,6 +193,15 @@
               eui48: deviceMacAddress
             }
           })
+        // Adding DHCP Entries
+        const dhcpAddDeviceData = Object.assign({}, {
+          deviceId: deviceId,
+          macAddress: deviceMacAddress,
+          networkAddress: {
+            ipv4: '192.168.1.42'
+          }
+        })
+        this.$emit('addDhcpSubnetDevice', {subnetId: subnetId, deviceId: deviceId, data: dhcpAddDeviceData})
         this.showAddDeviceForm = !this.showAddDeviceForm
       },
       reset () {
@@ -202,6 +224,25 @@
       this.micronet = currentMicronet
       currentMicronet.subnets[0].deviceList.map((device, index) => {
         this.showDevices.push({deviceId: device.deviceId, show: true})
+      })
+      this.fetchDhcpSubnets().then((data) => {
+        console.log('\n DHCP SubNets : ' + JSON.stringify(data))
+        // console.log('\n Router route : ' + JSON.stringify(this.$route.params.subnetId))
+        this.fetchDhcpSubnetDevices(this.$route.params.subnetId).then((data) => {
+          console.log('\n DHCP SubNet Devices : ' + JSON.stringify(data))
+        })
+
+        this.$on('upsertDhcpSubnetDevice', ({subnetId, deviceId, data: dhcpDeviceUpdate}) => {
+          this.upsertDhcpSubnetDevice({subnetId, deviceId, data: dhcpDeviceUpdate})
+        })
+
+        this.$on('deleteDhcpSubnetDevice', ({subnetId, deviceId}) => {
+          this.deleteDhcpSubnetDevice({subnetId, deviceId})
+        })
+
+        this.$on('addDhcpSubnetDevice', ({subnetId, deviceId, data}) => {
+          this.upsertDhcpSubnetDevice({subnetId, deviceId, data, event: 'addDhcpSubnetDevice'})
+        })
       })
     }
   }

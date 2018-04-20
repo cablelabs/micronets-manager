@@ -51,7 +51,7 @@ export default {
     ...mapMutations(['setEditTargetIds']),
     configureMicronet () {
       this.setEditTargetIds({ micronetId: this.micronetId, subnetId: this.subnet.subnetId })
-      this.$router.push('/configure-micronet')
+      this.$router.push(`/configure-micronet/${this.micronetId}/subnet/${this.subnet.subnetId}`)
     }
   }
 }
