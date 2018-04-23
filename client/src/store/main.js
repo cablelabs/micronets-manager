@@ -37,6 +37,8 @@ export const getters = {
   editTarget (state) {
     if (!state.editTargetIds) return null
     const {micronetId, subnetId, deviceId} = state.editTargetIds
+    console.log('\n\n State.editTargetIds : ' + JSON.stringify(state.editTargetIds))
+    console.log('\n\n State.micro-nets : ' + JSON.stringify(state.micronets))
     const micronet = state.micronets.filter(x => x._id === micronetId)[0]
     if (!subnetId) return micronet
     const subnet = micronet.subnets.filter(x => x.subnetId === subnetId)[0]
@@ -111,6 +113,7 @@ export const actions = {
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
+        console.log('\n\n\n Fetch Subscribers data : ' + JSON.stringify(data))
         if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
