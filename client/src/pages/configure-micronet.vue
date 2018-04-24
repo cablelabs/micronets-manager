@@ -7,7 +7,8 @@
       {{editTargetIds.deviceId ? `Device: ${editTargetIds.deviceId}` : ''}}
     </h3>
     <template v-for="(subnet, subnetIndex) in micronet.subnets">
-      <v-form v-if="subnet.subnetId === editTargetIds.subnetId" class="text-xs-center subnet-form" v-model="valid" ref="subnetForm" lazy-validation>
+      <v-form v-if="subnet.subnetId === editTargetIds.subnetId" class="text-xs-center subnet-form" v-model="valid"
+              ref="subnetForm" lazy-validation>
         <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetId" label="Subnet ID" required disabled
                       :rules="subnetIdRules"/>
         <v-text-field v-if="!editTargetIds.deviceId" v-model="subnet.subnetName" label="Subnet Name" required
@@ -65,7 +66,8 @@
             </template>
             <template v-if="showAddDeviceForm == true">
               <v-flex xs12 sm6>
-                <v-form v-model="addDeviceFormValid" ref="addDeviceToSubnetForm" lazy-validation v-if="subnet.subnetId === editTargetIds.subnetId">
+                <v-form v-model="addDeviceFormValid" ref="addDeviceToSubnetForm" lazy-validation="true"
+                        v-if="subnet.subnetId === editTargetIds.subnetId">
                   <v-card class="device-card">
                     <v-btn flat icon dark color="red darken-5" class="close-btn"
                            @click.stop="showAddDeviceForm=!showAddDeviceForm">
@@ -77,7 +79,7 @@
                     <v-text-field v-model="newDeviceId" label="Device ID" required :rules="deviceIdRules"/>
                     <v-text-field v-model="newDeviceMacAddress" label="Device Mac Address" required
                                   :rules="deviceMacAddressRules"/>
-                    <v-btn color="success" :disabled="isAddDeviceValid"
+                    <v-btn color="success" :disabled="!isAddDeviceValid()"
                            @click.stop="addDeviceToSubnet(subnet.subnetId, subnetIndex, newDeviceName, newDeviceDescription, newDeviceId, newDeviceMacAddress)">
                       Add
                     </v-btn>
@@ -115,7 +117,7 @@
     components: {Layout},
     name: 'AddSubnet',
     data: () => ({
-      addDeviceFormValid: true,
+      addDeviceFormValid: false,
       valid: true,
       micronet: {},
       newDeviceName: '',
@@ -231,10 +233,17 @@
         })
         this.$emit('addDhcpSubnetDevice', {subnetId: subnetId, deviceId: deviceId, data: dhcpAddDeviceData})
         this.showAddDeviceForm = !this.showAddDeviceForm
-        this.$refs.addDeviceToSubnetForm.reset()
+        // this.$refs.addDeviceToSubnetForm.reset()
+        this.resetAddDeviceForm()
+      },
+      resetAddDeviceForm () {
+        this.newDeviceMacAddress = ''
+        this.newDeviceName = ''
+        this.newDeviceDescription = ''
+        this.newDeviceId = ''
       },
       isAddDeviceValid () {
-        return this.newDeviceName !== '' && this.newDeviceMacAddress !== '' && this.newDeviceId !== '' && this.newDeviceDescription !== '' && !this.addDeviceFormValid
+        return this.newDeviceName !== '' && this.newDeviceMacAddress !== '' && this.newDeviceId !== '' && this.newDeviceDescription !== '' && this.addDeviceFormValid === true
       },
       reset () {
         this.textAreaInput = JSON.stringify(this.editTarget, null, 4)
