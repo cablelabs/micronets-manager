@@ -111,7 +111,6 @@ class Store {
   }
 
   addSubnet ({dispatch}, {body}) {
-    console.log('\n Server store addSubnet called with body : ' + JSON.stringify(body))
     const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
     const data = {
       subnetId,
