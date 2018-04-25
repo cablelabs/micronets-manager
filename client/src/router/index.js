@@ -18,7 +18,7 @@ export default new Router({
       component: Micronets
     },
     {
-      path: '/configure-micronet',
+      path: '/configure-micronet/:micronetId/subnet/:subnetId',
       name: 'ConfigureMicronet',
       component: ConfigureMicronet
     }

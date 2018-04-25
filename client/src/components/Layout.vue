@@ -37,7 +37,7 @@
         </v-container>
       </v-list>
       <v-list v-if="micronets.length > 0 && micronetIndex == -1">
-        <v-subheader>All Logs</v-subheader>
+        <v-subheader v-if="Object.keys(this.$router.currentRoute.params).length == 0">All Logs</v-subheader>
         <v-container
           style="max-height: max-content"
           class="scroll-y"

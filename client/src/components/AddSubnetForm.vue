@@ -72,7 +72,7 @@ export default {
   },
   data () {
     return {
-      valid: true,
+      valid: false,
       subnetId: '',
       subnetIdRules: [
         v => !!v || 'SubnetId is required',
@@ -97,14 +97,16 @@ export default {
   },
   methods: {
     submit () {
-      // console.log('\n Submit this.$refs.form : ' + JSON.stringify(this.$refs.form))
-      this.$emit('submit', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
-      this.childDialog = false
-      this.$emit('close', this.childDialog)
+      if (this.$refs.form.validate()) {
+        this.$emit('submit', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
+        this.childDialog = false
+        this.$emit('close', this.childDialog)
+      }
     },
     close () {
       this.childDialog = false
       this.$emit('close', this.childDialog)
+      this.$refs.form.reset()
     },
     created () {}
   }

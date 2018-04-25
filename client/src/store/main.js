@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { findIndex, propEq, find, lensPath, view, set, omit, merge } from 'ramda'
+import { findIndex, propEq, find, lensPath, set, omit, merge } from 'ramda'
 
 const setState = prop => (state, value) => { state[prop] = value }
 const micronetsUrl = `${process.env.BASE_URL}/micronets`
@@ -15,6 +15,7 @@ const msoPortalAuthPostConfig = {
 }
 const authTokenUri = 'http://localhost:3210/portal/registration/token'
 const sessionUri = 'http://localhost:3210/portal/session'
+const dhcpUri = 'http://localhost:5000/micronets/v1/dhcp/subnets'
 const Ajv = require('ajv')
 const ajv = new Ajv()
 const Schema = require('../../schemas/micronets')
@@ -23,6 +24,8 @@ const omitStateMeta = omit(['_id', '__v'])
 export const initialState = {
   authToken: '',
   micronets: [],
+  dhcpSubnets: [],
+  dhcpSubnetDevices: [],
   editTargetIds: {},
   toast: {
     show: false,
@@ -43,6 +46,8 @@ export const getters = {
 
 export const mutations = {
   setMicronets: setState('micronets'),
+  setDhcpSubnets: setState('dhcpSubnets'),
+  setDhcpSubnetDevices: setState('dhcpSubnetDevices'),
   setEditTargetIds (state, {micronetId, subnetId, deviceId}) {
     state.editTargetIds = {micronetId, subnetId, deviceId}
   },
@@ -72,7 +77,8 @@ export const actions = {
     })
       .then((response) => {
         let {data} = response.data
-        data.map((subscriber, index) => {
+        let newData = []
+        data.forEach((subscriber, index) => {
           subscriber = Object.assign({}, omitStateMeta(subscriber))
           axios({
             ...apiInit,
@@ -82,10 +88,10 @@ export const actions = {
           })
             .then(({data}) => {
               let mergedMicronet = merge(subscriber, data)
-              commit('setMicronets', mergedMicronet)
+              newData.push(mergedMicronet)
             })
         })
-        commit('setMicronets', data)
+        commit('setMicronets', newData)
         return data
       })
   },
@@ -126,7 +132,7 @@ export const actions = {
   upsertMicronet ({commit}, {id, data}) {
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
-    console.log('\n AJV ERRORS : ' + JSON.stringify(ajv.errors))
+    console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
     return valid === true ? axios(Object.assign({}, apiInit, {
       method: id ? 'put' : 'post',
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
@@ -134,7 +140,7 @@ export const actions = {
     }))
       .then(response => commit('replaceMicronet', response.data))
       .catch(error => {
-        console.log('AXIOS error', error.response)
+        console.log('Axios Error : ', error.response)
       }) : commit('setToast', {show: true, value: ajv.errors[0].message})
   },
   upsertInitMicronet ({commit}, {id, data}) {
@@ -145,7 +151,7 @@ export const actions = {
     }))
       .then(response => commit('replaceMicronet', response.data))
       .catch(error => {
-        console.log('AXIOS error', error.response)
+        console.log('Axios Error : ', error.response)
       })
   },
   saveMicronet ({state, dispatch}, data) {
@@ -154,10 +160,9 @@ export const actions = {
     const subnetIndex = findIndex(propEq('subnetId', subnetId))(micronet.subnets)
     const subnetLens = lensPath(['subnets', subnetIndex])
     if (!deviceId) return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
-    const deviceIndex = findIndex(propEq('deviceId', deviceId), view(subnetLens, micronet).deviceList)
-    const deviceLens = lensPath(['subnets', subnetIndex, 'deviceList', deviceIndex])
-    console.log('\n DeviceLens : ' + JSON.stringify(deviceLens))
-  // return dispatch('upsertMicronet', {id: micronetId, data: set(deviceLens, data, micronet)})
+    // const deviceIndex = findIndex(propEq('deviceId', deviceId), view(subnetLens, micronet).deviceList)
+    // const deviceLens = lensPath(['subnets', subnetIndex, 'deviceList', deviceIndex])
+    // return dispatch('upsertMicronet', {id: micronetId, data: set(deviceLens, data, micronet)})
     return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
   },
   addSubnet ({state, commit, dispatch}, data) {
@@ -168,8 +173,103 @@ export const actions = {
       url: `${process.env.BASE_URL}/add-subnet`,
       data: {...data, micronetId}
     })
-      .then(() => dispatch('fetchMicronets', micronetId))
+      .then(() => {
+        return dispatch('fetchMicronets', micronetId).then(() => {
+          const micronet = find(propEq('_id', micronetId))(state.micronets)
+          const subnet = find(propEq('subnetId', data.subnetId))(micronet.subnets)
+          const deviceInSubnet = find(propEq('deviceId', data.deviceId))(subnet.deviceList)
+          dispatch('upsertDhcpSubnet', {
+            data: Object.assign({}, {
+              subnetId: data.subnetId,
+              ipv4Network: {
+                network: subnet.ipv4.network,
+                mask: subnet.ipv4.netmask,
+                gateway: subnet.ipv4.gateway,
+                broadcast: '192.168.1.255'
+              }
+            })
+          }).then(() => {
+            dispatch('fetchDhcpSubnets').then(() => {
+              dispatch('upsertDhcpSubnetDevice', {
+                subnetId: data.subnetId,
+                deviceId: data.deviceId,
+                data: Object.assign({}, {
+                  deviceId: data.deviceId,
+                  macAddress: data.macAddress,
+                  networkAddress: {ipv4: deviceInSubnet.ipv4.host}
+                }),
+                event: 'addDhcpSubnetDevice'
+              })
+            })
+          })
+        })
+      })
       .then(() => commit('setEditTargetIds', {}))
+  },
+  fetchDhcpSubnets ({commit}) {
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url: dhcpUri
+    })
+      .then(({data}) => {
+        commit('setDhcpSubnets', data)
+        return data
+      })
+  },
+  upsertDhcpSubnet ({commit, dispatch}, {data, id}) {
+    return axios({
+      ...apiInit,
+      method: id ? 'put' : 'post',
+      url: id ? `${dhcpUri}/${id}` : `${dhcpUri}`,
+      data
+    })
+      .then(({data}) => {
+        return dispatch('fetchDhcpSubnets')
+      })
+  },
+  deleteDhcpSubnet ({commit, dispatch}, {id, data}) {
+    return axios({
+      ...apiInit,
+      method: 'delete',
+      url: `${dhcpUri}/${id}`,
+      data
+    })
+      .then(({data}) => {
+        return dispatch('fetchDhcpSubnets')
+      })
+  },
+  fetchDhcpSubnetDevices ({commit}, subnetId) {
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url: `${dhcpUri}/${subnetId}/devices`
+    })
+      .then(({data}) => {
+        commit('setDhcpSubnetDevices', data)
+        return data
+      })
+  },
+  upsertDhcpSubnetDevice ({commit, dispatch}, {subnetId, deviceId, data, event}) {
+    return axios({
+      ...apiInit,
+      method: event === 'addDhcpSubnetDevice' ? 'post' : 'put',
+      url: event === 'addDhcpSubnetDevice' ? `${dhcpUri}/${subnetId}/devices` : `${dhcpUri}/${subnetId}/devices/${deviceId}`,
+      data
+    })
+      .then(({data}) => {
+        return dispatch('fetchDhcpSubnetDevices', subnetId)
+      })
+  },
+  deleteDhcpSubnetDevice ({commit, dispatch}, {subnetId, deviceId}) {
+    return axios({
+      ...apiInit,
+      method: 'delete',
+      url: `${dhcpUri}/${subnetId}/devices/${deviceId}`
+    })
+      .then(({data}) => {
+        return dispatch('fetchDhcpSubnetDevices', subnetId)
+      })
   }
 }
 
