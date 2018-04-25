@@ -76,9 +76,26 @@
                     <v-text-field v-model="newDeviceName" label="Device Name" required :rules="deviceNameRules"/>
                     <v-text-field v-model="newDeviceDescription" label="Device Description" required
                                   :rules="deviceDescriptionRules"/>
-                    <v-text-field v-model="newDeviceId" label="Device ID" required :rules="deviceIdRules"/>
-                    <v-text-field v-model="newDeviceMacAddress" label="Device Mac Address" required
-                                  :rules="deviceMacAddressRules"/>
+                    <!--<v-text-field v-model="newDeviceId" label="Device ID" required :rules="deviceIdRules"/>-->
+                    <v-select
+                      :items="fetchAvailableDeviceIds"
+                      label="Select Device ID"
+                      v-model="newDeviceId"
+                      class="input-group--focused"
+                      item-value="text"
+                      required
+                      :rules="deviceIdRules"
+                    ></v-select>
+                    <!--<v-text-field v-model="newDeviceMacAddress" label="Device Mac Address" required :rules="deviceMacAddressRules"/>-->
+                    <v-select
+                      :items="currentMicronet.macAddresses"
+                      label="Select Device Mac Address"
+                      v-model="newDeviceMacAddress"
+                      class="input-group--focused"
+                      item-value="text"
+                      required
+                      :rules="deviceMacAddressRules"
+                    ></v-select>
                     <v-btn color="success" :disabled="!isAddDeviceValid()"
                            @click.stop="addDeviceToSubnet(subnet.subnetId, subnetIndex, newDeviceName, newDeviceDescription, newDeviceId, newDeviceMacAddress)">
                       Add
@@ -90,7 +107,8 @@
           </v-layout>
         </v-container>
         <div class="form-btns">
-          <v-btn color="success" @click.stop="addDeviceForm">Add Device</v-btn>
+          <v-btn color="success" v-if="fetchAvailableDeviceIds.length > 0" @click.stop="addDeviceForm">Add Device
+          </v-btn>
           <v-btn color="primary" @click.stop="submitForm(subnetIndex)" :disabled="!valid">Submit</v-btn>
           <v-btn @click.stop="routeToMicronet">Done</v-btn>
         </div>
@@ -111,7 +129,7 @@
 <script>
   import { mapState, mapGetters, mapActions } from 'vuex'
   import Layout from '@/components/Layout.vue'
-  import { findIndex, propEq } from 'ramda'
+  import { findIndex, propEq, lensPath, view, difference } from 'ramda'
 
   export default {
     components: {Layout},
@@ -175,6 +193,17 @@
           return device.macAddress
         })
         return {micronet: currentMicronet, deviceIds: deviceIds, macAddresses: macAddresses}
+      },
+      fetchAvailableDeviceIds () {
+        const {deviceIds, micronet} = this.currentMicronet
+        const subnetIndex = findIndex(propEq('subnetId', this.$router.currentRoute.params.subnetId))(micronet.subnets)
+        const subnetLens = lensPath(['subnets', subnetIndex])
+        const deviceList = view(subnetLens, micronet).deviceList
+        let takenDeviceIds = deviceList.map((device, index) => {
+          return device.deviceId
+        })
+        const availableDeviceIds = difference(deviceIds, takenDeviceIds)
+        return availableDeviceIds
       }
     },
     methods: {
@@ -190,7 +219,6 @@
       submitForm (subnetIndex) {
         return this.saveMicronet(this.micronet.subnets[subnetIndex])
           .then(() => { this.saving = false })
-        // this.$emit('submitForm', pick(['subnetId', 'subnetName', 'deviceId', 'deviceName', 'macAddress', 'deviceDescription'], this))
       },
       updateDevice (subnetId, deviceId, subnetIndex, deviceIndex, deviceName, deviceDescription, deviceIpv4Host, deviceMacAdd) {
         this.micronet = this.micronet
@@ -234,7 +262,7 @@
         this.$emit('addDhcpSubnetDevice', {subnetId: subnetId, deviceId: deviceId, data: dhcpAddDeviceData})
         this.showAddDeviceForm = !this.showAddDeviceForm
         // this.$refs.addDeviceToSubnetForm.reset()
-        this.resetAddDeviceForm()
+        // this.resetAddDeviceForm()
       },
       resetAddDeviceForm () {
         this.newDeviceMacAddress = ''
@@ -255,22 +283,12 @@
     mounted () {
       const index = findIndex(propEq('_id', this.editTargetIds.micronetId))(this.micronets)
       const currentMicronet = this.micronets[index]
-      // let deviceIds = currentMicronet.devices.map((device, index) => {
-      //   // const deviceIdIndex = findIndex(propEq('deviceId', device.deviceId))(micronet.devices)
-      //   return device.deviceId
-      // })
-      // let macAddresses = currentMicronet.devices.map((device, index) => {
-      //   return device.macAddress
-      // })
       this.micronet = currentMicronet
       currentMicronet.subnets[0].deviceList.map((device, index) => {
         this.showDevices.push({deviceId: device.deviceId, show: true})
       })
       this.fetchDhcpSubnets().then((data) => {
-        console.log('\n DHCP SubNets : ' + JSON.stringify(data))
-        // console.log('\n Router route : ' + JSON.stringify(this.$route.params.subnetId))
         this.fetchDhcpSubnetDevices(this.$route.params.subnetId).then((data) => {
-          console.log('\n DHCP SubNet Devices : ' + JSON.stringify(data))
         })
 
         this.$on('upsertDhcpSubnetDevice', ({subnetId, deviceId, data: dhcpDeviceUpdate}) => {
