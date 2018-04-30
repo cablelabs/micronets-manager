@@ -20,7 +20,6 @@
   import AddSubnetForm from '../components/AddSubnetForm'
   import Subscriber from '../components/Subscriber'
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-  import io from 'socket.io-client'
 
   export default {
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
@@ -31,11 +30,26 @@
     },
     data: () => ({
       dialog: false,
-      drawer: false
+      drawer: false,
+      isConnected: false,
+      socketMessage: ''
     }),
+    sockets: {
+      connect () {
+        // Fired when the socket connects.
+        this.isConnected = true
+      },
+      disconnect () {
+        this.isConnected = false
+      },
+      // Fired when the server sends something on the "messageChannel" channel.
+      messageChannel (data) {
+        this.socketMessage = data
+      }
+    },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers']),
+      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertSubscribers']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -47,16 +61,13 @@
     mounted () {
       this.setEditTargetIds({})
       this.fetchSubscribers().then(({data}) => {})
-      var socket = io('http://localhost:3210')
-      socket.on('connection', () => console.log('\n socket.io connection detected .... '))
-
-      socket.on('socketSessionUpdate', function (data) {
-        console.log('\n Socket.io catching session update event on home mounted: ' + JSON.stringify(data))
-        socket.emit('socketSessionUpdate', { message: 'Session updated' })
+      this.$socket.on('socketSessionUpdate', (data) => {
+        console.log('\n Vue socket binding npm event socketSessionUpdate caught with data ' + JSON.stringify(data))
+        this.upsertSubscribers(data)
       })
-      socket.on('socketSessionCreate', function (data) {
-        console.log('\n Socket.io catching session create event on home mounted: ' + JSON.stringify(data))
-        socket.emit('socketSessionCreate', { message: 'Session created' })
+      this.$socket.on('socketSessionCreate', (data) => {
+        console.log('\n Vue socket binding npm event socketSessionCreate caught with data ' + JSON.stringify(data))
+        this.upsertSubscribers(data)
       })
     }
   }
