@@ -20,6 +20,7 @@
   import AddSubnetForm from '../components/AddSubnetForm'
   import Subscriber from '../components/Subscriber'
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+  import io from 'socket.io-client'
 
   export default {
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
@@ -46,6 +47,17 @@
     mounted () {
       this.setEditTargetIds({})
       this.fetchSubscribers().then(({data}) => {})
+      var socket = io('http://localhost:3210')
+      socket.on('connection', () => console.log('\n socket.io connection detected .... '))
+
+      socket.on('socketSessionUpdate', function (data) {
+        console.log('\n Socket.io catching session update event on home mounted: ' + JSON.stringify(data))
+        socket.emit('socketSessionUpdate', { message: 'Session updated' })
+      })
+      socket.on('socketSessionCreate', function (data) {
+        console.log('\n Socket.io catching session create event on home mounted: ' + JSON.stringify(data))
+        socket.emit('socketSessionCreate', { message: 'Session created' })
+      })
     }
   }
 </script>
