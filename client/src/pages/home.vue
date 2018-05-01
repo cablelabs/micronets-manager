@@ -3,11 +3,11 @@
     <template v-for="(micronet, index) in micronets">
          <Subscriber :subscriberId=micronet.id  :subscriberName="micronet.name" :ssId="micronet.ssid" :devices=micronet.devices :index=index :id="micronet._id"/>
     </template>
-    <template v-if="!micronets.length">
+    <template v-if="micronets.length == 0">
       <v-card>
         <v-card-title class="no-subnets">No Micro-nets found</v-card-title>
         <v-card-actions>
-          <v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>
+          <!--<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>-->
         </v-card-actions>
       </v-card>
     </template>
