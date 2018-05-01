@@ -59,6 +59,7 @@ class Store {
   }
 
   upsertInitMicronet ({dispatch}, {body, params = {}}) {
+    console.log('\n\n SERVER STORE UPSERT-INIT-MICRONET BODY : ' + JSON.stringify(body))
     const message = Object.assign(omitOperationalStateMeta(body.message), {timestampUtc: this.timestamp()})
     // console.log(JSON.stringify(message, null, 2))
     return dispatch('callToMtc', message).then(response => {
@@ -81,6 +82,7 @@ class Store {
   }
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
+    console.log('\n SERVER STORE UPSERT MICRO-NET BODY : ' + JSON.stringify(body))
     const message = Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()})
     console.log('\n MTC Message : ' + JSON.stringify(message))
     return dispatch('callToMtc', message).then(response => {
