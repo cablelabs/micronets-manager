@@ -11,12 +11,12 @@ import store from './store'
 import VueTextareaAutosize from 'vue-textarea-autosize'
 import socketio from 'socket.io-client'
 import VueSocketio from 'vue-socket.io'
-Vue.use(VueSocketio, 'http://localhost:3210')
+Vue.use(VueSocketio, `${process.env.MSO_PORTAL_BASE_URL}`)
 
 Vue.config.productionTip = false
 Vue.use(Vuelidate)
 Vue.use(VueTextareaAutosize)
-Vue.use(VueSocketio, socketio('http://localhost:3210'))
+Vue.use(VueSocketio, socketio(`${process.env.MSO_PORTAL_BASE_URL}`))
 Vue.use(Vuetify, {
   theme: {
     primary: '#264A5B',

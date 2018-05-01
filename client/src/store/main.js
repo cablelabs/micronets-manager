@@ -13,9 +13,9 @@ const msoPortalAuthPostConfig = {
   'serial': 'GG-555555',
   'macAddress': '03:30:93:39:03:3B'
 }
-const authTokenUri = 'http://localhost:3210/portal/registration/token'
-const sessionUri = 'http://localhost:3210/portal/session'
-const dhcpUri = 'http://localhost:5000/micronets/v1/dhcp/subnets'
+const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/registration/token`
+const sessionUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/session`
+const dhcpUri = `${process.env.DHCP_BASE_URL}/micronets/v1/dhcp/subnets`
 const Ajv = require('ajv')
 const ajv = new Ajv()
 const Schema = require('../../schemas/micronets')
