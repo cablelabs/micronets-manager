@@ -1,5 +1,5 @@
 import axios from 'axios'
-import {findIndex, propEq, find, lensPath, set, omit, merge, lensProp} from 'ramda'
+import { findIndex, propEq, find, lensPath, set, omit, merge, lensProp } from 'ramda'
 
 const setState = prop => (state, value) => { state[prop] = value }
 const micronetsUrl = `${process.env.BASE_URL}/micronets`
@@ -64,27 +64,17 @@ export const mutations = {
 
 export const actions = {
   upsertSubscribers ({state, commit, dispatch}, {type, data}) {
-    console.log('\n Actions upsertSubscribers called eventName : ' + JSON.stringify(type))
-    console.log('\n Actions upsertSubscribers called data : ' + JSON.stringify(data.subscriberId))
-    console.log('\n Actions upsertSubscribers state.micronets : ' + JSON.stringify(state.micronets))
-    // state.micronets.length === 0 ? dispatch('fetchSubscribers').then(() => {
-    console.log('\n Then of fetchSubscribers called from upsertSubscribers ')
-    console.log('\n Actions upsertSubscribers state.micronets : ' + JSON.stringify(state.micronets))
-    let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
+   // let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
     const subscriberID = data.subscriberId
     if (type === 'sessionUpdate') {
-      console.log('\n Custom logic for sessionUpdate')
-      console.log('\n Micro-net Index : ' + JSON.stringify(micronetIndex))
-      console.log('\n Printing Devices for micronet : ' + JSON.stringify(state.micronets[micronetIndex].devices))
       axios({
         ...apiInit,
         method: 'post',
         url: authTokenUri,
         data: msoPortalAuthPostConfig
       }).then(({data}) => {
-        console.log('\n Upsert Subscribers FetchAuthToken Data : ' + JSON.stringify(data))
         const token = data.accessToken
-        console.log('\n Token : ' + JSON.stringify(token) + '\t\t\t subscriberID : ' + JSON.stringify(subscriberID))
+        // console.log('\n Token : ' + JSON.stringify(token) + '\t\t\t subscriberID : ' + JSON.stringify(subscriberID))
         axios({
           ...{
             crossDomain: true,
@@ -97,26 +87,18 @@ export const actions = {
           url: subscriberID ? `${sessionUri}/${subscriberID}` : `${sessionUri}`
         })
           .then(({data}) => {
-            // console.log('\n Portal session fetch information response : ' + JSON.stringify(data))
             const updatedDevices = data.devices
-            console.log('\n Update Devices : ' + JSON.stringify(updatedDevices))
-            console.log('\n\n Printing Devices for micronet : ' + JSON.stringify(state.micronets[micronetIndex].devices))
-            // const newState = mergeWith(state.micronets[micronetIndex].devices, updatedDevices)
-            // console.log('\n newState upsertSubscribers : ' + JSON.stringify(newState))
-
             const micronet = find(propEq('id', subscriberID))(state.micronets)
-            // const subnetIndex = findIndex(propEq('subnetId', subnetId))(micronet.subnets)
-            // const micronetDevicesLens = lensPath(['devices', micronet])
             const devicesLens = lensProp('devices', micronet)
-            // console.log('\n\n DeviceLens Prop : ' + JSON.stringify(view(devicesLens, micronet)))
-            return dispatch('upsertMicronet', {id: micronet._id, data: set(devicesLens, updatedDevices, micronet), event:'sessionUpdate'})
-           // return dispatch('upsertMicronet', {id: micronet._id, data: set(micronetDevicesLens, updatedDevices, micronet)})
+            return dispatch('upsertMicronet', {
+              id: micronet._id,
+              data: set(devicesLens, updatedDevices, micronet),
+              event: 'sessionUpdate'
+            })
           })
       })
     }
-    if (type === 'sessionCreate') {
-      console.log('\n Custom logic for socketSessionCreate')
-    }
+    if (type === 'sessionCreate') { }
   },
   initializeMicronets ({commit}, {token}) {
     return axios({
@@ -135,6 +117,7 @@ export const actions = {
         let newData = []
         data.forEach((subscriber, index) => {
           subscriber = Object.assign({}, omitStateMeta(subscriber))
+          console.log('\n Client initializeMicronets subscriber : ' + JSON.stringify(subscriber))
           axios({
             ...apiInit,
             method: 'post',
@@ -189,20 +172,48 @@ export const actions = {
       })
   },
   upsertMicronet ({commit}, {id, data, event}) {
-    console.log('\n upsertMicronet called with id : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data))
-    console.log('\n upsertMicronet called with event : ' + JSON.stringify(event))
+    console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
+    console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
     console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
-    return valid === true ? axios(Object.assign({}, apiInit, {
-      method: id ? 'put' : 'post',
-      url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
-      data
-    }))
-      .then(response => commit('replaceMicronet', response.data))
-      .catch(error => {
-        console.log('Axios Error : ', error.response)
-      }) : commit('setToast', {show: true, value: ajv.errors[0].message})
+    // return valid === true && event!='sessionUpdate' ? axios(Object.assign({}, apiInit, {
+    //   method: id ? 'put' : 'post',
+    //   url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
+    //   data
+    // }))
+    //   .then(response => commit('replaceMicronet', response.data))
+    //   .catch(error => {
+    //     console.log('Axios Error : ', error.response)
+    //   }) : commit('setToast', {show: true, value: ajv.errors[0].message})
+
+    if (valid === true && event !== 'sessionUpdate') {
+      return axios(Object.assign({}, apiInit, {
+        method: id ? 'put' : 'post',
+        url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
+        data
+      }))
+        .then(response => commit('replaceMicronet', response.data))
+        .catch(error => {
+          console.log('Axios Error : ', error.response)
+        })
+    }
+
+    if (valid === true && event === 'sessionUpdate') {
+      return axios(Object.assign({}, apiInit, {
+        method: id ? 'put' : 'post',
+        url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
+        data: {data: data, event: event}
+      }))
+        .then(response => commit('replaceMicronet', response.data))
+        .catch(error => {
+          console.log('Axios Error : ', error.response)
+        })
+    }
+
+    if (valid === false) {
+      commit('setToast', {show: true, value: ajv.errors[0].message})
+    }
   },
   upsertInitMicronet ({commit}, {id, data}) {
     axios(Object.assign({}, apiInit, {

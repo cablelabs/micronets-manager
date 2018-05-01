@@ -163,8 +163,8 @@
         v => !!v || 'Device Description is required'
       ],
       deviceIdRules: [
-        v => !!v || 'Device ID is required',
-        v => /^[A-Fa-f0-9]{64}$/i.test(v) || 'Device ID should be SHA256 of the device public key'
+        v => !!v || 'Device ID is required'
+        // v => /^[A-Fa-f0-9]{64}$/i.test(v) || 'Device ID should be SHA256 of the device public key'
       ],
       deviceMacAddressRules: [
         v => !!v || 'Device Mac address is required',

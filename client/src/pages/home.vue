@@ -62,12 +62,12 @@
       this.setEditTargetIds({})
       this.fetchSubscribers().then(({data}) => {})
       this.$socket.on('socketSessionUpdate', (data) => {
-        console.log('\n Vue socket binding npm event socketSessionUpdate caught with data ' + JSON.stringify(data))
+       // console.log('\n Vue socket event socketSessionUpdate caught with data ' + JSON.stringify(data))
         this.upsertSubscribers(data)
       })
       this.$socket.on('socketSessionCreate', (data) => {
-        console.log('\n Vue socket binding npm event socketSessionCreate caught with data ' + JSON.stringify(data))
-        this.upsertSubscribers(data)
+       // console.log('\n Vue socket event socketSessionCreate caught with data ' + JSON.stringify(data))
+       // this.upsertSubscribers(data)
       })
     }
   }
