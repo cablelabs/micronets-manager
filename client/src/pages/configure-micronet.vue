@@ -70,7 +70,7 @@
                         v-if="subnet.subnetId === editTargetIds.subnetId">
                   <v-card class="device-card">
                     <v-btn flat icon dark color="red darken-5" class="close-btn"
-                           @click.stop="showAddDeviceForm=!showAddDeviceForm">
+                           @click.stop="onCloseAddDevice">
                       <v-icon>close</v-icon>
                     </v-btn>
                     <v-text-field v-model="newDeviceName" label="Device Name" required :rules="deviceNameRules"/>
@@ -163,8 +163,8 @@
         v => !!v || 'Device Description is required'
       ],
       deviceIdRules: [
-        v => !!v || 'Device ID is required',
-        v => /^[A-Fa-f0-9]{64}$/i.test(v) || 'Device ID should be SHA256 of the device public key'
+        v => !!v || 'Device ID is required'
+        // v => /^[A-Fa-f0-9]{64}$/i.test(v) || 'Device ID should be SHA256 of the device public key'
       ],
       deviceMacAddressRules: [
         v => !!v || 'Device Mac address is required',
@@ -262,13 +262,18 @@
         this.$emit('addDhcpSubnetDevice', {subnetId: subnetId, deviceId: deviceId, data: dhcpAddDeviceData})
         this.showAddDeviceForm = !this.showAddDeviceForm
         // this.$refs.addDeviceToSubnetForm.reset()
-        // this.resetAddDeviceForm()
+        this.resetAddDeviceForm()
       },
       resetAddDeviceForm () {
         this.newDeviceMacAddress = ''
         this.newDeviceName = ''
         this.newDeviceDescription = ''
         this.newDeviceId = ''
+      },
+      onCloseAddDevice () {
+        this.resetAddDeviceForm()
+        this.showAddDeviceForm = !this.showAddDeviceForm
+        return this.showAddDeviceForm
       },
       isAddDeviceValid () {
         return this.newDeviceName !== '' && this.newDeviceMacAddress !== '' && this.newDeviceId !== '' && this.newDeviceDescription !== '' && this.addDeviceFormValid === true

@@ -81,10 +81,24 @@ class Store {
   }
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
-    const message = Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()})
+   // console.log('\n  UpsertMicronet body : ' + JSON.stringify(body))
+    const message = !body.event ? Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()}) :
+    Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
     console.log('\n MTC Message : ' + JSON.stringify(message))
+    let mergedMicronet = {}
     return dispatch('callToMtc', message).then(response => {
       console.log('\n MTC response : ' + JSON.stringify(response))
+      if (body.data && body.event) {
+       // console.log('\n Event ' + JSON.stringify(body.event) + ' found in upsertMicronet')
+        mergedMicronet = Object.assign({}, {
+           devices:body.data.devices,
+           id:body.data.id,
+           ssid:body.data.ssid,
+           name:body.data.name,
+          _id:body.data._id
+        }, response);
+       // console.log('\n\n UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
+      }
       if (response.status >= 1000) {
         const error = new Error('Failed to create micronet')
         error.logEvents = response.logEvents
@@ -95,7 +109,7 @@ class Store {
         ? Micronets.findById(params.id).then((data) => {
           let prevLogEvents = data.logEvents
           let allLogEvents = R.concat(prevLogEvents, response.logEvents)
-          let updatedResponse = Object.assign(response, {logEvents: allLogEvents})
+          let updatedResponse =  body.data && body.event ? Object.assign(mergedMicronet, {logEvents: allLogEvents}) : Object.assign(response, {logEvents: allLogEvents})
           return Micronets.update({_id: params.id}, updatedResponse).then(data => ({data}))
         })
         : (new Micronets(response)).save().then(data => ({statusCode: 201, data}))

@@ -9,10 +9,14 @@ import router from './router'
 import Vuelidate from 'vuelidate'
 import store from './store'
 import VueTextareaAutosize from 'vue-textarea-autosize'
+import socketio from 'socket.io-client'
+import VueSocketio from 'vue-socket.io'
+Vue.use(VueSocketio, `${process.env.MSO_PORTAL_BASE_URL}`)
 
 Vue.config.productionTip = false
 Vue.use(Vuelidate)
 Vue.use(VueTextareaAutosize)
+Vue.use(VueSocketio, socketio(`${process.env.MSO_PORTAL_BASE_URL}`))
 Vue.use(Vuetify, {
   theme: {
     primary: '#264A5B',
