@@ -64,7 +64,8 @@ export const mutations = {
 
 export const actions = {
   upsertSubscribers ({state, commit, dispatch}, {type, data}) {
-   // let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
+    // let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
+    console.log('\n Client upsert Subscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
     const subscriberID = data.subscriberId
     if (type === 'sessionUpdate') {
       axios({
@@ -98,7 +99,45 @@ export const actions = {
           })
       })
     }
-    if (type === 'sessionCreate') { }
+
+    if (type === 'sessionCreate') {
+      axios({
+        ...apiInit,
+        method: 'post',
+        url: authTokenUri,
+        data: msoPortalAuthPostConfig
+      }).then(({data}) => {
+        const subscriberSessionUri = `${sessionUri}/${subscriberID}`
+        axios({
+          ...{
+            crossDomain: true,
+            headers: {
+              'Content-type': 'application/json',
+              Authorization: `Bearer ${data.accessToken}`
+            }
+          },
+          method: 'get',
+          url: subscriberSessionUri
+        }).then((response) => {
+          let data = response.data
+          const subscriber = Object.assign({}, {
+            id: data.id,
+            ssid: data.ssid,
+            name: data.name,
+            devices: data.devices,
+            timestampUtc: (new Date()).toISOString()
+          })
+          axios({
+            ...apiInit,
+            method: 'post',
+            url: `${process.env.BASE_URL}/create-mock-micronet`,
+            data: {subnets: 1, hosts: 0, subscriber: subscriber}
+          })
+            .then(({data}) => {})
+        })
+        return dispatch('fetchMicronets')
+      })
+    }
   },
   initializeMicronets ({commit}, {token}) {
     return axios({
@@ -117,7 +156,7 @@ export const actions = {
         let newData = []
         data.forEach((subscriber, index) => {
           subscriber = Object.assign({}, omitStateMeta(subscriber))
-          console.log('\n Client initializeMicronets subscriber : ' + JSON.stringify(subscriber))
+        //  console.log('\n InitializeMicronets subscriber : ' + JSON.stringify(subscriber))
           axios({
             ...apiInit,
             method: 'post',
@@ -140,20 +179,20 @@ export const actions = {
       url: authTokenUri,
       data: msoPortalAuthPostConfig
     }).then(({data}) => {
-      console.log('\n FetchAuthToken Data : ' + JSON.stringify(data))
+     // console.log('\n FetchAuthToken Data : ' + JSON.stringify(data))
       return dispatch('initializeMicronets', {token: data.accessToken})
     })
   },
   fetchSubscribers ({state, commit, dispatch}, id) {
-    console.log('\n\n Fetch Subscribers id : ' + JSON.stringify(id))
-    console.log('\n\n Fetch Subscribers state : ' + JSON.stringify(state.micronets))
+   // console.log('\n\n Fetch Subscribers id : ' + JSON.stringify(id))
+   // console.log('\n\n Fetch Subscribers state : ' + JSON.stringify(state.micronets))
     return axios({
       ...apiInit,
       method: 'get',
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
-        console.log('\n\n Fetch Subscribers Data : ' + JSON.stringify(data))
+      //  console.log('\n\n Fetch Subscribers Data : ' + JSON.stringify(data))
         if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
@@ -172,8 +211,8 @@ export const actions = {
       })
   },
   upsertMicronet ({commit}, {id, data, event}) {
-    console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
-    console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
+  //  console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
+  //  console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
     console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
