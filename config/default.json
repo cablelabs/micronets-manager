@@ -11,7 +11,8 @@
     "odl":{
       "port": 18080,
       "host": "http://127.0.0.1",
-      "initializeUrl": "odl/mdl/test/publish"
+      "initializeUrl": "odl/mdl/test/publish",
+      "resetUrl": "odl/mdl/test/publish/reset"
     },
     "channels":{
       "publish":"MTC:MDL_1.0.0",
@@ -30,7 +31,8 @@
     "odl":{
       "port": 18080,
       "host": "http://127.0.0.1",
-      "initializeUrl": "odl/mdl/test/publish"
+      "initializeUrl": "odl/mdl/test/publish",
+      "resetUrl": "odl/mdl/test/publish/reset"
     },
     "channels":{
       "publish":"MTC:MDL_1.0.0",

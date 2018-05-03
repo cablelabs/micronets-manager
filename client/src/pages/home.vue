@@ -67,7 +67,7 @@
       })
       this.$socket.on('socketSessionCreate', (data) => {
        // console.log('\n Vue socket event socketSessionCreate caught with data ' + JSON.stringify(data))
-       // this.upsertSubscribers(data)
+        this.upsertSubscribers(data)
       })
     }
   }

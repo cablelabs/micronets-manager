@@ -184,15 +184,15 @@ export const actions = {
     })
   },
   fetchSubscribers ({state, commit, dispatch}, id) {
-   // console.log('\n\n Fetch Subscribers id : ' + JSON.stringify(id))
-   // console.log('\n\n Fetch Subscribers state : ' + JSON.stringify(state.micronets))
+    console.log('\n\n Fetch Subscribers id : ' + JSON.stringify(id))
+    console.log('\n\n Fetch Subscribers state : ' + JSON.stringify(state.micronets))
     return axios({
       ...apiInit,
       method: 'get',
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
-      //  console.log('\n\n Fetch Subscribers Data : ' + JSON.stringify(data))
+        console.log('\n\n Fetch Subscribers Data : ' + JSON.stringify(data))
         if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
@@ -296,7 +296,6 @@ export const actions = {
                 network: subnet.ipv4.network,
                 mask: subnet.ipv4.netmask,
                 gateway: subnet.ipv4.gateway,
-                broadcast: '192.168.1.255'
               }
             })
           }).then(() => {
