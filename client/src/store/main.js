@@ -156,7 +156,7 @@ export const actions = {
         let newData = []
         data.forEach((subscriber, index) => {
           subscriber = Object.assign({}, omitStateMeta(subscriber))
-          console.log('\n Client initializeMicronets subscriber : ' + JSON.stringify(subscriber))
+        //  console.log('\n InitializeMicronets subscriber : ' + JSON.stringify(subscriber))
           axios({
             ...apiInit,
             method: 'post',
@@ -179,20 +179,20 @@ export const actions = {
       url: authTokenUri,
       data: msoPortalAuthPostConfig
     }).then(({data}) => {
-      console.log('\n FetchAuthToken Data : ' + JSON.stringify(data))
+     // console.log('\n FetchAuthToken Data : ' + JSON.stringify(data))
       return dispatch('initializeMicronets', {token: data.accessToken})
     })
   },
   fetchSubscribers ({state, commit, dispatch}, id) {
-    console.log('\n\n Fetch Subscribers id : ' + JSON.stringify(id))
-    console.log('\n\n Fetch Subscribers state : ' + JSON.stringify(state.micronets))
+   // console.log('\n\n Fetch Subscribers id : ' + JSON.stringify(id))
+   // console.log('\n\n Fetch Subscribers state : ' + JSON.stringify(state.micronets))
     return axios({
       ...apiInit,
       method: 'get',
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
-        console.log('\n\n Fetch Subscribers Data : ' + JSON.stringify(data))
+      //  console.log('\n\n Fetch Subscribers Data : ' + JSON.stringify(data))
         if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
@@ -211,8 +211,8 @@ export const actions = {
       })
   },
   upsertMicronet ({commit}, {id, data, event}) {
-    console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
-    console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
+  //  console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
+  //  console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
     console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
@@ -227,7 +227,6 @@ export const actions = {
     //   }) : commit('setToast', {show: true, value: ajv.errors[0].message})
 
     if (valid === true && event !== 'sessionUpdate') {
-      console.log('\n If valid === true && event !== sessionUpdate DATA : ' + JSON.stringify(data))
       return axios(Object.assign({}, apiInit, {
         method: id ? 'put' : 'post',
         url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
