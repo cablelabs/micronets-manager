@@ -305,7 +305,9 @@ export const actions = {
                 deviceId: data.deviceId,
                 data: Object.assign({}, {
                   deviceId: data.deviceId,
-                  macAddress: data.macAddress,
+                  macAddress: {
+                    eui48: data.macAddress
+                  },
                   networkAddress: {ipv4: deviceInSubnet.ipv4.host}
                 }),
                 event: 'addDhcpSubnetDevice'
