@@ -48,7 +48,6 @@ class Store {
   }
 
   createMockMicronet ({dispatch}, {body}) {
-  //  console.log('\n CreateMockMicronet  body : ' + JSON.stringify(body))
     const {odl} = this.config
     return axios(`${odl.host}:${odl.port}/${odl.initializeUrl}/${body.subnets}/${body.hosts}`)
       .then(message => body.subscriber ? dispatch('upsertInitMicronet', {
@@ -60,7 +59,6 @@ class Store {
   }
 
   upsertInitMicronet ({dispatch}, {body, params = {}}) {
-  //  console.log('\n upsertInitMicronet  body : ' + JSON.stringify(body))
     const message = Object.assign(omitOperationalStateMeta(body.message), {timestampUtc: this.timestamp()})
     // console.log(JSON.stringify(message, null, 2))
     return dispatch('callToMtc', message).then(response => {
@@ -83,23 +81,23 @@ class Store {
   }
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
-   // console.log('\n  Upsert Micronet body : ' + JSON.stringify(body))
+    // console.log('\n  UpsertMicronet body : ' + JSON.stringify(body))
     const message = !body.event ? Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()}) :
-    Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
+      Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
     console.log('\n MTC Message : ' + JSON.stringify(message))
     let mergedMicronet = {}
     return dispatch('callToMtc', message).then(response => {
       console.log('\n MTC response : ' + JSON.stringify(response))
       if (body.data && body.event) {
-       // console.log('\n Event ' + JSON.stringify(body.event) + ' found in upsertMicronet')
+        // console.log('\n Event ' + JSON.stringify(body.event) + ' found in upsertMicronet')
         mergedMicronet = Object.assign({}, {
-           devices:body.data.devices,
-           id:body.data.id,
-           ssid:body.data.ssid,
-           name:body.data.name,
+          devices:body.data.devices,
+          id:body.data.id,
+          ssid:body.data.ssid,
+          name:body.data.name,
           _id:body.data._id
         }, response);
-       // console.log('\n\n UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
+        // console.log('\n\n UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
       }
       if (response.status >= 1000) {
         const error = new Error('Failed to create micronet')
@@ -127,7 +125,6 @@ class Store {
   }
 
   addSubnet ({dispatch}, {body}) {
-   // console.log('\n Server add subnet body : ' + JSON.stringify(body))
     const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
     const data = {
       subnetId,
@@ -144,27 +141,11 @@ class Store {
         micronet = JSON.parse(JSON.stringify(micronet))
         const isSubnet = x => x.subnetId === subnetId
         let subnetIdx = R.findIndex(isSubnet)(micronet.subnets)
-        if (subnetIdx < 0 && micronet.subnets.length == 0) return R.set(
-            R.lensPath(['subnets', micronet.subnets.length]),
-            data,
-            micronet
-          )
-        // if (subnetIdx < 0 && micronet.subnets.length == 0) {
-        //   console.log('\n inside if subnetIdx < 0 && micronet.subnets.length == 0')
-        //   return R.set(
-        //     R.lensPath(['subnets', micronet.subnets.length]),
-        //     data,
-        //     micronet
-        //   )
-        // }
-        // if (subnetIdx < 0 && micronet.subnets.length > 0) {
-        //   console.log('\n inside if subnetIdx < 0 && micronet.subnets.length > 0')
-        //   return R.set(
-        //     R.lensPath(['subnets', (micronet.subnets.length+1)]),
-        //     data,
-        //     micronet
-        //   )
-        // }
+        if (subnetIdx < 0) return R.set(
+          R.lensPath(['subnets', micronet.subnets.length]),
+          data,
+          micronet
+        )
         const subnet = micronet.subnets[subnetIdx]
         const isDevice = x => x.deviceId === deviceId
         const deviceIdx = R.findIndex(isDevice)(subnet.deviceList)
