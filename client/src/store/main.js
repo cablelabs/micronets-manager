@@ -104,7 +104,7 @@ export const actions = {
     }
 
     if (type === 'sessionCreate') {
-      axios({
+      return axios({
         ...apiInit,
         method: 'post',
         url: authTokenUri,
@@ -136,9 +136,10 @@ export const actions = {
             url: `${process.env.BASE_URL}/create-mock-micronet`,
             data: {subnets: 1, hosts: 0, subscriber: subscriber}
           })
-            .then(({data}) => {})
+            .then(({data}) => {
+              dispatch('fetchMicronets')
+            })
         })
-        return dispatch('fetchMicronets')
       })
     }
   },
