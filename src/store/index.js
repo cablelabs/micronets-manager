@@ -81,9 +81,9 @@ class Store {
   }
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
-    // console.log('\n  UpsertMicronet body : ' + JSON.stringify(body))
+    console.log('\n  UpsertMicronet body : ' + JSON.stringify(body))
     const message = !body.event ? Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()}) :
-      Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
+    Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
     console.log('\n MTC Message : ' + JSON.stringify(message))
     let mergedMicronet = {}
     return dispatch('callToMtc', message).then(response => {
@@ -125,6 +125,7 @@ class Store {
   }
 
   addSubnet ({dispatch}, {body}) {
+   // console.log('\n AddSubnet server body : ' + JSON.stringify(body))
     const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
     const data = {
       subnetId,
@@ -134,12 +135,18 @@ class Store {
         mac: {eui48: macAddress}
       }]
     }
+    console.log('\n\n AddSubnet server data : ' + JSON.stringify(data))
     if (subnetName) data.subnetName = subnetName
+    if (body.hasOwnProperty('class')) data.class = body.class
     if (deviceName) data.deviceList[0].deviceName = deviceName
     if (deviceDescription) data.deviceList[0].deviceDescription = deviceDescription
+    console.log('\n AddSubnet server tweaked data : ' + JSON.stringify(data))
     return Micronets.findById(micronetId).then(micronet => {
         micronet = JSON.parse(JSON.stringify(micronet))
+        console.log('\n\n Micro-net found : ' + JSON.stringify(micronet))
+        console.log('\n\n Micronet subnets : ' + JSON.stringify(micronet.subnets))
         const isSubnet = x => x.subnetId === subnetId
+        console.log('\n\n isSubnet : ' + JSON.stringify(isSubnet))
         let subnetIdx = R.findIndex(isSubnet)(micronet.subnets)
         if (subnetIdx < 0) return R.set(
           R.lensPath(['subnets', micronet.subnets.length]),
@@ -159,6 +166,7 @@ class Store {
         )
       })
       .then(updated => {
+       // console.log('\n Micronet before  upsertMicronet: ' + JSON.stringify(updated))
         return dispatch('upsertMicronet', {body: updated, params: {id: micronetId}})
       })
   }
