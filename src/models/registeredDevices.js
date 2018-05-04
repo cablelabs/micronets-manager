@@ -5,4 +5,5 @@ module.exports.registeredDevicesSchema = mongoose.Schema({
   clientId: { type: String },
   isRegistered: { type: Boolean },
   macAddress: { type: String },
+  class: {type: String}
 }, { _id: false })
