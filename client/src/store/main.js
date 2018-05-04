@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { findIndex, propEq, find, lensPath, set, omit, merge, lensProp } from 'ramda'
+import uuidv4 from 'uuid/v4'
 
 const setState = prop => (state, value) => { state[prop] = value }
 const micronetsUrl = `${process.env.BASE_URL}/micronets`
@@ -49,6 +50,7 @@ export const mutations = {
   setDhcpSubnets: setState('dhcpSubnets'),
   setDhcpSubnetDevices: setState('dhcpSubnetDevices'),
   setEditTargetIds (state, {micronetId, subnetId, deviceId}) {
+   // console.log('\n Client store setEditTargetIds called with micronetId : ' + JSON.stringify(micronetId))
     state.editTargetIds = {micronetId, subnetId, deviceId}
   },
   replaceMicronet (state, micronet) {
@@ -65,7 +67,7 @@ export const mutations = {
 export const actions = {
   upsertSubscribers ({state, commit, dispatch}, {type, data}) {
     // let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
-    console.log('\n Client upsert Subscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
+   // console.log('\n Client upsert Subscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
     const subscriberID = data.subscriberId
     if (type === 'sessionUpdate') {
       axios({
@@ -101,7 +103,7 @@ export const actions = {
     }
 
     if (type === 'sessionCreate') {
-      axios({
+      return axios({
         ...apiInit,
         method: 'post',
         url: authTokenUri,
@@ -133,13 +135,44 @@ export const actions = {
             url: `${process.env.BASE_URL}/create-mock-micronet`,
             data: {subnets: 1, hosts: 0, subscriber: subscriber}
           })
-            .then(({data}) => {})
+            .then(({data}) => {
+             // console.log('\n Data : ' + JSON.stringify(data))
+              dispatch('upsertSubnetsForDevicesWithTags', data._id)
+            })
         })
-        return dispatch('fetchMicronets')
       })
     }
   },
-  initializeMicronets ({commit}, {token}) {
+  upsertSubnetsForDevicesWithTags ({commit, dispatch}, id) {
+    console.log('\n upsertSubnetsForDevicesWithTags called with micronetId : ' + JSON.stringify(id))
+    return dispatch('fetchMicronets', id).then((micronet) => {
+     // console.log('\n Fetching created Micro-nets : ' + JSON.stringify(micronet))
+      // console.log('\n data instanceOf Array : ' + JSON.stringify(Array.isArray(data)))
+      // data = Array.isArray(data) === false ? [].push(data) : data
+     // console.log('\n Current micro-net : ' + JSON.stringify(micronet))
+      if (micronet.devices) {
+        micronet.devices.forEach((device, deviceIndex) => {
+          // console.log('\n Current device : ' + JSON.stringify(device) + '\t\t Device Index : ' + JSON.stringify(deviceIndex))
+          if (device.hasOwnProperty('class')) {
+           //  console.log('\n Current device class : ' + JSON.stringify(device.class) + '\t\t for deviceId : ' + JSON.stringify(device.deviceId))
+            let populateSubnetCreation = Object.assign({}, {
+              subnetId: uuidv4(),
+              subnetName: `${device.class} Subnet`,
+              deviceId: device.deviceId,
+              deviceName: `${device.class} Device`,
+              deviceDescription: `${device.class} Device`,
+              macAddress: device.macAddress
+            })
+           // console.log('\n PopulateSubnetCreation JSON : ' + JSON.stringify(populateSubnetCreation))
+            commit('setEditTargetIds', {micronetId: micronet._id})
+            dispatch('addSubnet', populateSubnetCreation).then(() => {})
+          }
+        })
+      }
+      // dispatch('fetchMicronets').then(() => {})
+    })
+  },
+  initializeMicronets ({state, commit, dispatch}, {token}) {
     return axios({
       ...{
         crossDomain: true,
@@ -156,7 +189,6 @@ export const actions = {
         let newData = []
         data.forEach((subscriber, index) => {
           subscriber = Object.assign({}, omitStateMeta(subscriber))
-        //  console.log('\n InitializeMicronets subscriber : ' + JSON.stringify(subscriber))
           axios({
             ...apiInit,
             method: 'post',
@@ -164,11 +196,17 @@ export const actions = {
             data: {subnets: 1, hosts: 0, subscriber: subscriber}
           })
             .then(({data}) => {
+             // console.log('\b Initialize Micronets Data from /create-mock-micronet : ' + JSON.stringify(data))
               let mergedMicronet = merge(subscriber, data)
+            //  console.log('\n data._id : ' + JSON.stringify(data._id))
+            //  console.log('\n Initialize Micronets mergedMicronet : ' + JSON.stringify(mergedMicronet))
               newData.push(mergedMicronet)
+              dispatch('upsertSubnetsForDevicesWithTags', data._id)
             })
         })
-        commit('setMicronets', newData)
+        // commit('setMicronets', newData).then(() => {
+        //   console.log('\n Inside then of setMicronets')
+        // })
         return data
       })
   },
@@ -179,20 +217,20 @@ export const actions = {
       url: authTokenUri,
       data: msoPortalAuthPostConfig
     }).then(({data}) => {
-     // console.log('\n FetchAuthToken Data : ' + JSON.stringify(data))
+      console.log('\n FetchAuthToken Access Token : ' + JSON.stringify(data.accessToken))
       return dispatch('initializeMicronets', {token: data.accessToken})
     })
   },
   fetchSubscribers ({state, commit, dispatch}, id) {
-   // console.log('\n\n Fetch Subscribers id : ' + JSON.stringify(id))
-   // console.log('\n\n Fetch Subscribers state : ' + JSON.stringify(state.micronets))
+    console.log('\n\n Fetch Subscribers id : ' + JSON.stringify(id))
+    console.log('\n\n Fetch Subscribers state : ' + JSON.stringify(state.micronets))
     return axios({
       ...apiInit,
       method: 'get',
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
-      //  console.log('\n\n Fetch Subscribers Data : ' + JSON.stringify(data))
+        console.log('\n\n Fetch Subscribers Data : ' + JSON.stringify(data))
         if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
@@ -211,8 +249,8 @@ export const actions = {
       })
   },
   upsertMicronet ({commit}, {id, data, event}) {
-  //  console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
-  //  console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
+    //  console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
+    //  console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
     console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
@@ -277,6 +315,7 @@ export const actions = {
     return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
   },
   addSubnet ({state, commit, dispatch}, data) {
+   // console.log('\n Client Add subnet called with Post data :  ' + JSON.stringify(data))
     const {micronetId} = state.editTargetIds
     return axios({
       ...apiInit,
@@ -295,8 +334,7 @@ export const actions = {
               ipv4Network: {
                 network: subnet.ipv4.network,
                 mask: subnet.ipv4.netmask,
-                gateway: subnet.ipv4.gateway,
-                broadcast: '192.168.1.255'
+                gateway: subnet.ipv4.gateway
               }
             })
           }).then(() => {
@@ -306,7 +344,9 @@ export const actions = {
                 deviceId: data.deviceId,
                 data: Object.assign({}, {
                   deviceId: data.deviceId,
-                  macAddress: data.macAddress,
+                  macAddress: {
+                    eui48: data.macAddress
+                  },
                   networkAddress: {ipv4: deviceInSubnet.ipv4.host}
                 }),
                 event: 'addDhcpSubnetDevice'
