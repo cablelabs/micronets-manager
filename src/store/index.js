@@ -82,6 +82,9 @@ class Store {
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
     console.log('\n  UpsertMicronet body : ' + JSON.stringify(body))
+    body.subnets = Array.isArray(body.subnets) ? R.flatten(body.subnets) : body.subnets
+    console.log('\n\n\n UpsertMicronet updated body subnets : ' + JSON.stringify(body.subnets))
+    console.log('\n\n\n UpsertMicronet updated body  : ' + JSON.stringify(body))
     const message = !body.event ? Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()}) :
     Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
     console.log('\n MTC Message : ' + JSON.stringify(message))
@@ -124,9 +127,48 @@ class Store {
     return Micronets.findById(params.id).then(data => ({data}))
   }
 
+  addSubnets({dispatch}, {body}) {
+    const {data, micronetId} = body
+    console.log('\n Add-Subnets server passed data : ' + JSON.stringify(data) + '\t\t\t Micronet ID : ' + JSON.stringify(micronetId))
+    return Micronets.findById(micronetId).then(micronet => {
+        micronet = JSON.parse(JSON.stringify(micronet))
+        console.log('\n\n Add-Subnets Micro-net found : ' + JSON.stringify(micronet))
+        console.log('\n\n Add-Subnets Micronet subnets : ' + JSON.stringify(micronet.subnets))
+        const isSubnet = x => x.subnetId === subnetId
+        console.log('\n\n Add-Subnets isSubnet : ' + JSON.stringify(isSubnet))
+        let subnetIdx = R.findIndex(isSubnet)(micronet.subnets)
+        console.log('\n\n Add-Subnets subnetIdx : ' + JSON.stringify(subnetIdx))
+        if (subnetIdx < 0) return R.set(
+          R.lensPath(['subnets', micronet.subnets.length]),
+          data,
+          micronet
+        )
+        const subnet = micronet.subnets[subnetIdx]
+        console.log('\n\n Add-Subnets subnet : ' + JSON.stringify(subnet))
+        const isDevice = x => x.deviceId === deviceId
+        console.log('\n\n Add-Subnets isDevice : ' + JSON.stringify(isDevice))
+        const deviceIdx = R.findIndex(isDevice)(subnet.deviceList)
+        console.log('\n\n Add-Subnets deviceIdx : ' + JSON.stringify(deviceIdx))
+        data.deviceList = deviceIdx < 0
+          ? R.concat(subnet.deviceList, data.deviceList)
+          : R.adjust(R.merge(R.__, data.deviceList[0]), deviceIdx, subnet.deviceList)
+        console.log('\n\n Add-Subnets data.deviceList : ' + JSON.stringify(data.deviceList))
+        return R.set(
+          R.lensPath(['subnets', subnetIdx]),
+          R.merge( Array.isArray(subnet) ? R.flatten(subnet) : subnet, Array.isArray(data) ? R.flatten(data) : data),
+          micronet
+        )
+      })
+      .then(updated => {
+        console.log('\n Add-Subnets before  upsertMicronet: ' + JSON.stringify(updated))
+        return dispatch('upsertMicronet', {body: updated, params: {id: micronetId}})
+      })
+  }
+
   addSubnet ({dispatch}, {body}) {
-   // console.log('\n AddSubnet server body : ' + JSON.stringify(body))
+    console.log('\n AddSubnet server body : ' + JSON.stringify(body))
     const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
+    // Data addition changes for multiple devices in subnet
     const data = {
       subnetId,
       deviceList: [{
