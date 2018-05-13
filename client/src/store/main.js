@@ -145,13 +145,13 @@ export const actions = {
     }
   },
 
-  populateSubnetsObject ({state, commit, dispatch}, subTagsMeta) {
+  populateSubnetsObject ({state, commit, dispatch}, subnetTagMeta) {
     let subnets = []
-    console.log('\n\n PopulateMultipleSubnets passed subTagsMeta : ' + JSON.stringify(subTagsMeta))
+    console.log('\n\n PopulateMultipleSubnets passed subnetTagMeta : ' + JSON.stringify(subnetTagMeta))
     // var devices = subTagsMeta.map((obj) => { return obj.devices })
-    if (subTagsMeta.devices.length === 1) {
-      subnets.push(subTagsMeta.devices.map((device, index) => {
-        console.log('\n subTagsMeta.devices.length : ' + JSON.stringify(subTagsMeta.devices.length) + '\t\t\t Device : ' + JSON.stringify(device))
+    if (subnetTagMeta.devices.length === 1) {
+      subnets.push(subnetTagMeta.devices.map((device, index) => {
+        console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length) + '\t\t\t Device : ' + JSON.stringify(device))
         Object.assign({}, {
           subnetId: uuidv4(),
           subnetName: `${device.class} Subnet`,
@@ -163,9 +163,9 @@ export const actions = {
         })
       }))
     }
-    if (subTagsMeta.devices.length > 1) {
-      console.log('\n subTagMeta.devices.length : ' + JSON.stringify(subTagsMeta.devices.length))
-      var uniqueClasses = [...new Set(subTagsMeta.devices.flatten().map(item => item.class))]
+    if (subnetTagMeta.devices.length > 1) {
+      console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length))
+      var uniqueClasses = [...new Set(subnetTagMeta.devices.flatten().map(item => item.class))].filter(Boolean)
       console.log('\n PopulateMultipleSubnets Unique classes : ' + JSON.stringify(uniqueClasses))
       uniqueClasses.forEach((classValue, index) => {
         console.log('\n Class from uniqueClasses : ' + JSON.stringify(classValue))
@@ -179,8 +179,8 @@ export const actions = {
       console.log('\n Populate Sub-nets array without devices : ' + JSON.stringify(subnets))
       if (subnets.length === uniqueClasses.length) {
         console.log('\n Length subnets array : ' + JSON.stringify(subnets.length) + '\t\t\t Unique Classes array : ' + JSON.stringify(uniqueClasses))
-        console.log('\n Populating deviceList of individual subnets with devices : ' + JSON.stringify(subTagsMeta.devices))
-        subTagsMeta.devices.forEach((device, deviceIndex) => {
+        console.log('\n Populating deviceList of individual subnets with devices : ' + JSON.stringify(subnetTagMeta.devices))
+        subnetTagMeta.devices.forEach((device, deviceIndex) => {
           console.log('\n DeviceIndex : ' + JSON.stringify(deviceIndex) + '\t\t\t Device : ' + JSON.stringify(device))
           let subnetIndex = findIndex(propEq('class', device.class))(subnets)
           console.log('\n Found subnetIndex : ' + JSON.stringify(subnetIndex))
@@ -199,15 +199,15 @@ export const actions = {
     }
     return subnets
   },
-  upsertSubnetsForDevicesWithTags ({state, commit, dispatch}, {id, combinedSubTagsMeta}) {
-    console.log('\n\n upsertSubnetsForDevicesWithTags passed id : ' + JSON.stringify(id) + '\t\t\t combinedSubTagsMeta : ' + JSON.stringify(combinedSubTagsMeta))
+  upsertSubnetsForDevicesWithTags ({state, commit, dispatch}, {id, subnetTags}) {
+    console.log('\n\n upsertSubnetsForDevicesWithTags passed id : ' + JSON.stringify(id) + '\t\t\t subnetTags : ' + JSON.stringify(subnetTags))
     if (id) {
       console.log('\n\n Micronet id found :  ' + JSON.stringify(id))
-      let combinedSubTagsMetaIndex = findIndex(propEq('micronetId', id))(combinedSubTagsMeta)
-      console.log('\n\n combinedSubTagsMetaIndex : ' + JSON.stringify(combinedSubTagsMetaIndex))
-      let subTagMeta = combinedSubTagsMeta[combinedSubTagsMetaIndex]
-      console.log('\n Current subTagMeta : ' + JSON.stringify(subTagMeta))
-      dispatch('populateSubnetsObject', subTagMeta).then((subnetsObj) => {
+      let subnetTagsIndex = findIndex(propEq('micronetId', id))(subnetTags)
+      console.log('\n\n subnetTagsIndex : ' + JSON.stringify(subnetTagsIndex))
+      let subnetTagMeta = subnetTags[subnetTagsIndex]
+      console.log('\n Current subnetTagMeta : ' + JSON.stringify(subnetTagMeta))
+      dispatch('populateSubnetsObject', subnetTagMeta).then((subnetsObj) => {
         console.log('\n\n Then of populateMultipleSubnets returned subnetsObj : ' + JSON.stringify(subnetsObj))
         commit('setEditTargetIds', {micronetId: id})
         dispatch('addSubnet', subnetsObj).then(() => {
@@ -216,16 +216,14 @@ export const actions = {
     }
   },
   populateSubnetsWithTagsMeta ({state, commit, dispatch}) {
-    let subnetWithTagsDup = []
-    let subTagsMeta = []
+    let subnetTagsMeta = []
     let combinedSubTagsMeta = []
-    // let devices = []
     return dispatch('fetchMicronets').then((micronets, index) => {
       console.log('\n micronets from fetchMicronets : ' + JSON.stringify(micronets))
       micronets.forEach((micronet, mIndex) => {
         micronet.devices.forEach((device, index) => {
           console.log('\n Device Index : ' + JSON.stringify(index) + '\t\t\t Device : ' + JSON.stringify(device))
-          subTagsMeta.push(Object.assign({}, {
+          subnetTagsMeta.push(Object.assign({}, {
             micronetId: micronet._id,
             devices: [{
               deviceId: device.deviceId,
@@ -233,51 +231,46 @@ export const actions = {
               class: device.class
             }]
           }))
-          if (device.hasOwnProperty('class')) {
-          }
         })
       })
-      console.log('\n subTagsMeta : ' + JSON.stringify(subTagsMeta))
-      var uniqueMicronetIds = [...new Set(subTagsMeta.map(item => item.micronetId))]
+      console.log('\n subnetTagsMeta : ' + JSON.stringify(subnetTagsMeta))
+      var uniqueMicronetIds = [...new Set(subnetTagsMeta.map(item => item.micronetId))]
       console.log('\n uniqueMicronetIds : ' + JSON.stringify(uniqueMicronetIds))
-      var devices = subTagsMeta.map((obj) => { return obj.devices })
+      var devices = subnetTagsMeta.map((obj) => { return obj.devices })
       var uniqueClasses = [...new Set(devices.flatten().map(item => item.class))]
       console.log('\n Unique classes : ' + JSON.stringify(uniqueClasses))
-      subnetWithTagsDup = subTagsMeta
-      console.log('\n subnetWithTagsDup : ' + JSON.stringify(subnetWithTagsDup))
-      subTagsMeta.forEach((tagMeta, tagMetaIndex) => {
-        // let subTagDevices = []
-        console.log('\n TagMeta : ' + JSON.stringify(tagMeta) + ' \t\t Index : ' + JSON.stringify(tagMetaIndex))
+      subnetTagsMeta.forEach((subTagMeta, tagMetaIndex) => {
+        console.log('\n subTagMeta : ' + JSON.stringify(subTagMeta) + ' \t\t Index : ' + JSON.stringify(tagMetaIndex))
         uniqueMicronetIds.forEach((micronetId, index) => {
           console.log('\n Micronet ID from uniqueMicronetIds : ' + JSON.stringify(micronetId) + ' \t\t Index : ' + JSON.stringify(index))
-          if (micronetId === tagMeta.micronetId) {
+          if (micronetId === subTagMeta.micronetId) {
             console.log('\n Match found ')
-            const subTagMetaIndex = findIndex(propEq('micronetId', tagMeta.micronetId))(combinedSubTagsMeta)
+            const subTagMetaIndex = findIndex(propEq('micronetId', subTagMeta.micronetId))(combinedSubTagsMeta)
             console.log('\n subTagMetaIndex : ' + JSON.stringify(subTagMetaIndex))
             if (subTagMetaIndex === -1) {
               console.log('\n ')
               let newSubTagMeta = Object.assign({}, {
-                micronetId: tagMeta.micronetId,
+                micronetId: subTagMeta.micronetId,
                 devices: [{
-                  deviceId: tagMeta.devices.deviceId,
-                  macAddress: tagMeta.devices.macAddress,
-                  class: tagMeta.class
+                  deviceId: subTagMeta.devices.deviceId,
+                  macAddress: subTagMeta.devices.macAddress,
+                  class: subTagMeta.class
                 }]
               })
               console.log('\n newSubTagMeta : ' + JSON.stringify(newSubTagMeta))
               combinedSubTagsMeta.push(Object.assign({}, {
-                micronetId: tagMeta.micronetId,
-                devices: tagMeta.devices
+                micronetId: subTagMeta.micronetId,
+                devices: subTagMeta.devices
               }))
               console.log('\n Newly constructed combinedSubTagsMeta : ' + JSON.stringify(combinedSubTagsMeta))
             }
             if (subTagMetaIndex > -1) {
               console.log('\n subTagMetaIndex: ' + JSON.stringify(subTagMetaIndex))
               console.log('\n Printing found combinedSubTagsMeta at subTagMetaIndex : ' + JSON.stringify(combinedSubTagsMeta[subTagMetaIndex]))
-              console.log('\n tagMeta.devices : ' + JSON.stringify(tagMeta.devices))
+              console.log('\n tagMeta.devices : ' + JSON.stringify(subTagMeta.devices))
               // let allDevices = Object.assign({}, combinedSubTagsMeta[subTagMetaIndex].devices, tagMeta.devices)
               // console.log('\n\n All Devices : ' + JSON.stringify(allDevices))
-              combinedSubTagsMeta[subTagMetaIndex].devices = combinedSubTagsMeta[subTagMetaIndex].devices.concat(tagMeta.devices)
+              combinedSubTagsMeta[subTagMetaIndex].devices = combinedSubTagsMeta[subTagMetaIndex].devices.concat(subTagMeta.devices)
               console.log('\n Updated combinedSubTagsMeta : ' + JSON.stringify(combinedSubTagsMeta))
             }
           }
@@ -316,9 +309,9 @@ export const actions = {
               newData.push(mergedMicronet)
               console.log('\n Initialize Micronets newData : ' + JSON.stringify(newData))
               // dispatch('upsertSubnetsForDevicesWithTags', data._id)
-              dispatch('populateSubnetsWithTagsMeta', data._id).then((combinedSubTagsMeta) => {
-                console.log('\n InitializeMicronets Inside then of populateSubnetsWithTagsMeta combinedSubTagsMeta : ' + JSON.stringify(combinedSubTagsMeta))
-                dispatch('upsertSubnetsForDevicesWithTags', {id: data._id, combinedSubTagsMeta})
+              dispatch('populateSubnetsWithTagsMeta', data._id).then((subnetTags) => {
+                console.log('\n InitializeMicronets Inside then of populateSubnetsWithTagsMeta subnetTags : ' + JSON.stringify(subnetTags))
+                dispatch('upsertSubnetsForDevicesWithTags', {id: data._id, subnetTags})
               })
             })
         })

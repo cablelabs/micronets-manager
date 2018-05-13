@@ -168,7 +168,6 @@ class Store {
   addSubnet ({dispatch}, {body}) {
     console.log('\n AddSubnet server body : ' + JSON.stringify(body))
     const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
-    // Data addition changes for multiple devices in subnet
     const data = {
       subnetId,
       deviceList: [{
