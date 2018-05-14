@@ -122,7 +122,6 @@ export const actions = {
                   micronetId: micronet._id,
                   subnetId: micronet.subnets[subnetForClassIndex].subnetId
                 })
-                // return this.saveMicronet(this.micronet.subnets[subnetIndex])
                 dispatch('saveMicronet', {
                   id: micronet._id,
                   data: set(subnetDeviceListLens, updatedDeviceList, micronet),
@@ -131,8 +130,10 @@ export const actions = {
               }
               if (subnetForClassIndex === -1) {
                 console.log('\n No subnet for class found as subnetForClassIndex  is : ' + JSON.stringify(subnetForClassIndex))
+                commit('setEditTargetIds', {
+                  micronetId: micronet._id
+                })
                 const subnetToAdd = Object.assign({}, {
-                  micronetId: micronet._id,
                   subnetId: uuidv4(),
                   subnetName: `${eventData.device.class} Subnet`,
                   class: `${eventData.device.class}`,
@@ -464,6 +465,7 @@ export const actions = {
     console.log('\n Client Add subnet called with Post data :  ' + JSON.stringify(data))
     console.log('\n Client Add subnet Array.isArray(data) :  ' + JSON.stringify(Array.isArray(data)))
     const {micronetId} = state.editTargetIds
+    console.log('\n Client Add subnet MicronetId : ' + JSON.stringify(micronetId))
     if (Array.isArray(data) && data.length > 1) {
       console.log('\n Data.length : ' + JSON.stringify(data.length) + '\t\t Multiple sub-nets found ...')
       return axios({
@@ -473,6 +475,7 @@ export const actions = {
         data: {data, micronetId}
       }).then(() => commit('setEditTargetIds', {}))
     } else {
+      console.log('\n Client inside else loop before calling url : ' + JSON.stringify(`${process.env.BASE_URL}/add-subnet`))
       return axios({
         ...apiInit,
         method: 'post',

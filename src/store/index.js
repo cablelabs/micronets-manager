@@ -81,17 +81,17 @@ class Store {
   }
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
-    console.log('\n  UpsertMicronet body : ' + JSON.stringify(body) +'\t\t\t Params : ' + JSON.stringify(params))
+    console.log('\n  UpsertMicronet server body : ' + JSON.stringify(body) +'\t\t\t Params : ' + JSON.stringify(params))
     body.subnets = body.data ? body.data.subnets : body.subnets
     body.subnets = Array.isArray(body.subnets) ? R.flatten(body.subnets) : body.subnets
-    console.log('\n\n\n UpsertMicronet updated body subnets : ' + JSON.stringify(body.subnets))
-    console.log('\n\n\n UpsertMicronet updated body  : ' + JSON.stringify(body))
+    console.log('\n\n\n UpsertMicronet server updated body subnets : ' + JSON.stringify(body.subnets))
+    console.log('\n\n\n UpsertMicronet server updated body  : ' + JSON.stringify(body))
     const message = !body.event ? Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()}) :
     Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
-    console.log('\n MTC Message : ' + JSON.stringify(message))
+    console.log('\n UpsertMicronet server MTC Message : ' + JSON.stringify(message))
     let mergedMicronet = {}
     return dispatch('callToMtc', message).then(response => {
-      console.log('\n MTC response : ' + JSON.stringify(response))
+      console.log('\n UpsertMicronet server MTC response : ' + JSON.stringify(response))
       if (body.data && body.event) {
          console.log('\n Event ' + JSON.stringify(body.event) + ' found in upsertMicronet')
         mergedMicronet = Object.assign({}, {
@@ -101,7 +101,7 @@ class Store {
           name:body.data.name,
           _id:body.data._id
         }, response);
-         console.log('\n\n UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
+         console.log('\n\n UpsertMicronet server UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
       }
       if (response.status >= 1000) {
         const error = new Error('Failed to create micronet')
@@ -111,10 +111,11 @@ class Store {
       }
       return params.id
         ? Micronets.findById(params.id).then((data) => {
-          console.log('\n Micronet found data : ' + JSON.stringify(data) +'\t\t\t Params.id : ' + JSON.stringify(params.id))
+          console.log('\n UpsertMicronet server Micronet found data : ' + JSON.stringify(data) +'\t\t\t Params.id : ' + JSON.stringify(params.id))
           let prevLogEvents = data.logEvents
           let allLogEvents = R.concat(prevLogEvents, response.logEvents)
           let updatedResponse =  body.data && body.event ? Object.assign(mergedMicronet, {logEvents: allLogEvents}) : Object.assign(response, {logEvents: allLogEvents})
+          console.log('\n\n UpsertMicronet server updatedResponse : ' + JSON.stringify(updatedResponse))
           return Micronets.update({_id: params.id}, updatedResponse).then(data => ({data}))
         })
         : (new Micronets(response)).save().then(data => ({statusCode: 201, data}))
@@ -187,8 +188,8 @@ class Store {
     console.log('\n AddSubnet server tweaked data : ' + JSON.stringify(data))
     return Micronets.findById(micronetId).then(micronet => {
         micronet = JSON.parse(JSON.stringify(micronet))
-        console.log('\n\n Micro-net found : ' + JSON.stringify(micronet))
-        console.log('\n\n Micronet subnets : ' + JSON.stringify(micronet.subnets))
+        console.log('\n\n AddSubnet server Micro-net found : ' + JSON.stringify(micronet))
+        console.log('\n\n AddSubnet server Micronet subnets : ' + JSON.stringify(micronet.subnets))
         const isSubnet = x => x.subnetId === subnetId
         console.log('\n\n isSubnet : ' + JSON.stringify(isSubnet))
         let subnetIdx = R.findIndex(isSubnet)(micronet.subnets)
@@ -210,7 +211,7 @@ class Store {
         )
       })
       .then(updated => {
-        console.log('\n Micronet before  upsertMicronet: ' + JSON.stringify(updated))
+        console.log('\n AddSubnet server Micronet before  upsertMicronet: ' + JSON.stringify(updated))
         return dispatch('upsertMicronet', {body: updated, params: {id: micronetId}})
       })
   }
