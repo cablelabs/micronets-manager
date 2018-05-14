@@ -128,7 +128,7 @@ export const actions = {
                   event: 'sessionUpdate'
                 }).then(() => {
                   console.log('\n Inside then of saveMicronet calling upsertMicronet for updating devices')
-                 // this.$emit('reload', {micronetId: micronet._id, subscriberId: subscriberID})
+                  // this.$emit('pageReload')
                   return dispatch('upsertMicronet', {
                     id: micronet._id,
                     data: set(devicesLens, updatedDevices, micronet),
@@ -150,6 +150,7 @@ export const actions = {
                 console.log('\n SubnetToAdd Obj : ' + JSON.stringify(subnetToAdd))
                 commit('setEditTargetIds', {micronetId: micronet._id})
                 dispatch('addSubnetToMicronet', subnetToAdd).then(() => {
+                  // this.$emit('pageReload')
                   console.log('\n Inside then of addSubnetToMicronet before calling upsertMicronet for updating devices')
                   // Induces bug
                   // return dispatch('upsertMicronet', {
@@ -410,6 +411,7 @@ export const actions = {
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
+        console.log('\n\n FetchMicronets : ' + JSON.stringify(data))
         // if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
