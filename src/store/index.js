@@ -81,7 +81,8 @@ class Store {
   }
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
-    console.log('\n  UpsertMicronet body : ' + JSON.stringify(body))
+    console.log('\n  UpsertMicronet body : ' + JSON.stringify(body) +'\t\t\t Params : ' + JSON.stringify(params))
+    body.subnets = body.data ? body.data.subnets : body.subnets
     body.subnets = Array.isArray(body.subnets) ? R.flatten(body.subnets) : body.subnets
     console.log('\n\n\n UpsertMicronet updated body subnets : ' + JSON.stringify(body.subnets))
     console.log('\n\n\n UpsertMicronet updated body  : ' + JSON.stringify(body))
@@ -92,7 +93,7 @@ class Store {
     return dispatch('callToMtc', message).then(response => {
       console.log('\n MTC response : ' + JSON.stringify(response))
       if (body.data && body.event) {
-        // console.log('\n Event ' + JSON.stringify(body.event) + ' found in upsertMicronet')
+         console.log('\n Event ' + JSON.stringify(body.event) + ' found in upsertMicronet')
         mergedMicronet = Object.assign({}, {
           devices:body.data.devices,
           id:body.data.id,
@@ -100,7 +101,7 @@ class Store {
           name:body.data.name,
           _id:body.data._id
         }, response);
-        // console.log('\n\n UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
+         console.log('\n\n UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
       }
       if (response.status >= 1000) {
         const error = new Error('Failed to create micronet')
@@ -110,6 +111,7 @@ class Store {
       }
       return params.id
         ? Micronets.findById(params.id).then((data) => {
+          console.log('\n Micronet found data : ' + JSON.stringify(data) +'\t\t\t Params.id : ' + JSON.stringify(params.id))
           let prevLogEvents = data.logEvents
           let allLogEvents = R.concat(prevLogEvents, response.logEvents)
           let updatedResponse =  body.data && body.event ? Object.assign(mergedMicronet, {logEvents: allLogEvents}) : Object.assign(response, {logEvents: allLogEvents})
@@ -168,6 +170,7 @@ class Store {
   addSubnet ({dispatch}, {body}) {
     console.log('\n AddSubnet server body : ' + JSON.stringify(body))
     const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
+    console.log('\n AddSubnet server MicronetId : ' + JSON.stringify(micronetId))
     const data = {
       subnetId,
       deviceList: [{
@@ -207,7 +210,7 @@ class Store {
         )
       })
       .then(updated => {
-       // console.log('\n Micronet before  upsertMicronet: ' + JSON.stringify(updated))
+        console.log('\n Micronet before  upsertMicronet: ' + JSON.stringify(updated))
         return dispatch('upsertMicronet', {body: updated, params: {id: micronetId}})
       })
   }

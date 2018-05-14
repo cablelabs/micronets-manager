@@ -50,7 +50,9 @@ export const mutations = {
   setDhcpSubnets: setState('dhcpSubnets'),
   setDhcpSubnetDevices: setState('dhcpSubnetDevices'),
   setEditTargetIds (state, {micronetId, subnetId, deviceId}) {
-    // console.log('\n Client store setEditTargetIds called with micronetId : ' + JSON.stringify(micronetId))
+    console.log('\n Client store setEditTargetIds called with micronetId : ' + JSON.stringify(micronetId))
+    console.log('\n Client store setEditTargetIds called with subnetId : ' + JSON.stringify(subnetId))
+    console.log('\n Client store setEditTargetIds called with deviceId : ' + JSON.stringify(deviceId))
     state.editTargetIds = {micronetId, subnetId, deviceId}
   },
   replaceMicronet (state, micronet) {
@@ -67,9 +69,11 @@ export const mutations = {
 export const actions = {
   upsertSubscribers ({state, commit, dispatch}, {type, data}) {
     // let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
-    // console.log('\n Client upsert Subscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
+    console.log('\n Client upsertSubscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
+    let eventData = data
     const subscriberID = data.subscriberId
     if (type === 'sessionUpdate') {
+      console.log('\n sessionUpdate called DATA : ' + JSON.stringify(data))
       axios({
         ...apiInit,
         method: 'post',
@@ -92,7 +96,56 @@ export const actions = {
           .then(({data}) => {
             const updatedDevices = data.devices
             const micronet = find(propEq('id', subscriberID))(state.micronets)
+            console.log('\n Micro-net found from state : ' + JSON.stringify(micronet))
             const devicesLens = lensProp('devices', micronet)
+            if (eventData.device.hasOwnProperty('class')) {
+              console.log('\n sessionUpdate event Data for device : ' + JSON.stringify(eventData.device.deviceId) + '\t\t has class : ' + JSON.stringify(eventData.device.class))
+              let subnetForClassIndex = findIndex(propEq('class', eventData.device.class))(micronet.subnets)
+              console.log('\n subnetForClassIndex : ' + JSON.stringify(subnetForClassIndex))
+              if (subnetForClassIndex > -1) {
+                console.log('\n Subnet for class ' + JSON.stringify(eventData.device.class) + '\t\t is : ' + JSON.stringify(micronet.subnets[subnetForClassIndex]))
+                console.log('\n Add the device to existing subnet : ')
+                const subnet = micronet.subnets[subnetForClassIndex]
+                const updatedDeviceList = subnet.deviceList.push(Object.assign({}, {
+                  deviceId: eventData.device.deviceId,
+                  deviceName: `${subnet.class} Device`,
+                  deviceDescription: `${subnet.class} Device`,
+                  timestampUtc: (new Date()).toISOString(),
+                  mac: {
+                    eui48: eventData.device.macAddress
+                  }
+                }))
+                console.log('\n updatedDeviceList : ' + JSON.stringify(updatedDeviceList))
+                const subnetDeviceListLens = lensProp('deviceList', micronet.subnets[subnetForClassIndex])
+                console.log('\n Retrieved subnetDeviceListLens : ' + JSON.stringify(subnetDeviceListLens))
+                commit('setEditTargetIds', {
+                  micronetId: micronet._id,
+                  subnetId: micronet.subnets[subnetForClassIndex].subnetId
+                })
+                // return this.saveMicronet(this.micronet.subnets[subnetIndex])
+                dispatch('saveMicronet', {
+                  id: micronet._id,
+                  data: set(subnetDeviceListLens, updatedDeviceList, micronet),
+                  event: 'sessionUpdate'
+                })
+              }
+              if (subnetForClassIndex === -1) {
+                console.log('\n No subnet for class found as subnetForClassIndex  is : ' + JSON.stringify(subnetForClassIndex))
+                const subnetToAdd = Object.assign({}, {
+                  micronetId: micronet._id,
+                  subnetId: uuidv4(),
+                  subnetName: `${eventData.device.class} Subnet`,
+                  class: `${eventData.device.class}`,
+                  deviceId: eventData.device.deviceId,
+                  deviceName: `${eventData.device.class} Device`,
+                  deviceDescription: `${eventData.device.class} Device`,
+                  macAddress: eventData.device.macAddress
+                })
+                console.log('\n SubnetToAdd Obj : ' + JSON.stringify(subnetToAdd))
+                dispatch('addSubnet', subnetToAdd).then(() => {
+                })
+              }
+            }
             return dispatch('upsertMicronet', {
               id: micronet._id,
               data: set(devicesLens, updatedDevices, micronet),
@@ -223,14 +276,17 @@ export const actions = {
       micronets.forEach((micronet, mIndex) => {
         micronet.devices.forEach((device, index) => {
           console.log('\n Device Index : ' + JSON.stringify(index) + '\t\t\t Device : ' + JSON.stringify(device))
-          subnetTagsMeta.push(Object.assign({}, {
-            micronetId: micronet._id,
-            devices: [{
-              deviceId: device.deviceId,
-              macAddress: device.macAddress,
-              class: device.class
-            }]
-          }))
+          if (device.class) {
+            console.log('\n PopulateSubnetsWithTagsMeta Device class : ' + JSON.stringify(device.class))
+            subnetTagsMeta.push(Object.assign({}, {
+              micronetId: micronet._id,
+              devices: [{
+                deviceId: device.deviceId,
+                macAddress: device.macAddress,
+                class: device.class
+              }]
+            }))
+          }
         })
       })
       console.log('\n subnetTagsMeta : ' + JSON.stringify(subnetTagsMeta))
@@ -248,16 +304,6 @@ export const actions = {
             const subTagMetaIndex = findIndex(propEq('micronetId', subTagMeta.micronetId))(combinedSubTagsMeta)
             console.log('\n subTagMetaIndex : ' + JSON.stringify(subTagMetaIndex))
             if (subTagMetaIndex === -1) {
-              console.log('\n ')
-              let newSubTagMeta = Object.assign({}, {
-                micronetId: subTagMeta.micronetId,
-                devices: [{
-                  deviceId: subTagMeta.devices.deviceId,
-                  macAddress: subTagMeta.devices.macAddress,
-                  class: subTagMeta.class
-                }]
-              })
-              console.log('\n newSubTagMeta : ' + JSON.stringify(newSubTagMeta))
               combinedSubTagsMeta.push(Object.assign({}, {
                 micronetId: subTagMeta.micronetId,
                 devices: subTagMeta.devices
@@ -268,8 +314,6 @@ export const actions = {
               console.log('\n subTagMetaIndex: ' + JSON.stringify(subTagMetaIndex))
               console.log('\n Printing found combinedSubTagsMeta at subTagMetaIndex : ' + JSON.stringify(combinedSubTagsMeta[subTagMetaIndex]))
               console.log('\n tagMeta.devices : ' + JSON.stringify(subTagMeta.devices))
-              // let allDevices = Object.assign({}, combinedSubTagsMeta[subTagMetaIndex].devices, tagMeta.devices)
-              // console.log('\n\n All Devices : ' + JSON.stringify(allDevices))
               combinedSubTagsMeta[subTagMetaIndex].devices = combinedSubTagsMeta[subTagMetaIndex].devices.concat(subTagMeta.devices)
               console.log('\n Updated combinedSubTagsMeta : ' + JSON.stringify(combinedSubTagsMeta))
             }
@@ -376,6 +420,7 @@ export const actions = {
     }
 
     if (valid === true && event === 'sessionUpdate') {
+      console.log('\n Client upsertMicronet for event : ' + JSON.stringify(event) + '\t\t\t with DATA : ' + JSON.stringify(data))
       return axios(Object.assign({}, apiInit, {
         method: id ? 'put' : 'post',
         url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
@@ -403,7 +448,9 @@ export const actions = {
       })
   },
   saveMicronet ({state, dispatch}, data) {
+    console.log('\n Save Micronet called with data  : ' + JSON.stringify(data))
     const {micronetId, subnetId, deviceId} = state.editTargetIds
+    console.log('\n state.editTargetIds : ' + JSON.stringify(state.editTargetIds))
     const micronet = find(propEq('_id', micronetId))(state.micronets)
     const subnetIndex = findIndex(propEq('subnetId', subnetId))(micronet.subnets)
     const subnetLens = lensPath(['subnets', subnetIndex])
@@ -415,8 +462,9 @@ export const actions = {
   },
   addSubnet ({state, commit, dispatch}, data) {
     console.log('\n Client Add subnet called with Post data :  ' + JSON.stringify(data))
+    console.log('\n Client Add subnet Array.isArray(data) :  ' + JSON.stringify(Array.isArray(data)))
     const {micronetId} = state.editTargetIds
-    if (data.length > 1) {
+    if (Array.isArray(data) && data.length > 1) {
       console.log('\n Data.length : ' + JSON.stringify(data.length) + '\t\t Multiple sub-nets found ...')
       return axios({
         ...apiInit,
