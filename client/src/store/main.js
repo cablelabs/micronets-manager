@@ -130,9 +130,6 @@ export const actions = {
               }
               if (subnetForClassIndex === -1) {
                 console.log('\n No subnet for class found as subnetForClassIndex  is : ' + JSON.stringify(subnetForClassIndex))
-                commit('setEditTargetIds', {
-                  micronetId: micronet._id
-                })
                 const subnetToAdd = Object.assign({}, {
                   subnetId: uuidv4(),
                   subnetName: `${eventData.device.class} Subnet`,
@@ -143,6 +140,7 @@ export const actions = {
                   macAddress: eventData.device.macAddress
                 })
                 console.log('\n SubnetToAdd Obj : ' + JSON.stringify(subnetToAdd))
+                commit('setEditTargetIds', { micronetId: micronet._id })
                 dispatch('addSubnet', subnetToAdd).then(() => {
                 })
               }
@@ -483,6 +481,7 @@ export const actions = {
         data: {...data, micronetId}
       })
         .then(() => {
+          () => commit('setEditTargetIds', {})
           return dispatch('fetchMicronets', micronetId).then(() => {
             // const micronet = find(propEq('_id', micronetId))(state.micronets)
             // const subnet = find(propEq('subnetId', data.subnetId))(micronet.subnets)
