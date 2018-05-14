@@ -53,9 +53,18 @@
         this.dialog = data
       }
     },
-    mounted () {},
+    mounted () {
+      this.$on('reload', () => {
+        console.log('\n reload event mounted Micronets page')
+        this.fetchMicronets(this.$router.currentRoute.params.id)
+      })
+    },
     created () {
       this.setEditTargetIds({})
+      this.$on('reload', () => {
+        console.log('\n reload event created Micronets page')
+        this.fetchMicronets(this.$router.currentRoute.params.id)
+      })
       return this.fetchMicronets(this.$router.currentRoute.params.id)
     }
   }

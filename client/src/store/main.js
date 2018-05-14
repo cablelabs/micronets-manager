@@ -126,6 +126,14 @@ export const actions = {
                   id: micronet._id,
                   data: set(subnetDeviceListLens, updatedDeviceList, micronet),
                   event: 'sessionUpdate'
+                }).then(() => {
+                  console.log('\n Inside then of saveMicronet calling upsertMicronet for updating devices')
+                 // this.$emit('reload', {micronetId: micronet._id, subscriberId: subscriberID})
+                  return dispatch('upsertMicronet', {
+                    id: micronet._id,
+                    data: set(devicesLens, updatedDevices, micronet),
+                    event: 'sessionUpdate'
+                  })
                 })
               }
               if (subnetForClassIndex === -1) {
@@ -140,16 +148,23 @@ export const actions = {
                   macAddress: eventData.device.macAddress
                 })
                 console.log('\n SubnetToAdd Obj : ' + JSON.stringify(subnetToAdd))
-                commit('setEditTargetIds', { micronetId: micronet._id })
-                dispatch('addSubnet', subnetToAdd).then(() => {
+                commit('setEditTargetIds', {micronetId: micronet._id})
+                dispatch('addSubnetToMicronet', subnetToAdd).then(() => {
+                  console.log('\n Inside then of addSubnetToMicronet before calling upsertMicronet for updating devices')
+                  // Induces bug
+                  // return dispatch('upsertMicronet', {
+                  //   id: micronet._id,
+                  //   data: set(devicesLens, updatedDevices, micronet),
+                  //   event: 'sessionUpdate'
+                  // })
                 })
               }
             }
-            return dispatch('upsertMicronet', {
-              id: micronet._id,
-              data: set(devicesLens, updatedDevices, micronet),
-              event: 'sessionUpdate'
-            })
+            // return dispatch('upsertMicronet', {
+            //   id: micronet._id,
+            //   data: set(devicesLens, updatedDevices, micronet),
+            //   event: 'sessionUpdate'
+            // })
           })
       })
     }
@@ -401,8 +416,8 @@ export const actions = {
       })
   },
   upsertMicronet ({commit}, {id, data, event}) {
-    //  console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
-    //  console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
+    console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
+    console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
     console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
@@ -458,6 +473,19 @@ export const actions = {
     // const deviceLens = lensPath(['subnets', subnetIndex, 'deviceList', deviceIndex])
     // return dispatch('upsertMicronet', {id: micronetId, data: set(deviceLens, data, micronet)})
     return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
+  },
+
+  addSubnetToMicronet ({state, commit, dispatch}, data) {
+    const {micronetId} = state.editTargetIds
+    console.log('\n Client addSubnetToMicronet set micronetId : ' + JSON.stringify(micronetId))
+    console.log('\n Client addSubnetToMicronet called with Post data :  ' + JSON.stringify(data))
+    return axios({
+      ...apiInit,
+      method: 'post',
+      url: `${process.env.BASE_URL}/add-subnet-to-micronet`,
+      data: {...data, micronetId}
+    })
+      .then(() => { () => commit('setEditTargetIds', {}) })
   },
   addSubnet ({state, commit, dispatch}, data) {
     console.log('\n Client Add subnet called with Post data :  ' + JSON.stringify(data))

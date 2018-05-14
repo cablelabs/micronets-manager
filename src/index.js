@@ -57,6 +57,7 @@ function connectionHandler () {
   app.post('/create-mock-micronet', handleRequest('createMockMicronet'))
   app.post('/add-subnet', handleRequest('addSubnet'))
   app.post('/add-subnets', handleRequest('addSubnets'))
+  app.post('/add-subnet-to-micronet', handleRequest('addSubnetToMicronet'))
   app.get('/', cors(), function (req, res) {
     res.json({ message: 'Express server is running ' })
   })
