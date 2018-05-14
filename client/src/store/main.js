@@ -129,6 +129,7 @@ export const actions = {
                 }).then(() => {
                   console.log('\n Inside then of saveMicronet calling upsertMicronet for updating devices')
                   // this.$emit('pageReload')
+                  dispatch('fetchMicronets', micronet._id)
                   return dispatch('upsertMicronet', {
                     id: micronet._id,
                     data: set(devicesLens, updatedDevices, micronet),
@@ -152,6 +153,7 @@ export const actions = {
                 dispatch('addSubnetToMicronet', subnetToAdd).then(() => {
                   // this.$emit('pageReload')
                   console.log('\n Inside then of addSubnetToMicronet before calling upsertMicronet for updating devices')
+                  dispatch('fetchMicronets', micronet._id)
                   // Induces bug
                   // return dispatch('upsertMicronet', {
                   //   id: micronet._id,
