@@ -217,7 +217,7 @@
           .then(() => { this.saving = false })
       },
       submitForm (subnetIndex) {
-        return this.saveMicronet({data: this.micronet.subnets[subnetIndex]}) 
+        return this.saveMicronet({data: this.micronet.subnets[subnetIndex]})
           .then(() => { this.saving = false })
       },
       updateDevice (subnetId, deviceId, subnetIndex, deviceIndex, deviceName, deviceDescription, deviceIpv4Host, deviceMacAdd) {
