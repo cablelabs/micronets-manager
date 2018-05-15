@@ -56,14 +56,16 @@
     mounted () {
       this.$on('pageReload', () => {
         console.log('\n pageReload event mounted Micronets page')
-      //  console.log('\n this.$router.currentRoute.params.id : ' + JSON.stringify(this.$router.currentRoute.params.id))
+        console.log('\n this.$router.currentRoute.params.id : ' + JSON.stringify(this.$router.currentRoute.params.id))
+        this.$router.currentRoute.params.id ? this.fetchMicronets(this.$router.currentRoute.params.id) : ''
       })
     },
     created () {
       this.setEditTargetIds({})
       this.$on('pageReload', () => {
         console.log('\n pageReload event created Micronets page')
-       // console.log('\n this.$router.currentRoute.params.id : ' + JSON.stringify(this.$router.currentRoute.params.id))
+        console.log('\n this.$router.currentRoute.params.id : ' + JSON.stringify(this.$router.currentRoute.params.id))
+        this.$router.currentRoute.params.id ? this.fetchMicronets(this.$router.currentRoute.params.id) : ''
       })
       return this.fetchMicronets(this.$router.currentRoute.params.id)
     }
