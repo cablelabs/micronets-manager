@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { findIndex, propEq, find, lensPath, set, omit, merge, lensProp } from 'ramda'
+import { findIndex, propEq, find, lensPath, set, omit, merge, lensProp, view } from 'ramda'
 import uuidv4 from 'uuid/v4'
 
 const setState = prop => (state, value) => { state[prop] = value }
@@ -105,36 +105,40 @@ export const actions = {
               if (subnetForClassIndex > -1) {
                 console.log('\n Subnet for class ' + JSON.stringify(eventData.device.class) + '\t\t is : ' + JSON.stringify(micronet.subnets[subnetForClassIndex]))
                 console.log('\n Add the device to existing subnet : ')
-                const subnet = micronet.subnets[subnetForClassIndex]
-                const updatedDeviceList = subnet.deviceList.push(Object.assign({}, {
+                const subnetToUpdate = micronet.subnets[subnetForClassIndex]
+                const updatedDeviceList = subnetToUpdate.deviceList.push(Object.assign({}, {
                   deviceId: eventData.device.deviceId,
-                  deviceName: `${subnet.class} Device`,
-                  deviceDescription: `${subnet.class} Device`,
+                  deviceName: `${subnetToUpdate.class} Device`,
+                  deviceDescription: `${subnetToUpdate.class} Device`,
                   timestampUtc: (new Date()).toISOString(),
                   mac: {
                     eui48: eventData.device.macAddress
                   }
                 }))
                 console.log('\n updatedDeviceList : ' + JSON.stringify(updatedDeviceList))
-                const subnetDeviceListLens = lensProp('deviceList', micronet.subnets[subnetForClassIndex])
-                console.log('\n Retrieved subnetDeviceListLens : ' + JSON.stringify(subnetDeviceListLens))
+                console.log('\n\n subnetToUpdate.deviceList : ' + JSON.stringify(subnetToUpdate.deviceList))
+                console.log('\n Specific subnet to update : ' + JSON.stringify(subnetToUpdate) + '\t\t\t at index : ' + JSON.stringify(subnetForClassIndex))
+                const subnetDeviceListLens = lensProp('deviceList', subnetForClassIndex)
+                const subnetLens = lensPath('subnets', subnetForClassIndex)
+                console.log('\n Retrieved subnetLens : ' + JSON.stringify(view(subnetLens,micronet)))
+                console.log('\n Retrieved subnetDeviceListLens : ' + JSON.stringify(view(subnetDeviceListLens,micronet.subnets)))
                 commit('setEditTargetIds', {
                   micronetId: micronet._id,
                   subnetId: micronet.subnets[subnetForClassIndex].subnetId
                 })
                 dispatch('saveMicronet', {
                   id: micronet._id,
-                  data: set(subnetDeviceListLens, updatedDeviceList, micronet),
+                  data: subnetToUpdate,
                   event: 'sessionUpdate'
                 }).then(() => {
                   console.log('\n Inside then of saveMicronet calling upsertMicronet for updating devices')
                   // this.$emit('pageReload')
                   dispatch('fetchMicronets', micronet._id)
-                  return dispatch('upsertMicronet', {
-                    id: micronet._id,
-                    data: set(devicesLens, updatedDevices, micronet),
-                    event: 'sessionUpdate'
-                  })
+                  // return dispatch('upsertMicronet', {
+                  //   id: micronet._id,
+                  //   data: set(devicesLens, updatedDevices, micronet),
+                  //   event: 'sessionUpdate'
+                  // })
                 })
               }
               if (subnetForClassIndex === -1) {
@@ -420,12 +424,14 @@ export const actions = {
       })
   },
   upsertMicronet ({commit}, {id, data, event}) {
-    console.log('\n  upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
-    console.log('\n  upsertMicronet  event : ' + JSON.stringify(event))
+    console.log('\n  Client upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
+    console.log('\n  Client upsertMicronet  event : ' + JSON.stringify(event))
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
     console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
+
     if (valid === true && event !== 'sessionUpdate') {
+      console.log('\n Inside if condition valid === true && event !== sessionUpdate ')
       return axios(Object.assign({}, apiInit, {
         method: id ? 'put' : 'post',
         url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
@@ -438,6 +444,7 @@ export const actions = {
     }
 
     if (valid === true && event === 'sessionUpdate') {
+      console.log('\n Inside if condition valid === true && && event === sessionUpdate ')
       console.log('\n Client upsertMicronet for event : ' + JSON.stringify(event) + '\t\t\t with DATA : ' + JSON.stringify(data))
       return axios(Object.assign({}, apiInit, {
         method: id ? 'put' : 'post',
@@ -465,13 +472,16 @@ export const actions = {
         console.log('Axios Error : ', error.response)
       })
   },
-  saveMicronet ({state, dispatch}, data) {
-    console.log('\n Save Micronet called with data  : ' + JSON.stringify(data))
+  saveMicronet ({state, dispatch}, {data}) {
+    console.log('\n Save Micronet called with DATA  : ' + JSON.stringify(data))
     const {micronetId, subnetId, deviceId} = state.editTargetIds
     console.log('\n state.editTargetIds : ' + JSON.stringify(state.editTargetIds))
     const micronet = find(propEq('_id', micronetId))(state.micronets)
+    console.log('\n Save Micronet micronet from state  : ' + JSON.stringify(micronet))
     const subnetIndex = findIndex(propEq('subnetId', subnetId))(micronet.subnets)
+    console.log('\n Save Micronet subnetIndex  : ' + JSON.stringify(subnetIndex))
     const subnetLens = lensPath(['subnets', subnetIndex])
+    console.log('\n Save Micronet subnetLens  : ' + JSON.stringify(view(subnetLens,micronet)))
     if (!deviceId) return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
     // const deviceIndex = findIndex(propEq('deviceId', deviceId), view(subnetLens, micronet).deviceList)
     // const deviceLens = lensPath(['subnets', subnetIndex, 'deviceList', deviceIndex])
