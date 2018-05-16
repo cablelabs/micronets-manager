@@ -63,11 +63,15 @@
       this.fetchSubscribers().then(({data}) => {})
       this.$socket.on('socketSessionUpdate', (data) => {
         console.log('\n Vue socket event socketSessionUpdate caught with data ' + JSON.stringify(data))
-        this.upsertSubscribers(data)
+        this.upsertSubscribers(data).then(() => {
+          this.fetchMicronets().then(()=> {})
+        })
       })
       this.$socket.on('socketSessionCreate', (data) => {
         console.log('\n Vue socket event socketSessionCreate caught with data ' + JSON.stringify(data))
-        this.upsertSubscribers(data)
+        this.upsertSubscribers(data).then(() => {
+
+        })
       })
     }
   }

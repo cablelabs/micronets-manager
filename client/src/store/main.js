@@ -95,7 +95,6 @@ export const actions = {
         })
           .then(({data}) => {
             const sessionDevices = data.devices
-            let devicesToAdd = []
             console.log('\n Session Devices : ' + JSON.stringify(sessionDevices))
             const micronet = find(propEq('id', subscriberID))(state.micronets)
             console.log('\n Micro-net found from state : ' + JSON.stringify(micronet))
@@ -103,15 +102,10 @@ export const actions = {
             console.log('\n Event data from session update : ' + JSON.stringify(eventData))
             if (!eventData.device.hasOwnProperty('class')) {
               console.log('\n\n No class property found in event data . Only update devices list ... ')
-              console.log('\n Device Lens value : ' + JSON.stringify())
-              const deviceToAdd = find(propEq('deviceId', eventData.device.deviceId))(sessionDevices)
-              devicesToAdd.push(Object.assign({},deviceToAdd))
-              console.log('\n Device To Add : ' + JSON.stringify(deviceToAdd))
-              console.log('\n Devices To Add : ' + JSON.stringify(devicesToAdd))
-              console.log('\n\n Upsert Micronet data passed : ' + JSON.stringify(set(devicesLens, deviceToAdd, micronet)))
+              console.log('\n\n Upsert Micronet data to be passed set(devicesLens, sessionDevices, micronet) : ' + JSON.stringify(set(devicesLens, sessionDevices, micronet)))
               return dispatch('upsertMicronet', {
                    id: micronet._id,
-                   data: set(devicesLens, devicesToAdd, micronet),
+                   data: set(devicesLens, sessionDevices, micronet),
                    event: 'sessionUpdate'
                  })
             }

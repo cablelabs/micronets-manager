@@ -6,7 +6,7 @@
         <v-text-field v-model="subnetName" label="Subnet Name" required :rules="subnetNameRules"/>
         <div>
           <v-select
-            :items="configureRegisteredDevices.deviceIds"
+            :items="configureRegisteredDevices.devicesToAdd"
             label="Select Device ID"
             v-model="deviceId"
             class="input-group--focused"
@@ -32,7 +32,7 @@
 <script>
   import pick from 'ramda/src/pick'
   import { find, propEq } from 'ramda'
-
+  import { mapState } from 'vuex'
   export default {
     name: 'add-subnet-form',
     props: {
@@ -40,6 +40,7 @@
       micronets: Array
     },
     computed: {
+      ...mapState({ stateMicronets: state => state.micronets }),
       configureRegisteredDevices () {
         const micronet = find(propEq('_id', this.$route.params.id))(this.micronets)
         // let micronetDevices = micronet.devices.map((device, index) => {
@@ -56,7 +57,13 @@
         let macAddresses = micronet.devices.map((device, index) => {
           return device.macAddress
         })
-        return {micronet, deviceIds, macAddresses}
+        this.devicesToAdd = find(propEq('_id', this.$route.params.id))(this.stateMicronets).devices
+        this.devicesToAdd = this.devicesToAdd.filter(device => !device.hasOwnProperty('class'))
+        let deviceToAddIds = this.devicesToAdd.map((deviceToAdd, index) => {
+           return deviceToAdd.deviceId
+        })
+        console.log('\n Updated deviceToAddIds : ' + JSON.stringify(deviceToAddIds))
+        return {micronet, deviceIds, macAddresses, devicesToAdd: deviceToAddIds}
       },
       associatedDeviceMacAddress () {
         if (this.deviceId) {
@@ -106,7 +113,8 @@
         this.$emit('close', this.childDialog)
         this.$refs.form.reset()
       },
-      created () {}
+      created () {},
+      mounted () {}
     }
   }
 </script>
