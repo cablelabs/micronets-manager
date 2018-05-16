@@ -225,7 +225,9 @@
         const dhcpDeviceUpdate = Object.assign(
           {
             deviceId: deviceId,
-            macAddress: deviceMacAdd,
+            macAddress: {
+              eui48: deviceMacAdd
+            },
             networkAddress: {
               ipv4: deviceIpv4Host
             }
@@ -254,7 +256,9 @@
         // Adding DHCP Entries
         const dhcpAddDeviceData = Object.assign({}, {
           deviceId: deviceId,
-          macAddress: deviceMacAddress,
+          macAddress: {
+            eui48: deviceMacAddress
+          },
           networkAddress: {
             ipv4: '192.168.1.42'
           }
