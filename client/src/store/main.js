@@ -157,13 +157,50 @@ export const actions = {
                 dispatch('addSubnetToMicronet', subnetToAdd).then(() => {
                   // this.$emit('pageReload')
                   console.log('\n Inside then of addSubnetToMicronet before calling upsertMicronet for updating devices')
-                  dispatch('fetchMicronets', micronet._id)
+                  // dispatch('fetchMicronets', micronet._id)
                   // Induces bug
                   // return dispatch('upsertMicronet', {
                   //   id: micronet._id,
                   //   data: set(devicesLens, updatedDevices, micronet),
                   //   event: 'sessionUpdate'
                   // })
+                  // TODO : DHCP Refactor
+                  console.log('\n state.micronets after micronet._id : ' + JSON.stringify(micronet))
+                  return dispatch('fetchMicronets', micronet._id).then(() => {
+                    console.log('\n state.micronets after fetchMicronets : ' + JSON.stringify(state.micronets))
+                    console.log('\n state.micronets after micronet._id : ' + JSON.stringify(micronet))
+                    const micronet = find(propEq('_id', micronet._id))(state.micronets)
+                    const subnet = find(propEq('subnetId', subnetToAdd.subnetId))(micronet.subnets)
+                    const deviceInSubnet = find(propEq('deviceId', subnetToAdd.deviceId))(subnet.deviceList)
+                    console.log('\n deviceInSubnet : ' + JSON.stringify(deviceInSubnet))
+                    console.log('\n subnetToAdd : ' + JSON.stringify(subnetToAdd))
+                    dispatch('upsertDhcpSubnet', {
+                      data: Object.assign({}, {
+                        subnetId: subnetToAdd.subnetId,
+                        ipv4Network: {
+                          network: subnet.ipv4.network,
+                          mask: subnet.ipv4.netmask,
+                          gateway: subnet.ipv4.gateway
+                        }
+                      })
+                    }).then(() => {
+                      console.log('\n Inside then of upsertDhcpSubnet ')
+                      dispatch('fetchDhcpSubnets').then(() => {
+                        dispatch('upsertDhcpSubnetDevice', {
+                          subnetId: subnetToAdd.subnetId,
+                          deviceId: subnetToAdd.deviceId,
+                          data: Object.assign({}, {
+                            deviceId: subnetToAdd.deviceId,
+                            macAddress: {
+                              eui48: subnetToAdd.macAddress ? subnetToAdd.macAddress : subnetToAdd.mac.eui48
+                            },
+                            networkAddress: {ipv4: deviceInSubnet.ipv4.host}
+                          }),
+                          event: 'addDhcpSubnetDevice'
+                        })
+                      })
+                    })
+                  })
                 })
               }
             }
@@ -223,19 +260,6 @@ export const actions = {
     console.log('\n\n PopulateMultipleSubnets passed subnetTagMeta : ' + JSON.stringify(subnetTagMeta))
     // var devices = subTagsMeta.map((obj) => { return obj.devices })
     if (subnetTagMeta.devices.length === 1) {
-      // subnets.push(subnetTagMeta.devices.map((device, index) => {
-      //   console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length) + '\t\t\t Device : ' + JSON.stringify(device))
-      //   Object.assign({}, {
-      //     subnetId: uuidv4(),
-      //     subnetName: `${device.class} Subnet`,
-      //     class: `${device.class}`,
-      //     deviceId: device.deviceId,
-      //     deviceName: `${device.class} Device`,
-      //     deviceDescription: `${device.class} Device`,
-      //     mac: {eui48: device.macAddress}
-      //   })
-      // }))
-
       subnetTagMeta.devices.forEach((device, index) => {
         console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length) + '\t\t\t Device : ' + JSON.stringify(device))
         subnets.push(Object.assign({}, {
