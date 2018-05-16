@@ -232,13 +232,15 @@ class Store {
   addSubnet ({dispatch}, {body}) {
     console.log('\n AddSubnet server body : ' + JSON.stringify(body))
     const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
+    console.log('\n\n AddSubnet server body.macAddress : ' + JSON.stringify(body.macAddress))
+    //console.log('\n\n AddSubnet server body.mac.eui48 : ' + JSON.stringify(body.mac.eui48))
     console.log('\n AddSubnet server MicronetId : ' + JSON.stringify(micronetId))
     const data = {
       subnetId,
       deviceList: [{
         deviceId,
         timestampUtc: this.timestamp(),
-        mac: {eui48: macAddress}
+        mac: {eui48: body.macAddress ? macAddress : body.mac.eui48}
       }]
     }
     console.log('\n\n AddSubnet server data : ' + JSON.stringify(data))

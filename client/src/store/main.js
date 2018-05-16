@@ -218,15 +218,27 @@ export const actions = {
       })
     }
   },
-
   populateSubnetsObject ({state, commit, dispatch}, subnetTagMeta) {
     let subnets = []
     console.log('\n\n PopulateMultipleSubnets passed subnetTagMeta : ' + JSON.stringify(subnetTagMeta))
     // var devices = subTagsMeta.map((obj) => { return obj.devices })
     if (subnetTagMeta.devices.length === 1) {
-      subnets.push(subnetTagMeta.devices.map((device, index) => {
+      // subnets.push(subnetTagMeta.devices.map((device, index) => {
+      //   console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length) + '\t\t\t Device : ' + JSON.stringify(device))
+      //   Object.assign({}, {
+      //     subnetId: uuidv4(),
+      //     subnetName: `${device.class} Subnet`,
+      //     class: `${device.class}`,
+      //     deviceId: device.deviceId,
+      //     deviceName: `${device.class} Device`,
+      //     deviceDescription: `${device.class} Device`,
+      //     mac: {eui48: device.macAddress}
+      //   })
+      // }))
+
+      subnetTagMeta.devices.forEach((device, index) => {
         console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length) + '\t\t\t Device : ' + JSON.stringify(device))
-        Object.assign({}, {
+        subnets.push(Object.assign({}, {
           subnetId: uuidv4(),
           subnetName: `${device.class} Subnet`,
           class: `${device.class}`,
@@ -234,8 +246,9 @@ export const actions = {
           deviceName: `${device.class} Device`,
           deviceDescription: `${device.class} Device`,
           mac: {eui48: device.macAddress}
-        })
-      }))
+        }))
+      })
+      console.log('\n\n Single subnet : ' + JSON.stringify(subnets))
     }
     if (subnetTagMeta.devices.length > 1) {
       console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length))
@@ -488,7 +501,6 @@ export const actions = {
     // return dispatch('upsertMicronet', {id: micronetId, data: set(deviceLens, data, micronet)})
     return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
   },
-
   addSubnetToMicronet ({state, commit, dispatch}, data) {
     const {micronetId} = state.editTargetIds
     console.log('\n Client addSubnetToMicronet set micronetId : ' + JSON.stringify(micronetId))
@@ -513,49 +525,110 @@ export const actions = {
         method: 'post',
         url: `${process.env.BASE_URL}/add-subnets`,
         data: {data, micronetId}
-      }).then(() => commit('setEditTargetIds', {}))
+      }).then(() => {
+        commit('setEditTargetIds', {})
+        console.log('\n Inside then of add-subnets ... . Data passed to axios request is : ' + JSON.stringify(data))
+        return dispatch('fetchMicronets', micronetId).then(() => {
+          const micronet = find(propEq('_id', micronetId))(state.micronets)
+          console.log('\n state.micronets : ' + JSON.stringify(state.micronets))
+          data.forEach((subnetFromData, dataIndex) => {
+            console.log('\n Current subnetFromData : ' + JSON.stringify(subnetFromData))
+            const subnet = find(propEq('subnetId', subnetFromData.subnetId))(micronet.subnets)
+            console.log('\n Inside then of add-subnets subnet : ' + JSON.stringify(subnet))
+            dispatch('upsertDhcpSubnet', {
+              data: Object.assign({}, {
+                subnetId: subnetFromData.subnetId,
+                ipv4Network: {
+                  network: subnet.ipv4.network,
+                  mask: subnet.ipv4.netmask,
+                  gateway: subnet.ipv4.gateway
+                }
+              })
+            }).then(() => {
+              subnetFromData.deviceList.forEach((deviceFromData, deviceIndex) => {
+                console.log('\n\n deviceFromData value : ' + JSON.stringify(deviceFromData))
+                const deviceInSubnet = find(propEq('deviceId', deviceFromData.deviceId))(subnet.deviceList)
+                console.log('\n Inside then of upsertDhcpSubnet deviceInSubnet : ' + JSON.stringify(deviceInSubnet))
+                dispatch('fetchDhcpSubnets').then(() => {
+                  dispatch('upsertDhcpSubnetDevice', {
+                    subnetId: subnetFromData.subnetId,
+                    deviceId: deviceInSubnet.deviceId,
+                    data: Object.assign({}, {
+                      deviceId: deviceInSubnet.deviceId,
+                      macAddress: {
+                        eui48: deviceInSubnet.mac.eui48
+                      },
+                      networkAddress: {ipv4: deviceInSubnet.ipv4.host}
+                    }),
+                    event: 'addDhcpSubnetDevice'
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
     } else {
       console.log('\n Client inside else loop before calling url : ' + JSON.stringify(`${process.env.BASE_URL}/add-subnet`))
+      console.log('\n Array.isArray(data) : ' + JSON.stringify(Array.isArray(data)))
+      let patchedData = {}
+      if (Array.isArray(data) && data.length === 1) {
+        console.log('\n Array.isArray(data) : ' + JSON.stringify(Array.isArray(data)) + '\t\t data.length : ' + JSON.stringify(data.length))
+        console.log('\n Data[0] : ' + JSON.stringify(data[0]))
+        patchedData = data[0]
+        console.log('\n Patched data : ' + JSON.stringify(patchedData))
+      }
+      if (Array.isArray(data) === false) {
+        console.log('\n Array.isArray(data) ' + JSON.stringify(Array.isArray(data)) )
+        patchedData = data
+        console.log('\n Patched data no processing : ' + JSON.stringify(patchedData))
+      }
       return axios({
         ...apiInit,
         method: 'post',
         url: `${process.env.BASE_URL}/add-subnet`,
-        data: {...data, micronetId}
+        data: {...patchedData, micronetId}
       })
         .then(() => {
-          () => commit('setEditTargetIds', {})
+          commit('setEditTargetIds', {})
           return dispatch('fetchMicronets', micronetId).then(() => {
-            // const micronet = find(propEq('_id', micronetId))(state.micronets)
-            // const subnet = find(propEq('subnetId', data.subnetId))(micronet.subnets)
-            // const deviceInSubnet = find(propEq('deviceId', data.deviceId))(subnet.deviceList)
-            // dispatch('upsertDhcpSubnet', {
-            //   data: Object.assign({}, {
-            //     subnetId: data.subnetId,
-            //     ipv4Network: {
-            //       network: subnet.ipv4.network,
-            //       mask: subnet.ipv4.netmask,
-            //       gateway: subnet.ipv4.gateway
-            //     }
-            //   })
-            // }).then(() => {
-            //   dispatch('fetchDhcpSubnets').then(() => {
-            //     dispatch('upsertDhcpSubnetDevice', {
-            //       subnetId: data.subnetId,
-            //       deviceId: data.deviceId,
-            //       data: Object.assign({}, {
-            //         deviceId: data.deviceId,
-            //         macAddress: {
-            //           eui48: data.macAddress
-            //         },
-            //         networkAddress: {ipv4: deviceInSubnet.ipv4.host}
-            //       }),
-            //       event: 'addDhcpSubnetDevice'
-            //     })
-            //   })
-            // })
+            const micronet = find(propEq('_id', micronetId))(state.micronets)
+            const subnet = find(propEq('subnetId', patchedData.subnetId))(micronet.subnets)
+            const deviceInSubnet = find(propEq('deviceId', patchedData.deviceId))(subnet.deviceList)
+            console.log('\n deviceInSubnet : ' + JSON.stringify(deviceInSubnet))
+            console.log('\n patchedData : ' + JSON.stringify(patchedData))
+            dispatch('upsertDhcpSubnet', {
+              data: Object.assign({}, {
+                subnetId: patchedData.subnetId,
+                ipv4Network: {
+                  network: subnet.ipv4.network,
+                  mask: subnet.ipv4.netmask,
+                  gateway: subnet.ipv4.gateway
+                }
+              })
+            }).then(() => {
+              console.log('\n Inside then of upsertDhcpSubnet ')
+              dispatch('fetchDhcpSubnets').then(() => {
+                dispatch('upsertDhcpSubnetDevice', {
+                  subnetId: patchedData.subnetId,
+                  deviceId: patchedData.deviceId,
+                  data: Object.assign({}, {
+                    deviceId: patchedData.deviceId,
+                    macAddress: {
+                      eui48: patchedData.macAddress ? patchedData.macAddress : patchedData.mac.eui48
+                    },
+                    networkAddress: {ipv4: deviceInSubnet.ipv4.host}
+                  }),
+                  event: 'addDhcpSubnetDevice'
+                })
+              })
+            })
           })
         })
-        .then(() => commit('setEditTargetIds', {}))
+        .then(() => {
+          console.log('\n Inside then of upsertDhcpSubnetDevice ')
+          commit('setEditTargetIds', {})
+        })
     }
   },
   fetchDhcpSubnets ({commit}) {
