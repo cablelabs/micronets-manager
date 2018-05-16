@@ -73,7 +73,7 @@ export const actions = {
     let eventData = data
     const subscriberID = data.subscriberId
     if (type === 'sessionUpdate') {
-      console.log('\n sessionUpdate called DATA : ' + JSON.stringify(data))
+      console.log('\n sessionUpdate called with data : ' + JSON.stringify(data))
       axios({
         ...apiInit,
         method: 'post',
@@ -94,10 +94,27 @@ export const actions = {
           url: subscriberID ? `${sessionUri}/${subscriberID}` : `${sessionUri}`
         })
           .then(({data}) => {
-            const updatedDevices = data.devices
+            const sessionDevices = data.devices
+            let devicesToAdd = []
+            console.log('\n Session Devices : ' + JSON.stringify(sessionDevices))
             const micronet = find(propEq('id', subscriberID))(state.micronets)
             console.log('\n Micro-net found from state : ' + JSON.stringify(micronet))
             const devicesLens = lensProp('devices', micronet)
+            console.log('\n Event data from session update : ' + JSON.stringify(eventData))
+            if (!eventData.device.hasOwnProperty('class')) {
+              console.log('\n\n No class property found in event data . Only update devices list ... ')
+              console.log('\n Device Lens value : ' + JSON.stringify())
+              const deviceToAdd = find(propEq('deviceId', eventData.device.deviceId))(sessionDevices)
+              devicesToAdd.push(Object.assign({},deviceToAdd))
+              console.log('\n Device To Add : ' + JSON.stringify(deviceToAdd))
+              console.log('\n Devices To Add : ' + JSON.stringify(devicesToAdd))
+              console.log('\n\n Upsert Micronet data passed : ' + JSON.stringify(set(devicesLens, deviceToAdd, micronet)))
+              return dispatch('upsertMicronet', {
+                   id: micronet._id,
+                   data: set(devicesLens, devicesToAdd, micronet),
+                   event: 'sessionUpdate'
+                 })
+            }
             if (eventData.device.hasOwnProperty('class')) {
               console.log('\n sessionUpdate event Data for device : ' + JSON.stringify(eventData.device.deviceId) + '\t\t has class : ' + JSON.stringify(eventData.device.class))
               let subnetForClassIndex = findIndex(propEq('class', eventData.device.class))(micronet.subnets)
@@ -468,7 +485,7 @@ export const actions = {
     console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
 
     if (valid === true && event !== 'sessionUpdate') {
-      console.log('\n Inside if condition valid === true && event !== sessionUpdate ')
+      console.log('\n valid === true && event !== sessionUpdate ')
       return axios(Object.assign({}, apiInit, {
         method: id ? 'put' : 'post',
         url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
@@ -481,7 +498,7 @@ export const actions = {
     }
 
     if (valid === true && event === 'sessionUpdate') {
-      console.log('\n Inside if condition valid === true && && event === sessionUpdate ')
+      console.log('\n valid === true && && event === sessionUpdate ')
       console.log('\n Client upsertMicronet for event : ' + JSON.stringify(event) + '\t\t\t with DATA : ' + JSON.stringify(data))
       return axios(Object.assign({}, apiInit, {
         method: id ? 'put' : 'post',
