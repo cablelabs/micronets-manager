@@ -1,6 +1,6 @@
 {
   "dev": {
-    "host": "localhost",
+    "host": "10.142.10.46",
     "port": 3000,
     "public": "../public/",
     "mongodb": "mongodb://localhost:27017/micronets",
