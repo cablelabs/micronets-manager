@@ -144,12 +144,36 @@ export const actions = {
                 }).then(() => {
                   console.log('\n Inside then of saveMicronet calling upsertMicronet for updating devices')
                   // this.$emit('pageReload')
-                  dispatch('fetchMicronets', micronet._id)
                   // return dispatch('upsertMicronet', {
                   //   id: micronet._id,
                   //   data: set(devicesLens, updatedDevices, micronet),
                   //   event: 'sessionUpdate'
                   // })
+                  // TODO : DHCP Upserts Add device to subnet
+                  console.log('\n Trying to print micronet._id : ' + JSON.stringify(micronet._id))
+                  dispatch('fetchMicronets').then(() => {
+                      const micronetToUpsert = find(propEq('id', eventData.subscriberId))(state.micronets)
+                      console.log('\n micronetToUpsert : ' + JSON.stringify(micronetToUpsert))
+                      const subnetToUpsert = micronetToUpsert.subnets[subnetForClassIndex]
+                      console.log('\n subnetToUpsert : ' + JSON.stringify(subnetToUpsert))
+                      const deviceToUpsert = find(propEq('deviceId', eventData.device.deviceId))(subnetToUpsert.deviceList)
+                      console.log('\n deviceToUpsert : ' + JSON.stringify(deviceToUpsert))
+                      console.log('\n eventData : ' + JSON.stringify(eventData))
+                    dispatch('fetchDhcpSubnets').then(() => {
+                      dispatch('upsertDhcpSubnetDevice', {
+                        subnetId: subnetToUpsert.subnetId,
+                        deviceId: deviceToUpsert.deviceId,
+                        data: Object.assign({}, {
+                          deviceId: deviceToUpsert.deviceId,
+                          macAddress: {
+                            eui48: deviceToUpsert.macAddress ? deviceToUpsert.macAddress : deviceToUpsert.mac.eui48
+                          },
+                          networkAddress: {ipv4:deviceToUpsert.ipv4.host}
+                        }),
+                        event: 'addDhcpSubnetDevice'
+                      })
+                    })
+                  })
                 })
               }
               if (subnetForClassIndex === -1) {
@@ -166,7 +190,6 @@ export const actions = {
                 console.log('\n SubnetToAdd Obj : ' + JSON.stringify(subnetToAdd))
                 commit('setEditTargetIds', {micronetId: micronet._id})
                 dispatch('addSubnetToMicronet', subnetToAdd).then(() => {
-                  // this.$emit('pageReload')
                   console.log('\n Inside then of addSubnetToMicronet before calling upsertMicronet for updating devices')
                   // dispatch('fetchMicronets', micronet._id)
                   // Induces bug
@@ -175,16 +198,19 @@ export const actions = {
                   //   data: set(devicesLens, updatedDevices, micronet),
                   //   event: 'sessionUpdate'
                   // })
-                  // TODO : DHCP Refactor
+                 // DHCP Upserts Add subnet and device
                   console.log('\n state.micronets after micronet._id : ' + JSON.stringify(micronet))
-                  return dispatch('fetchMicronets', micronet._id).then(() => {
+                  return dispatch('fetchMicronets').then(() => {
                     console.log('\n state.micronets after fetchMicronets : ' + JSON.stringify(state.micronets))
-                    console.log('\n state.micronets after micronet._id : ' + JSON.stringify(micronet))
-                    const micronet = find(propEq('_id', micronet._id))(state.micronets)
-                    const subnet = find(propEq('subnetId', subnetToAdd.subnetId))(micronet.subnets)
-                    const deviceInSubnet = find(propEq('deviceId', subnetToAdd.deviceId))(subnet.deviceList)
-                    console.log('\n deviceInSubnet : ' + JSON.stringify(deviceInSubnet))
                     console.log('\n subnetToAdd : ' + JSON.stringify(subnetToAdd))
+                    const micronetForSubscriber =  find(propEq('id', eventData.subscriberId))(state.micronets)
+                    console.log('\n micronetForSubscriber : ' + JSON.stringify(micronetForSubscriber))
+                    const micronet = find(propEq('_id', micronetForSubscriber._id))(state.micronets)
+                    console.log('\n micronet : ' + JSON.stringify(micronet))
+                    const subnet = find(propEq('subnetId', subnetToAdd.subnetId))(micronet.subnets)
+                    console.log('\n subnet : ' + JSON.stringify(subnet))
+                    const deviceInSubnet = find(propEq('deviceId', eventData.device.deviceId))(subnet.deviceList)
+                    console.log('\n deviceInSubnet : ' + JSON.stringify(deviceInSubnet))
                     dispatch('upsertDhcpSubnet', {
                       data: Object.assign({}, {
                         subnetId: subnetToAdd.subnetId,
