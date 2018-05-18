@@ -44,7 +44,7 @@ function connectionHandler () {
     return (req, res) => store.dispatch(actionName, { body: req.body, params: req.params }).then(
       result => { res.status(result.statusCode || 200).json(result.data) },
       error => {
-        console.log('IN ERROR HANDLER', error)
+        // console.log('IN ERROR HANDLER', error)
         res.status(error.statusCode || 500).send(error.message)
       }
     )
@@ -62,10 +62,16 @@ function connectionHandler () {
 
   // DHCP API's
 
+  app.get('/dhcp/subnets', handleRequest('queryDhcpSubnets'))
   app.get('/dhcp/subnets/:subnetId', handleRequest('queryDhcpSubnets'))
-  app.post('/dhcp/subnets/:subnetId', handleRequest('upsertDhcpSubnets'))
+  app.post('/dhcp/subnets', handleRequest('upsertDhcpSubnets'))
+  app.put('/dhcp/subnets/:subnetId', handleRequest('upsertDhcpSubnets'))
   app.delete('/dhcp/subnets/:subnetId', handleRequest('deleteDhcpSubnets'))
-  app.get('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('queryDhcpSubnetDevices'))
+
+
+  app.get('/dhcp/subnets/:subnetId/devices', handleRequest('queryDhcpSubnetDevices'))
+  app.get('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('queryDhcpSubnetDevicesById'))
+  app.post('/dhcp/subnets/:subnetId/devices', handleRequest('upsertDhcpSubnetDevices'))
   app.post('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('upsertDhcpSubnetDevices'))
   app.delete('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('deleteDhcpSubnetDevices'))
 

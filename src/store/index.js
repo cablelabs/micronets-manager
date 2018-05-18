@@ -60,21 +60,35 @@ class Store {
       }) : dispatch('upsertMicronet', {body: message.data}))
   }
 
-  queryDhcpSubnets({params}) {
+  queryDhcpSubnets(_, {params}) {
     const {dhcp} = this.config
     console.log('\n MM Server queryDhcpSubnets params : ' + JSON.stringify(params))
     return axios({
       ...apiInit,
       method: 'get',
-      url: params.subnetId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}` :dhcpUri
+      url: params.subnetId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}`
     })
-      .then(({data}) => {
-        console.log('\n queryDhcpSubnets data : ' + JSON.stringify(data))
-        return data
+      .then((response) => {
+        console.log('\n queryDhcpSubnets data : ' + JSON.stringify(response.data))
+        return response
       })
   }
 
-  upsertDhcpSubnets ({body, params}) {
+  queryDhcpSubnetsById(_, {params}) {
+    const {dhcp} = this.config
+    console.log('\n MM Server queryDhcpSubnetsById params : ' + JSON.stringify(params))
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url:  `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}`
+    })
+      .then((response) => {
+        console.log('\n queryDhcpSubnetsById data : ' + JSON.stringify(response.data))
+        return response
+      })
+  }
+
+  upsertDhcpSubnets (_, {body, params}) {
     const {dhcp} = this.config
     console.log('\n MM Server upsertDhcpSubnets params : ' + JSON.stringify(params) + '\t\t Body : ' + JSON.stringify(body))
     return axios({
@@ -83,13 +97,13 @@ class Store {
       url: params.subnetId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}`,
       data: body
     })
-      .then(({data}) => {
-        console.log('\n MM Server upsertDhcpSubnets data : ' + JSON.stringify(data))
-        return data
+      .then((response) => {
+        console.log('\n MM Server upsertDhcpSubnets data : ' + JSON.stringify(response.data))
+        return response
       })
   }
 
-  deleteDhcpSubnets ({params}) {
+  deleteDhcpSubnets (_, {body, params}) {
     const {dhcp} = this.config
     console.log('\n MM Server deleteDhcpSubnets params : ' + JSON.stringify(params))
     return axios({
@@ -97,27 +111,66 @@ class Store {
       method: 'delete',
       url: `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}`
     })
-      .then(({data}) => {
-        console.log('\n MM Server deleteDhcpSubnets data : ' + JSON.stringify(data))
-        return data
+      .then((response) => {
+        console.log('\n MM Server deleteDhcpSubnets data : ' + JSON.stringify(response.data))
+        return response
       })
   }
 
-  queryDhcpSubnetDevices ({params}) {
+  queryDhcpSubnetDevices (_, {params}) {
     console.log('\n MM Server queryDhcpSubnetDevices params : ' + JSON.stringify(params))
     const {dhcp} = this.config
+    const url = `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`
+    console.log('\n QueryDhcpSubnetDevices url : ' + JSON.stringify(url))
     return axios({
       ...apiInit,
       method: 'get',
-      url: params.deviceId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`
+      url: `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`
+    }).then((response) => {
+       console.log('\n MM Server queryDhcpSubnetDevices data : ' + JSON.stringify(response.data))
+      console.log('\n Then response')
+        return response
+      })
+      .catch((error) => {
+        console.log('\n CATCH ERROR ... ')
+        console.log('\n CATCH error : ' + JSON.stringify(error.response.data))
+        // Error
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+           console.log(error.response.data);
+           console.log(error.response.status);
+           console.log(error.response.headers);
+        } else if (error.request) {
+          // The request was made but no response was received
+          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+          // http.ClientRequest in node.js
+          console.log(error.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.log('Error', error.message);
+        }
+        console.log(error.config);
+      });
+  }
+
+  queryDhcpSubnetDevicesById (_, {params}) {
+    console.log('\n MM Server queryDhcpSubnetDevicesById params : ' + JSON.stringify(params))
+    const {dhcp} = this.config
+    const url =  (params.subnetId && params.deviceId) ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`
+    console.log('\n queryDhcpSubnetDevicesById url : ' + JSON.stringify(url))
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url:  `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}`
     })
-      .then(({data}) => {
-        console.log('\n MM Server queryDhcpSubnetDevices data : ' + JSON.stringify(data))
-        return data
+      .then((response) => {
+        console.log('\n MM Server queryDhcpSubnetDevicesById data : ' + JSON.stringify(response.data))
+        return response
       })
   }
 
-  upsertDhcpSubnetDevices ({body, params}) {
+  upsertDhcpSubnetDevices (_, {body, params}) {
     const {dhcp} = this.config
     console.log('\n MM Server upsertDhcpSubnetDevices params : ' + JSON.stringify(params) + '\t\t Body : ' + JSON.stringify(body))
     return axios({
@@ -126,13 +179,13 @@ class Store {
       url: params.deviceId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`,
       data: body
     })
-      .then(({data}) => {
-        console.log('\n MM Server upsertDhcpSubnetDevices data : ' + JSON.stringify(data))
-        return data
+      .then((response) => {
+        console.log('\n MM Server upsertDhcpSubnetDevices data : ' + JSON.stringify(response.data))
+        return response
       })
   }
 
-  deleteDhcpSubnetDevices ({params}) {
+  deleteDhcpSubnetDevices (_, {params}) {
     const {dhcp} = this.config
     console.log('\n MM Server deleteDhcpSubnetDevices params : ' + JSON.stringify(params))
     return axios({
@@ -140,9 +193,9 @@ class Store {
       method: 'delete',
       url: `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}`
     })
-      .then(({data}) => {
-        console.log('\n MM Server deleteDhcpSubnets data : ' + JSON.stringify(data))
-        return data
+      .then((response) => {
+        console.log('\n MM Server deleteDhcpSubnets data : ' + JSON.stringify(response.data))
+        return response
       })
   }
 
