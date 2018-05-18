@@ -17,6 +17,7 @@ const msoPortalAuthPostConfig = {
 const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/registration/token`
 const sessionUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/session`
 const dhcpUri = `${process.env.DHCP_BASE_URL}/micronets/v1/dhcp/subnets`
+const localDhcpUri = `${process.env.BASE_URL}`
 const Ajv = require('ajv')
 const ajv = new Ajv()
 const Schema = require('../../schemas/micronets')
@@ -692,68 +693,105 @@ export const actions = {
         })
     }
   },
+
   fetchDhcpSubnets ({commit}) {
+    const url = `${localDhcpUri}/dhcp/subnets`
+    console.log('\n Client fetchDhcpSubnets called with url : ' + JSON.stringify(url))
     return axios({
       ...apiInit,
       method: 'get',
-      url: dhcpUri
+      url: url
     })
       .then(({data}) => {
+        console.log('\n Client store main fetchDhcpSubnets data : ' + JSON.stringify(data))
         commit('setDhcpSubnets', data)
         return data
       })
   },
-  upsertDhcpSubnet ({commit, dispatch}, {data, id}) {
+
+  upsertDhcpSubnet ({state, commit, dispatch}, {data, id}) {
+    console.log('\n Testing state for dhcp subnets : ' + JSON.stringify(state.dhcpSubnets))
+    const url = id ? `${localDhcpUri}/dhcp/subnets/${id}` : `${localDhcpUri}/dhcp/subnets`
+    const method = id ? 'put' : 'post'
+    console.log('\n Client upsertDhcpSubnet called with url : ' + JSON.stringify(url))
+    console.log('\n Client upsertDhcpSubnet called with method : ' + JSON.stringify(method))
+    console.log('\n Client upsertDhcpSubnet called body : ' + JSON.stringify(data))
+    console.log('\n Client upsertDhcpSubnet called with id : ' + JSON.stringify(id))
     return axios({
       ...apiInit,
-      method: id ? 'put' : 'post',
-      url: id ? `${dhcpUri}/${id}` : `${dhcpUri}`,
+      method: method,
+      url: url,
       data
     })
       .then(({data}) => {
+        console.log('\n Client upsertDhcpSubnet data : ' + JSON.stringify(data))
         return dispatch('fetchDhcpSubnets')
       })
   },
-  deleteDhcpSubnet ({commit, dispatch}, {id, data}) {
+
+  deleteDhcpSubnet ({state, commit, dispatch}, {id, data}) {
+    console.log('\n Testing state for dhcp subnets : ' + JSON.stringify(state.dhcpSubnets))
+    const url = `${localDhcpUri}/dhcp/subnets`
+    console.log('\n Client deleteDhcpSubnet called with url : ' + JSON.stringify(url))
+    console.log('\n Client deleteDhcpSubnet called with data : ' + JSON.stringify(data))
+    console.log('\n Client deleteDhcpSubnet called with id : ' + JSON.stringify(id))
     return axios({
       ...apiInit,
       method: 'delete',
-      url: `${dhcpUri}/${id}`,
+      url: `${url}/${id}`,
       data
     })
       .then(({data}) => {
+        console.log('\n Client deleteDhcpSubnet data : ' + JSON.stringify(data))
         return dispatch('fetchDhcpSubnets')
       })
   },
+
   fetchDhcpSubnetDevices ({commit}, subnetId) {
+    const url = `${localDhcpUri}/dhcp/subnets/${subnetId}/devices`
+    console.log('\n Client fetchDhcpSubnetDevices called with url : ' + JSON.stringify(url))
     return axios({
       ...apiInit,
       method: 'get',
-      url: `${dhcpUri}/${subnetId}/devices`
+      url: url
     })
       .then(({data}) => {
+        console.log('\n Client fetchDhcpSubnetDevices data : ' + JSON.stringify(data))
         commit('setDhcpSubnetDevices', data)
         return data
       })
   },
   upsertDhcpSubnetDevice ({commit, dispatch}, {subnetId, deviceId, data, event}) {
+    console.log('\n Client upsertDhcpSubnetDevice subnetId : ' + JSON.stringify(subnetId))
+    console.log('\n Client upsertDhcpSubnetDevice deviceId : ' + JSON.stringify(deviceId))
+    console.log('\n Client upsertDhcpSubnetDevice body : ' + JSON.stringify(data))
+    console.log('\n Client upsertDhcpSubnetDevice event : ' + JSON.stringify(event))
+    const method = event === 'addDhcpSubnetDevice' ? 'post' : 'put'
+    console.log('\n Client upsertDhcpSubnetDevice method : ' + JSON.stringify(method))
+    const url = event === 'addDhcpSubnetDevice' ? `${localDhcpUri}/dhcp/subnets/${subnetId}/devices` : `${localDhcpUri}/dhcp/subnets/${subnetId}/devices/${deviceId}`
+    console.log('\n Client upsertDhcpSubnetDevice url : ' + JSON.stringify(url))
     return axios({
       ...apiInit,
-      method: event === 'addDhcpSubnetDevice' ? 'post' : 'put',
-      url: event === 'addDhcpSubnetDevice' ? `${dhcpUri}/${subnetId}/devices` : `${dhcpUri}/${subnetId}/devices/${deviceId}`,
+      method: method,
+      url: url,
       data
     })
       .then(({data}) => {
+        console.log('\n Client upsertDhcpSubnetDevice data: ' + JSON.stringify(data))
         return dispatch('fetchDhcpSubnetDevices', subnetId)
       })
   },
   deleteDhcpSubnetDevice ({commit, dispatch}, {subnetId, deviceId}) {
+    console.log('\n Client deleteDhcpSubnetDevice subnetId : ' + JSON.stringify(subnetId) + '\t\t DeviceId : ' + JSON.stringify(deviceId))
+    const url = `${localDhcpUri}/dhcp/subnets/${subnetId}/devices/${deviceId}`
+    console.log('\n Client deleteDhcpSubnetDevice url : ' + JSON.stringify(url))
     return axios({
       ...apiInit,
       method: 'delete',
-      url: `${dhcpUri}/${subnetId}/devices/${deviceId}`
+      url: url
     })
       .then(({data}) => {
+        console.log('\n Client deleteDhcpSubnetDevice data : ' + JSON.stringify(data))
         return dispatch('fetchDhcpSubnetDevices', subnetId)
       })
   }

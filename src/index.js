@@ -72,7 +72,7 @@ function connectionHandler () {
   app.get('/dhcp/subnets/:subnetId/devices', handleRequest('queryDhcpSubnetDevices'))
   app.get('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('queryDhcpSubnetDevicesById'))
   app.post('/dhcp/subnets/:subnetId/devices', handleRequest('upsertDhcpSubnetDevices'))
-  app.post('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('upsertDhcpSubnetDevices'))
+  app.put('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('upsertDhcpSubnetDevices'))
   app.delete('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('deleteDhcpSubnetDevices'))
 
   app.get('/', cors(), function (req, res) {
