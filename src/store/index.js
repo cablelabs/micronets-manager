@@ -3,6 +3,8 @@ const axios = require('axios')
 const omit = require('ramda/src/omit')
 const R = require('ramda')
 const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v', 'id', 'devices', 'name', 'ssid'])
+const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
+const dhcpUri = `http://127.0.0.1:5001/micronets/v1/dhcp/subnets`
 
 class Store {
   constructor (context) {
@@ -57,6 +59,93 @@ class Store {
         }
       }) : dispatch('upsertMicronet', {body: message.data}))
   }
+
+  queryDhcpSubnets({params}) {
+    const {dhcp} = this.config
+    console.log('\n MM Server queryDhcpSubnets params : ' + JSON.stringify(params))
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url: params.subnetId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}` :dhcpUri
+    })
+      .then(({data}) => {
+        console.log('\n queryDhcpSubnets data : ' + JSON.stringify(data))
+        return data
+      })
+  }
+
+  upsertDhcpSubnets ({body, params}) {
+    const {dhcp} = this.config
+    console.log('\n MM Server upsertDhcpSubnets params : ' + JSON.stringify(params) + '\t\t Body : ' + JSON.stringify(body))
+    return axios({
+      ...apiInit,
+      method: params.subnetId ? 'put' : 'post',
+      url: params.subnetId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}`,
+      data: body
+    })
+      .then(({data}) => {
+        console.log('\n MM Server upsertDhcpSubnets data : ' + JSON.stringify(data))
+        return data
+      })
+  }
+
+  deleteDhcpSubnets ({params}) {
+    const {dhcp} = this.config
+    console.log('\n MM Server deleteDhcpSubnets params : ' + JSON.stringify(params))
+    return axios({
+      ...apiInit,
+      method: 'delete',
+      url: `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}`
+    })
+      .then(({data}) => {
+        console.log('\n MM Server deleteDhcpSubnets data : ' + JSON.stringify(data))
+        return data
+      })
+  }
+
+  queryDhcpSubnetDevices ({params}) {
+    console.log('\n MM Server queryDhcpSubnetDevices params : ' + JSON.stringify(params))
+    const {dhcp} = this.config
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url: params.deviceId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`
+    })
+      .then(({data}) => {
+        console.log('\n MM Server queryDhcpSubnetDevices data : ' + JSON.stringify(data))
+        return data
+      })
+  }
+
+  upsertDhcpSubnetDevices ({body, params}) {
+    const {dhcp} = this.config
+    console.log('\n MM Server upsertDhcpSubnetDevices params : ' + JSON.stringify(params) + '\t\t Body : ' + JSON.stringify(body))
+    return axios({
+      ...apiInit,
+      method: params.deviceId ? 'put' : 'post',
+      url: params.deviceId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`,
+      data: body
+    })
+      .then(({data}) => {
+        console.log('\n MM Server upsertDhcpSubnetDevices data : ' + JSON.stringify(data))
+        return data
+      })
+  }
+
+  deleteDhcpSubnetDevices ({params}) {
+    const {dhcp} = this.config
+    console.log('\n MM Server deleteDhcpSubnetDevices params : ' + JSON.stringify(params))
+    return axios({
+      ...apiInit,
+      method: 'delete',
+      url: `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}`
+    })
+      .then(({data}) => {
+        console.log('\n MM Server deleteDhcpSubnets data : ' + JSON.stringify(data))
+        return data
+      })
+  }
+
 
   upsertInitMicronet ({dispatch}, {body, params = {}}) {
     const message = Object.assign(omitOperationalStateMeta(body.message), {timestampUtc: this.timestamp()})

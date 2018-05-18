@@ -62,12 +62,12 @@ function connectionHandler () {
 
   // DHCP API's
 
-  app.get('/dhcp/subnets', handleRequest('queryDhcpSubnets'))
-  app.post('/dhcp/subnets/:id', handleRequest('upsertDhcpSubnets'))
-  app.delete('/dhcp/subnets/:id', handleRequest('deleteDhcpSubnets'))
-  app.get('/dhcp/subnets/:id/devices', handleRequest('queryDhcpSubnetDevices'))
-  app.post('/dhcp/subnets/:id/devices/:deviceId', handleRequest('upsertDhcpSubnetDevices'))
-  app.delete('/dhcp/subnets/:id/devices/:deviceId', handleRequest('deleteDhcpSubnets'))
+  app.get('/dhcp/subnets/:subnetId', handleRequest('queryDhcpSubnets'))
+  app.post('/dhcp/subnets/:subnetId', handleRequest('upsertDhcpSubnets'))
+  app.delete('/dhcp/subnets/:subnetId', handleRequest('deleteDhcpSubnets'))
+  app.get('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('queryDhcpSubnetDevices'))
+  app.post('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('upsertDhcpSubnetDevices'))
+  app.delete('/dhcp/subnets/:subnetId/devices/:deviceId', handleRequest('deleteDhcpSubnetDevices'))
 
   app.get('/', cors(), function (req, res) {
     res.json({ message: 'Express server is running ' })
