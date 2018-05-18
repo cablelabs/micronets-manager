@@ -20,7 +20,7 @@
     },
     "dhcp":{
       "host": "http://127.0.0.1",
-      "port": 5000,
+      "port": 5001,
       "path": "micronets/v1/dhcp/subnets"
     }
   },
@@ -45,7 +45,7 @@
     },
     "dhcp":{
       "host": "http://127.0.0.1",
-      "port": 5000,
+      "port": 5001,
       "path": "micronets/v1/dhcp/subnets"
     }
   }
