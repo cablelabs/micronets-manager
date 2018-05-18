@@ -50,6 +50,7 @@ function connectionHandler () {
     )
   }
 
+  // Micronets API's
   app.post('/micronets', handleRequest('upsertMicronet'))
   app.put('/micronets/:id', handleRequest('upsertMicronet'))
   app.get('/micronets', handleRequest('queryMicronets'))
@@ -58,6 +59,16 @@ function connectionHandler () {
   app.post('/add-subnet', handleRequest('addSubnet'))
   app.post('/add-subnets', handleRequest('addSubnets'))
   app.post('/add-subnet-to-micronet', handleRequest('addSubnetToMicronet'))
+
+  // DHCP API's
+
+  app.get('/dhcp/subnets', handleRequest('queryDhcpSubnets'))
+  app.post('/dhcp/subnets/:id', handleRequest('upsertDhcpSubnets'))
+  app.delete('/dhcp/subnets/:id', handleRequest('deleteDhcpSubnets'))
+  app.get('/dhcp/subnets/:id/devices', handleRequest('queryDhcpSubnetDevices'))
+  app.post('/dhcp/subnets/:id/devices/:deviceId', handleRequest('upsertDhcpSubnetDevices'))
+  app.delete('/dhcp/subnets/:id/devices/:deviceId', handleRequest('deleteDhcpSubnets'))
+
   app.get('/', cors(), function (req, res) {
     res.json({ message: 'Express server is running ' })
   })
