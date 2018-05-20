@@ -61,16 +61,17 @@
     mounted () {
       this.setEditTargetIds({})
       this.fetchSubscribers().then(({data}) => {})
+    },
+    created () {
       this.$socket.on('socketSessionUpdate', (data) => {
-        console.log('\n Vue socket event socketSessionUpdate caught with data ' + JSON.stringify(data))
+        console.log('\n Vue socket event socketSessionUpdate caught with data in created Home.vue ' + JSON.stringify(data))
         this.upsertSubscribers(data).then(() => {
           this.fetchMicronets().then(()=> {})
         })
       })
       this.$socket.on('socketSessionCreate', (data) => {
-        console.log('\n Vue socket event socketSessionCreate caught with data ' + JSON.stringify(data))
+        console.log('\n Vue socket event socketSessionCreate caught with data in created Home.vue ' + JSON.stringify(data))
         this.upsertSubscribers(data).then(() => {
-
         })
       })
     }

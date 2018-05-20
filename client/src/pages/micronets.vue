@@ -29,8 +29,9 @@
   import SubnetCard from '../components/SubnetCard'
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
+  import io from 'socket.io-client';
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-
+  const socket = io('http://127.0.0.1:5000/micronets-dhcp-v1');
   export default {
     components: { SubnetCard, Layout, AddSubnetForm },
     name: 'micronets',
@@ -53,15 +54,16 @@
         this.dialog = data
       }
     },
-    mounted () {
-      this.$on('pageReload', () => {
-        console.log('\n pageReload event mounted Micronets page')
-        console.log('\n this.$router.currentRoute.params.id : ' + JSON.stringify(this.$router.currentRoute.params.id))
-        this.$router.currentRoute.params.id ? this.fetchMicronets(this.$router.currentRoute.params.id) : ''
-      })
-    },
+    mounted () {},
     created () {
       this.setEditTargetIds({})
+      socket.on('leaseAcquired', (data) => {
+        console.log('\n\n Micronets.vue created method leaseAquired event caught . Data received :  ' + JSON.stringify(data))
+      })
+      socket.on('leaseExpired', (data) => {
+        console.log('\n\n Micronets.vue created method leaseExpired event caught . Data received :  ' + JSON.stringify(data))
+      })
+      console.log('\n Micronets.vue mounted called ... ')
       this.$on('pageReload', () => {
         console.log('\n pageReload event created Micronets page')
         console.log('\n this.$router.currentRoute.params.id : ' + JSON.stringify(this.$router.currentRoute.params.id))
