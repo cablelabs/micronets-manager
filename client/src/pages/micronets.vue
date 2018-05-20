@@ -31,7 +31,7 @@
   import AddSubnetForm from '../components/AddSubnetForm'
   import io from 'socket.io-client';
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-  const socket = io('http://127.0.0.1:5000/micronets-dhcp-v1');
+  const socket = io(`${process.env.DHCP_SOCKET_URL}`)
   export default {
     components: { SubnetCard, Layout, AddSubnetForm },
     name: 'micronets',
@@ -63,7 +63,7 @@
       socket.on('leaseExpired', (data) => {
         console.log('\n\n Micronets.vue created method leaseExpired event caught . Data received :  ' + JSON.stringify(data))
       })
-      console.log('\n Micronets.vue mounted called ... ')
+      console.log('\n Micronets.vue created called ... ')
       this.$on('pageReload', () => {
         console.log('\n pageReload event created Micronets page')
         console.log('\n this.$router.currentRoute.params.id : ' + JSON.stringify(this.$router.currentRoute.params.id))
