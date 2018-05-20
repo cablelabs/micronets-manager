@@ -1,5 +1,7 @@
 <template>
+
   <div class="device-row">
+    <span><status-indicator active pulse></status-indicator></span>
     <span class="device-title">
       <h3>{{ device.deviceName }}</h3>
       <p>{{ device.deviceDescription }}</p>
@@ -15,9 +17,11 @@
 
 <script>
 import { mapMutations } from 'vuex'
+import { StatusIndicator } from 'vue-status-indicator'
+import 'vue-status-indicator/styles.css'
 
 export default {
-  components: {},
+  components: {StatusIndicator},
   name: 'DeviceCard',
   props: {
     device: Object,
