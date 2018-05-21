@@ -33,7 +33,6 @@ export const initialState = {
     show: false,
     value: ''
   },
-  leases: [],
   deviceLeases: []
 }
 
@@ -471,7 +470,8 @@ export const actions = {
       data: msoPortalAuthPostConfig
     }).then(({data}) => {
       console.log('\n FetchAuthToken Access Token : ' + JSON.stringify(data.accessToken))
-      return dispatch('initializeMicronets', {token: data.accessToken})
+      return dispatch('initializeMicronets', {token: data.accessToken}).then(()=> {
+      })
     })
   },
   fetchSubscribers ({state, commit, dispatch}, id) {
@@ -722,15 +722,18 @@ export const actions = {
         console.log('\n LeaseAcquired event detected in upsertDeviceLeases ')
         let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
         console.log('\n updatedDeviceLeases before upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases))
-        updatedDeviceLeases = Object.assign({}, state.deviceLeases, Object.assign({}, updatedDeviceLeases[data.deviceId].status = 'positive'))
+        //updatedDeviceLeases = Object.assign({}, state.deviceLeases, Object.assign({}, updatedDeviceLeases[data.deviceId].status = 'positive'))
+        updatedDeviceLeases[data.deviceId].status = 'positive'
         console.log('\n updatedDeviceLeases after upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases) )
+        commit('setDeviceLeases', updatedDeviceLeases)
       }
 
       if(type === 'leaseExpired') {
         let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
         console.log('\n updatedDeviceLeases before upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases))
-        updatedDeviceLeases = Object.assign({}, state.deviceLeases, Object.assign({}, updatedDeviceLeases[data.deviceId].status = 'intermediary'))
+        updatedDeviceLeases[data.deviceId].status = 'intermediary'
         console.log('\n updatedDeviceLeases after upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases) )
+        commit('setDeviceLeases', updatedDeviceLeases)
       }
     }
   },

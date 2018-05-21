@@ -4,7 +4,6 @@
       <template v-if="micronet.id==$route.params.subscriberId">
       <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
       <template v-for="subnet in micronet.subnets">
-        <p>Leases from State : {{leases || []}}</p>
         <p>Device Leases from State : {{deviceLeases || []}}</p>
         <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id" ></SubnetCard>
       </template>
@@ -57,10 +56,12 @@
       }
     },
     mounted () {
-      console.log('\n Micronets.vue created state : ' + JSON.stringify(this.micronets))
+      console.log('\n Micronets.vue mounted state : ' + JSON.stringify(this.micronets))
     },
     created () {
       this.setEditTargetIds({})
+      console.log('\n Micronets.vue created  state : ' + JSON.stringify(this.micronets))
+      this.micronets.length > 0 ? this.upsertDeviceLeases({event:'init'}) : ''
       socket.on('leaseAcquired', (data) => {
         console.log('\n\n Micronets.vue created method leaseAquired event caught . Data received :  ' + JSON.stringify(data))
         this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})

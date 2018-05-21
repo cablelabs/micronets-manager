@@ -60,12 +60,11 @@
     },
     mounted () {
       this.setEditTargetIds({})
-      this.fetchSubscribers().then(({data}) => {
-        console.log('\n Then of fetchSubscribers . Calling upsertDeviceLeases .... ')
-        this.upsertDeviceLeases({event:'init'})
-      })
+      console.log('\n Home.vue mounted called ... ')
+      this.fetchSubscribers().then(() => {})
     },
     created () {
+      console.log('\n Home.vue created called ....Calling upsertDeviceLeases ')
       this.$socket.on('socketSessionUpdate', (data) => {
         console.log('\n Vue socket event socketSessionUpdate caught with data in created Home.vue ' + JSON.stringify(data))
         this.upsertSubscribers(data).then(() => {
