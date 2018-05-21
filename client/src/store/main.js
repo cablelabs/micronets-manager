@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { findIndex, propEq, find, lensPath, set, omit, merge, lensProp, view } from 'ramda'
+import { findIndex, propEq, pathEq, filter, find, lensPath, set, omit, merge, lensProp, view } from 'ramda'
 import uuidv4 from 'uuid/v4'
 
 const setState = prop => (state, value) => { state[prop] = value }
@@ -32,7 +32,9 @@ export const initialState = {
   toast: {
     show: false,
     value: ''
-  }
+  },
+  leases: [],
+  deviceLeases: []
 }
 
 export const getters = {
@@ -50,6 +52,8 @@ export const mutations = {
   setMicronets: setState('micronets'),
   setDhcpSubnets: setState('dhcpSubnets'),
   setDhcpSubnetDevices: setState('dhcpSubnetDevices'),
+  setLeases: setState('leases'),
+  setDeviceLeases: setState('deviceLeases'),
   setEditTargetIds (state, {micronetId, subnetId, deviceId}) {
     console.log('\n Client store setEditTargetIds called with micronetId : ' + JSON.stringify(micronetId))
     console.log('\n Client store setEditTargetIds called with subnetId : ' + JSON.stringify(subnetId))
@@ -691,6 +695,43 @@ export const actions = {
           console.log('\n Inside then of upsertDhcpSubnetDevice ')
           commit('setEditTargetIds', {})
         })
+    }
+  },
+
+  upsertDeviceLeases ({state,commit}, {type, data, event}) {
+    console.log('\n Store main actions upsertDeviceLeases state : ' + JSON.stringify(state.deviceLeases))
+    if(event === 'init') {
+      console.log('\n upsertDeviceLeases inital load for event : ' + JSON.stringify(event))
+      let deviceLeasesForState = {}
+      state.micronets.forEach((micronet,micronetIndex) => {
+        console.log('\n Micro-net Devices : ' + JSON.stringify(micronet.devices) + ' \t\t micronet index : ' + JSON.stringify(micronetIndex))
+        micronet.devices.forEach((device, deviceIndex) => {
+          console.log('\n Current device Id : ' + JSON.stringify(device.deviceId))
+          deviceLeasesForState[device.deviceId] = Object.assign({},{status:'intermediary'})
+        })
+      })
+      commit('setDeviceLeases', deviceLeasesForState)
+      return deviceLeasesForState
+    }
+
+    if(event === 'upsert') {
+      console.log('\n Store main actions upsertDeviceLeases called with type : ' + JSON.stringify(type))
+      console.log('\n Store main actions upsertDeviceLeases called with data : ' + JSON.stringify(data))
+      console.log('\n Store main actions upsertDeviceLeases called with event : ' + JSON.stringify(event))
+      if(type === 'leaseAcquired') {
+        console.log('\n LeaseAcquired event detected in upsertDeviceLeases ')
+        let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
+        console.log('\n updatedDeviceLeases before upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases))
+        updatedDeviceLeases = Object.assign({}, state.deviceLeases, Object.assign({}, updatedDeviceLeases[data.deviceId].status = 'positive'))
+        console.log('\n updatedDeviceLeases after upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases) )
+      }
+
+      if(type === 'leaseExpired') {
+        let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
+        console.log('\n updatedDeviceLeases before upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases))
+        updatedDeviceLeases = Object.assign({}, state.deviceLeases, Object.assign({}, updatedDeviceLeases[data.deviceId].status = 'intermediary'))
+        console.log('\n updatedDeviceLeases after upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases) )
+      }
     }
   },
 

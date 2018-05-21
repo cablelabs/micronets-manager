@@ -49,7 +49,7 @@
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertSubscribers']),
+      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertSubscribers', 'upsertDeviceLeases']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -60,7 +60,10 @@
     },
     mounted () {
       this.setEditTargetIds({})
-      this.fetchSubscribers().then(({data}) => {})
+      this.fetchSubscribers().then(({data}) => {
+        console.log('\n Then of fetchSubscribers . Calling upsertDeviceLeases .... ')
+        this.upsertDeviceLeases({event:'init'})
+      })
     },
     created () {
       this.$socket.on('socketSessionUpdate', (data) => {

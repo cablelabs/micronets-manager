@@ -4,7 +4,9 @@
       <template v-if="micronet.id==$route.params.subscriberId">
       <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
       <template v-for="subnet in micronet.subnets">
-        <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id"></SubnetCard>
+        <p>Leases from State : {{leases || []}}</p>
+        <p>Device Leases from State : {{deviceLeases || []}}</p>
+        <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id" ></SubnetCard>
       </template>
       <!--<hr class="mt-4" v-if="index < micronets.length - 1"/>-->
       </template>
@@ -36,7 +38,7 @@
     components: { SubnetCard, Layout, AddSubnetForm },
     name: 'micronets',
     computed: {
-      ...mapState(['micronets']),
+      ...mapState(['micronets', 'leases', 'deviceLeases']),
       ...mapGetters(['editTarget'])
     },
     data: () => ({
@@ -45,7 +47,7 @@
     }),
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers']),
+      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertLeases', 'upsertDeviceLeases']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -54,14 +56,19 @@
         this.dialog = data
       }
     },
-    mounted () {},
+    mounted () {
+      console.log('\n Micronets.vue created state : ' + JSON.stringify(this.micronets))
+    },
     created () {
       this.setEditTargetIds({})
       socket.on('leaseAcquired', (data) => {
         console.log('\n\n Micronets.vue created method leaseAquired event caught . Data received :  ' + JSON.stringify(data))
+        this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})
       })
       socket.on('leaseExpired', (data) => {
         console.log('\n\n Micronets.vue created method leaseExpired event caught . Data received :  ' + JSON.stringify(data))
+        this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})
+
       })
       console.log('\n Micronets.vue created called ... ')
       this.$on('pageReload', () => {
