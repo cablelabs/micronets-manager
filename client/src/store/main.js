@@ -16,7 +16,6 @@ const msoPortalAuthPostConfig = {
 }
 const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/registration/token`
 const sessionUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/session`
-const dhcpUri = `${process.env.DHCP_BASE_URL}/micronets/v1/dhcp/subnets`
 const localDhcpUri = `${process.env.BASE_URL}`
 const Ajv = require('ajv')
 const ajv = new Ajv()
