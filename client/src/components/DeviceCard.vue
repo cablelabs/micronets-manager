@@ -65,12 +65,12 @@ export default {
     width: 5%;
     margin-left: 5%;
     margin-right: 5%;
-    margin-top: 25px;
+    margin-top: 2%;
   }
 
   .more-icon {
     margin-left: 5%;
-    margin-top: 25px;
+    margin-top: 2%;
   }
 
   .device-row {
