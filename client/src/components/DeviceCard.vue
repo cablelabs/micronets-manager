@@ -76,14 +76,14 @@ export default {
   .device-row {
     display: inline;
     min-width: 100%;
-    max-height: 200px;
+    min-height: auto;
     display: flex;
     text-align: center;
     margin-top: 20px;
   }
 
   .device-indicator {
-    margin-top :30px
+    padding-top :2.5%
     text-align center
     min-width: 4%;
     min-height: auto;
@@ -102,6 +102,7 @@ export default {
   }
 
   .device-item {
+    padding-top: 0.5%;
     min-width: 10%;
     margin: 30px;
   }
