@@ -1,8 +1,13 @@
 <template>
   <div class="device-row">
-    <div class="device-indicator"><div v-if="deviceLeases[device.deviceId].status == 'positive'"><status-indicator positive pulse></status-indicator></div>
+    <div v-if="Object.keys(deviceLeases).length > 0 && deviceLeases[device.deviceId]" class="device-indicator">
+      <div v-if="deviceLeases[device.deviceId].status == 'positive'"><status-indicator positive pulse></status-indicator></div>
       <div v-else-if="deviceLeases[device.deviceId].status == 'intermediary'"><status-indicator intermediary pulse></status-indicator></div>
-      <div v-else="deviceLeases.length == 0"><status-indicator intermediary pulse></status-indicator></div>
+    </div>
+    <div v-else="!deviceLeases[device.deviceId]" class="device-indicator">
+      <!--<p>Object.keys(deviceLeases).length : {{Object.keys(deviceLeases).length}}</p>-->
+      <!--<p>deviceLeases[device.deviceId] : {{deviceLeases[device.deviceId]}}</p>-->
+      <status-indicator intermediary pulse></status-indicator>
     </div>
     <span class="device-title">
       <h3>{{ device.deviceName }}</h3>
