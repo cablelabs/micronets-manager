@@ -717,13 +717,26 @@ export const actions = {
     if(event === 'init') {
       console.log('\n upsertDeviceLeases inital load for event : ' + JSON.stringify(event))
       let deviceLeasesForState = {}
+
+      // state.micronets.forEach((micronet,micronetIndex) => {
+      //   console.log('\n Micro-net Devices : ' + JSON.stringify(micronet.devices) + ' \t\t micronet index : ' + JSON.stringify(micronetIndex))
+      //   micronet.devices.forEach((device, deviceIndex) => {
+      //     console.log('\n Current device Id : ' + JSON.stringify(device.deviceId))
+      //     deviceLeasesForState[device.deviceId] = Object.assign({},{status:'intermediary'})
+      //   })
+      // })
+
       state.micronets.forEach((micronet,micronetIndex) => {
         console.log('\n Micro-net Devices : ' + JSON.stringify(micronet.devices) + ' \t\t micronet index : ' + JSON.stringify(micronetIndex))
-        micronet.devices.forEach((device, deviceIndex) => {
-          console.log('\n Current device Id : ' + JSON.stringify(device.deviceId))
-          deviceLeasesForState[device.deviceId] = Object.assign({},{status:'intermediary'})
+        micronet.subnets.forEach((subnet, subnetIndex) => {
+          console.log('\n Current subnet : ' + JSON.stringify(subnet) + '\t\t at SubnetIndex : ' + JSON.stringify(subnetIndex))
+          subnet.deviceList.forEach((device, deviceIndex) => {
+            console.log('\n Current device : ' + JSON.stringify(device) + '\t\t at DeviceIndex : ' + JSON.stringify(deviceIndex))
+            deviceLeasesForState[device.deviceId] = Object.assign({},{status:'intermediary'})
+          })
         })
       })
+      console.log('\n upsertDeviceLeases deviceLeasesForState : ' + JSON.stringify(deviceLeasesForState))
       commit('setDeviceLeases', deviceLeasesForState)
       return deviceLeasesForState
     }

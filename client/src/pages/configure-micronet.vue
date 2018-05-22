@@ -77,26 +77,26 @@
                     <v-text-field v-model="newDeviceName" label="Device Name" required :rules="deviceNameRules"/>
                     <v-text-field v-model="newDeviceDescription" label="Device Description" required
                                   :rules="deviceDescriptionRules"/>
-                    <!--<v-text-field v-model="newDeviceId" label="Device ID" required :rules="deviceIdRules"/>-->
-                    <v-select
-                      :items="fetchAvailableDeviceIds"
-                      label="Select Device ID"
-                      v-model="newDeviceId"
-                      class="input-group--focused"
-                      item-value="text"
-                      required
-                      :rules="deviceIdRules"
-                    ></v-select>
-                    <!--<v-text-field v-model="newDeviceMacAddress" label="Device Mac Address" required :rules="deviceMacAddressRules"/>-->
-                    <v-select
-                      :items="currentMicronet.macAddresses"
-                      label="Select Device Mac Address"
-                      v-model="newDeviceMacAddress"
-                      class="input-group--focused"
-                      item-value="text"
-                      required
-                      :rules="deviceMacAddressRules"
-                    ></v-select>
+                    <v-text-field v-model="newDeviceId" label="Device ID" required :rules="deviceIdRules"/>
+                    <!--<v-select-->
+                      <!--:items="fetchAvailableDeviceIds"-->
+                      <!--label="Select Device ID"-->
+                      <!--v-model="newDeviceId"-->
+                      <!--class="input-group&#45;&#45;focused"-->
+                      <!--item-value="text"-->
+                      <!--required-->
+                      <!--:rules="deviceIdRules"-->
+                    <!--&gt;</v-select>-->
+                    <v-text-field v-model="newDeviceMacAddress" label="Device Mac Address" required :rules="deviceMacAddressRules"/>
+                    <!--<v-select-->
+                      <!--:items="currentMicronet.macAddresses"-->
+                      <!--label="Select Device Mac Address"-->
+                      <!--v-model="newDeviceMacAddress"-->
+                      <!--class="input-group&#45;&#45;focused"-->
+                      <!--item-value="text"-->
+                      <!--required-->
+                      <!--:rules="deviceMacAddressRules"-->
+                    <!--&gt;</v-select>-->
                     <v-btn color="success" :disabled="!isAddDeviceValid()"
                            @click.stop="addDeviceToSubnet(subnet.subnetId, subnetIndex, newDeviceName, newDeviceDescription, newDeviceId, newDeviceMacAddress)">
                       Add
@@ -108,8 +108,8 @@
           </v-layout>
         </v-container>
         <div class="form-btns">
-          <v-btn color="success" v-if="fetchAvailableDeviceIds.length > 0" @click.stop="addDeviceForm">Add Device
-          </v-btn>
+          <!--<v-btn color="success" v-if="fetchAvailableDeviceIds.length > 0" @click.stop="addDeviceForm">Add Device</v-btn>-->
+          <v-btn color="success"  @click.stop="addDeviceForm">Add Device</v-btn>
           <v-btn color="primary" @click.stop="submitForm(subnetIndex)" :disabled="!valid">Submit</v-btn>
           <v-btn @click.stop="routeToMicronet">Done</v-btn>
         </div>
