@@ -103,21 +103,22 @@ class Store {
       .then((response) => {
         console.log('\n Response data : ' + JSON.stringify(response.data))
         return response
-      }).catch((error) => {
-        if (error.response) {
-          console.log('Error Response data: ' + JSON.stringify(error.response.data)
-            + '\n Error Response Status : ' + JSON.stringify(error.response.status)
-            + '\n Error Response Headers : ' + JSON.stringify(error.response.headers))
-        } else if (error.request) {
-          // The request was made but no response was received
-          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-          // http.ClientRequest in node.js
-          console.log(' Error Request: ' + JSON.stringify(error.request));
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.log('Error', + JSON.stringify(error.message));
-        }
       })
+      // .catch((error) => {
+      //   if (error.response) {
+      //     console.log('Error Response data: ' + JSON.stringify(error.response.data)
+      //       + '\n Error Response Status : ' + JSON.stringify(error.response.status)
+      //       + '\n Error Response Headers : ' + JSON.stringify(error.response.headers))
+      //   } else if (error.request) {
+      //     // The request was made but no response was received
+      //     // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      //     // http.ClientRequest in node.js
+      //     console.log(' Error Request: ' + JSON.stringify(error.request));
+      //   } else {
+      //     // Something happened in setting up the request that triggered an Error
+      //     console.log('Error', + JSON.stringify(error.message));
+      //   }
+      // })
   }
 
   deleteDhcpSubnets (_, {body, params}) {
@@ -183,21 +184,22 @@ class Store {
       .then((response) => {
         console.log('\n Response data : ' + JSON.stringify(response.data))
         return response
-      }).catch((error) => {
-        if (error.response) {
-          console.log('Error Response data: ' + JSON.stringify(error.response.data)
-            + '\n Error Response Status : ' + JSON.stringify(error.response.status)
-            + '\n Error Response Headers : ' + JSON.stringify(error.response.headers))
-        } else if (error.request) {
-          // The request was made but no response was received
-          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-          // http.ClientRequest in node.js
-          console.log(' Error Request: ' + JSON.stringify(error.request));
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.log('Error', + JSON.stringify(error.message));
-        }
       })
+      // .catch((error) => {
+      //   if (error.response) {
+      //     console.log('Error Response data: ' + JSON.stringify(error.response.data)
+      //       + '\n Error Response Status : ' + JSON.stringify(error.response.status)
+      //       + '\n Error Response Headers : ' + JSON.stringify(error.response.headers))
+      //   } else if (error.request) {
+      //     // The request was made but no response was received
+      //     // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      //     // http.ClientRequest in node.js
+      //     console.log(' Error Request: ' + JSON.stringify(error.request));
+      //   } else {
+      //     // Something happened in setting up the request that triggered an Error
+      //     console.log('Error', + JSON.stringify(error.message));
+      //   }
+      // })
   }
 
   deleteDhcpSubnetDevices (_, {params}) {
