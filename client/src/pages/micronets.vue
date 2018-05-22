@@ -55,29 +55,25 @@
         this.dialog = data
       }
     },
-    mounted () {
-      console.log('\n Micronets.vue mounted state : ' + JSON.stringify(this.micronets))
-    },
+    mounted () {},
     created () {
       this.setEditTargetIds({})
       console.log('\n Micronets.vue created  state.micronets.length : ' + JSON.stringify(this.micronets.length))
       this.micronets.length > 0 ? this.upsertDeviceLeases({event:'init'}) : ''
       socket.on('leaseAcquired', (data) => {
-        console.log('\n\n Micronets.vue created method leaseAquired event caught . Data received :  ' + JSON.stringify(data))
+        console.log('\n\n Micronets.vue leaseAquired event caught . Data received :  ' + JSON.stringify(data))
         this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})
       })
       socket.on('leaseExpired', (data) => {
-        console.log('\n\n Micronets.vue created method leaseExpired event caught . Data received :  ' + JSON.stringify(data))
+        console.log('\n\n Micronets.vue  leaseExpired event caught . Data received :  ' + JSON.stringify(data))
         this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})
 
       })
-      console.log('\n Micronets.vue created called ... ')
       return this.fetchMicronets(this.$router.currentRoute.params.id).then((data) => {
-        console.log('\n Inside then of fetchMicronets data : ' +  JSON.stringify(data))
-        console.log('\n STATE DEVICE LEASES : ' + JSON.stringify(this.deviceLeases) + '\t\t this.deviceLeases.length : ' + JSON.stringify(this.deviceLeases.length))
+        console.log('\n fetchMicronets callback : ' +  JSON.stringify(data))
+        console.log('\n State Device Leases : ' + JSON.stringify(this.deviceLeases) + '\t\t this.deviceLeases.length : ' + JSON.stringify(this.deviceLeases.length))
         if (data.devices && this.deviceLeases.length === 0) {
-          console.log('\n Micronets.vue created Calling data.devices && this.deviceLeases.length === 0 : ')
-          console.log('\n Micronets.vue created Calling this.upsertDeviceLeases({event:init}) : ')
+          console.log('\n Initial call to upsertDeviceLeases({event:init})')
           this.upsertDeviceLeases({event:'init'})
         }
       })

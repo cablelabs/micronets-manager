@@ -46,12 +46,9 @@ export default {
       this.$router.push(`/configure-micronet/${this.micronetId}/subnet/${this.subnetId}`)
     },
     created () {
-      console.log('\n DeviceCard.vue created method STATE : ' + JSON.stringify(this.micronets))
-      console.log('\n DeviceCard.vue created method Passed deviceLeases : ' + JSON.stringify(this.deviceLeases))
+      console.log('\n DeviceCard.vue created method micronets : ' + JSON.stringify(this.micronets) + '\t\t Device Leases : ' + JSON.stringify(this.deviceLeases))
     },
-    mounted () {
-      console.log('\n DeviceCard.vue mounted method STATE : ' + JSON.stringify(this.micronets))
-    }
+    mounted () {}
   }
 }
 </script>
