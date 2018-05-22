@@ -4,7 +4,7 @@
       <template v-if="micronet.id==$route.params.subscriberId">
       <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
       <template v-for="subnet in micronet.subnets">
-        <p>Device Leases from State : {{deviceLeases || []}}</p>
+        <!--<p>Device Leases from State : {{deviceLeases || []}}</p>-->
         <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id" ></SubnetCard>
       </template>
       <!--<hr class="mt-4" v-if="index < micronets.length - 1"/>-->
