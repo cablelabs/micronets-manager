@@ -47,14 +47,15 @@
                     <v-text-field v-model="device.deviceId" label="Device ID" required disabled/>
                     <v-text-field v-if="device.ipv4!=undefined" v-model="device.ipv4.host" label="Device IPv4 HOST"
                                   required :rules="ipv4HostRules"/>
-                    <v-select
-                      :items="currentMicronet.macAddresses"
-                      label="Select Device Mac Address"
-                      v-model="device.mac.eui48"
-                      class="input-group--focused"
-                      item-value="text"
-                      required
-                    ></v-select>
+                    <!--<v-select-->
+                      <!--:items="currentMicronet.macAddresses"-->
+                      <!--label="Select Device Mac Address"-->
+                      <!--v-model="device.mac.eui48"-->
+                      <!--class="input-group&#45;&#45;focused"-->
+                      <!--item-value="text"-->
+                      <!--required-->
+                    <!--&gt;</v-select>-->
+                    <v-text-field v-model="device.mac.eui48" label="Mac Address" required disabled/>
                     <v-btn color="success" :disabled="!valid"
                            @click.stop="updateDevice(subnet.subnetId, device.deviceId, subnetIndex, deviceIndex, device.deviceName, device.deviceDescription, device.ipv4.host, device.mac.eui48)">
                       Update

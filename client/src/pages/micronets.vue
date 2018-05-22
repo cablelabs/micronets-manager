@@ -72,11 +72,6 @@
 
       })
       console.log('\n Micronets.vue created called ... ')
-      this.$on('pageReload', () => {
-        console.log('\n pageReload event created Micronets page')
-        console.log('\n this.$router.currentRoute.params.id : ' + JSON.stringify(this.$router.currentRoute.params.id))
-        this.$router.currentRoute.params.id ? this.fetchMicronets(this.$router.currentRoute.params.id) : ''
-      })
       return this.fetchMicronets(this.$router.currentRoute.params.id).then((data) => {
         console.log('\n Inside then of fetchMicronets data : ' +  JSON.stringify(data))
         console.log('\n STATE DEVICE LEASES : ' + JSON.stringify(this.deviceLeases) + '\t\t this.deviceLeases.length : ' + JSON.stringify(this.deviceLeases.length))

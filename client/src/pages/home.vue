@@ -74,11 +74,11 @@
           this.fetchMicronets().then(()=> {})
         })
       })
-      this.$socket.on('socketSessionCreate', (data) => {
-        console.log('\n Vue socket event socketSessionCreate caught with data in created Home.vue ' + JSON.stringify(data))
-        this.upsertSubscribers(data).then(() => {
-        })
-      })
+      // this.$socket.on('socketSessionCreate', (data) => {
+      //   console.log('\n Vue socket event socketSessionCreate caught with data in created Home.vue ' + JSON.stringify(data))
+      //   this.upsertSubscribers(data).then(() => {
+      //   })
+      // })
     }
   }
 </script>
