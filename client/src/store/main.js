@@ -182,6 +182,10 @@ export const actions = {
                           networkAddress: {ipv4:deviceToUpsert.ipv4.host}
                         }),
                         event: 'addDhcpSubnetDevice'
+                      }).then(() => {
+                       console.log('\n Inside then of upsertDhcpSubnetDevice for event addDhcpSubnetDevice for existing class.Calling upsertDeviceLeases')
+                        console.log('\n ')
+                         dispatch('upsertDeviceLeases',{event:'addDeviceLease', data:{deviceId:eventData.device.deviceId}})
                       })
                     })
                   })
@@ -201,7 +205,7 @@ export const actions = {
                 console.log('\n SubnetToAdd Obj : ' + JSON.stringify(subnetToAdd))
                 commit('setEditTargetIds', {micronetId: micronet._id})
                 dispatch('addSubnetToMicronet', subnetToAdd).then(() => {
-                  console.log('\n Inside then of addSubnetToMicronet before calling upsertMicronet for updating devices')
+                  console.log('\n Inside then of addSubnetToMicronet before calling upsertMicronet for updating devices.')
                   // dispatch('fetchMicronets', micronet._id)
                   // Induces bug
                   // return dispatch('upsertMicronet', {
@@ -245,6 +249,9 @@ export const actions = {
                             networkAddress: {ipv4: deviceInSubnet.ipv4.host}
                           }),
                           event: 'addDhcpSubnetDevice'
+                        }).then(() => {
+                          console.log('\n Inside then of upsertDhcpSubnetDevice for event addDhcpSubnetDevice for new class.Calling upsertDeviceLeases ')
+                          dispatch('upsertDeviceLeases',{event:'addDeviceLease', data:{deviceId:eventData.device.deviceId}})
                         })
                       })
                     })
@@ -706,7 +713,7 @@ export const actions = {
   },
 
   upsertDeviceLeases ({state,commit}, {type, data, event}) {
-    console.log('\n Store main actions upsertDeviceLeases state : ' + JSON.stringify(state.deviceLeases))
+    console.log('\n Store main actions upsertDeviceLeases state : ' + JSON.stringify(state.deviceLeases) + '\t\t Event : ' + JSON.stringify(event))
     if(event === 'init') {
       console.log('\n upsertDeviceLeases inital load for event : ' + JSON.stringify(event))
       let deviceLeasesForState = {}
@@ -742,6 +749,15 @@ export const actions = {
         console.log('\n updatedDeviceLeases after upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases) )
         commit('setDeviceLeases', updatedDeviceLeases)
       }
+    }
+
+    if(event === 'addDeviceLease') {
+      console.log('\n Store main actions upsertDeviceLeases called with data : ' + JSON.stringify(data))
+      let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
+      console.log('\n updatedDeviceLeases before add  : ' + JSON.stringify(updatedDeviceLeases))
+      updatedDeviceLeases[data.deviceId] = { status:'intermediary' }
+      console.log('\n updatedDeviceLeases after add  : ' + JSON.stringify(updatedDeviceLeases))
+      commit('setDeviceLeases', updatedDeviceLeases)
     }
   },
 

@@ -104,6 +104,10 @@ class Store {
         console.log('\n MM Server upsertDhcpSubnets data : ' + JSON.stringify(response.data))
         return response
       })
+      // }).catch((error) => {
+      //    console.log('\n error : ' + JSON.stringify(error))
+      //   return error
+      // })
   }
 
   deleteDhcpSubnets (_, {body, params}) {
@@ -173,6 +177,10 @@ class Store {
         console.log('\n MM Server upsertDhcpSubnetDevices data : ' + JSON.stringify(response.data))
         return response
       })
+      // }).catch((error) => {
+      //   console.log('\n error : ' + JSON.stringify(error))
+      //   return error
+      // })
   }
 
   deleteDhcpSubnetDevices (_, {params}) {
