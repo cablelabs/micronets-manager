@@ -54,9 +54,7 @@ export const mutations = {
   setLeases: setState('leases'),
   setDeviceLeases: setState('deviceLeases'),
   setEditTargetIds (state, {micronetId, subnetId, deviceId}) {
-    console.log('\n Client store setEditTargetIds called with micronetId : ' + JSON.stringify(micronetId))
-    console.log('\n Client store setEditTargetIds called with subnetId : ' + JSON.stringify(subnetId))
-    console.log('\n Client store setEditTargetIds called with deviceId : ' + JSON.stringify(deviceId))
+    console.log('\n Store setEditTargetIds micronetId : ' + JSON.stringify(micronetId) + '\t  subnetId : ' + JSON.stringify(subnetId) + '\t  deviceId : ' + JSON.stringify(deviceId))
     state.editTargetIds = {micronetId, subnetId, deviceId}
   },
   replaceMicronet (state, micronet) {
@@ -80,11 +78,11 @@ export const actions = {
   },
   upsertSubscribers ({state, commit, dispatch}, {type, data}) {
     // let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
-    console.log('\n Client upsertSubscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
+    console.log('\n UpsertSubscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
     let eventData = data
     const subscriberID = data.subscriberId
     if (type === 'sessionUpdate') {
-      console.log('\n sessionUpdate called with data : ' + JSON.stringify(data))
+      console.log('\n SessionUpdate event with Data : ' + JSON.stringify(data))
       axios({
         ...apiInit,
         method: 'post',
@@ -113,7 +111,7 @@ export const actions = {
             console.log('\n Event data from session update : ' + JSON.stringify(eventData))
             if (!eventData.device.hasOwnProperty('class')) {
               console.log('\n\n No class property found in event data . Only update devices list ... ')
-              console.log('\n\n Upsert Micronet data to be passed set(devicesLens, sessionDevices, micronet) : ' + JSON.stringify(set(devicesLens, sessionDevices, micronet)))
+              console.log('\n\n Upsert Micronet data set(devicesLens, sessionDevices, micronet) : ' + JSON.stringify(set(devicesLens, sessionDevices, micronet)))
               return dispatch('upsertMicronet', {
                    id: micronet._id,
                    data: set(devicesLens, sessionDevices, micronet),
@@ -154,12 +152,6 @@ export const actions = {
                   event: 'sessionUpdate'
                 }).then(() => {
                   console.log('\n Inside then of saveMicronet calling upsertMicronet for updating devices')
-                  // this.$emit('pageReload')
-                  // return dispatch('upsertMicronet', {
-                  //   id: micronet._id,
-                  //   data: set(devicesLens, updatedDevices, micronet),
-                  //   event: 'sessionUpdate'
-                  // })
                   // TODO : DHCP Upserts Add device to subnet
                   console.log('\n Trying to print micronet._id : ' + JSON.stringify(micronet._id))
                   dispatch('fetchMicronets').then(() => {
@@ -206,13 +198,6 @@ export const actions = {
                 commit('setEditTargetIds', {micronetId: micronet._id})
                 dispatch('addSubnetToMicronet', subnetToAdd).then(() => {
                   console.log('\n Inside then of addSubnetToMicronet before calling upsertMicronet for updating devices.')
-                  // dispatch('fetchMicronets', micronet._id)
-                  // Induces bug
-                  // return dispatch('upsertMicronet', {
-                  //   id: micronet._id,
-                  //   data: set(devicesLens, updatedDevices, micronet),
-                  //   event: 'sessionUpdate'
-                  // })
                  // DHCP Upserts Add subnet and device
                   console.log('\n state.micronets after micronet._id : ' + JSON.stringify(micronet))
                   return dispatch('fetchMicronets').then(() => {
@@ -259,11 +244,6 @@ export const actions = {
                 })
               }
             }
-            // return dispatch('upsertMicronet', {
-            //   id: micronet._id,
-            //   data: set(devicesLens, updatedDevices, micronet),
-            //   event: 'sessionUpdate'
-            // })
           })
       })
     }
@@ -302,9 +282,6 @@ export const actions = {
             data: {subnets: 1, hosts: 0, subscriber: subscriber}
           })
             .then(({data}) => {
-              // console.log('\n Data : ' + JSON.stringify(data))
-              // dispatch('upsertSubnetsForDevicesWithTags', data._id)
-              // dispatch('upsertSubnetsForDevicesWithTags', data._id)
             })
         })
       })
@@ -713,19 +690,10 @@ export const actions = {
   },
 
   upsertDeviceLeases ({state,commit}, {type, data, event}) {
-    console.log('\n Store main actions upsertDeviceLeases state : ' + JSON.stringify(state.deviceLeases) + '\t\t Event : ' + JSON.stringify(event))
+    console.log('\n Store UpsertDeviceLeases State : ' + JSON.stringify(state.deviceLeases) + '\t\t Event : ' + JSON.stringify(event))
     if(event === 'init') {
-      console.log('\n upsertDeviceLeases inital load for event : ' + JSON.stringify(event))
+      console.log('\n UpsertDeviceLeases initial load for event : ' + JSON.stringify(event))
       let deviceLeasesForState = {}
-
-      // state.micronets.forEach((micronet,micronetIndex) => {
-      //   console.log('\n Micro-net Devices : ' + JSON.stringify(micronet.devices) + ' \t\t micronet index : ' + JSON.stringify(micronetIndex))
-      //   micronet.devices.forEach((device, deviceIndex) => {
-      //     console.log('\n Current device Id : ' + JSON.stringify(device.deviceId))
-      //     deviceLeasesForState[device.deviceId] = Object.assign({},{status:'intermediary'})
-      //   })
-      // })
-
       state.micronets.forEach((micronet,micronetIndex) => {
         console.log('\n Micro-net Devices : ' + JSON.stringify(micronet.devices) + ' \t\t micronet index : ' + JSON.stringify(micronetIndex))
         micronet.subnets.forEach((subnet, subnetIndex) => {
@@ -736,54 +704,50 @@ export const actions = {
           })
         })
       })
-      console.log('\n upsertDeviceLeases deviceLeasesForState : ' + JSON.stringify(deviceLeasesForState))
+      console.log('\n UpsertDeviceLeases deviceLeasesForState : ' + JSON.stringify(deviceLeasesForState))
       commit('setDeviceLeases', deviceLeasesForState)
       return deviceLeasesForState
     }
 
     if(event === 'upsert') {
-      console.log('\n Store main actions upsertDeviceLeases called with type : ' + JSON.stringify(type))
-      console.log('\n Store main actions upsertDeviceLeases called with data : ' + JSON.stringify(data))
-      console.log('\n Store main actions upsertDeviceLeases called with event : ' + JSON.stringify(event))
+      console.log('\n UpsertDeviceLeases called with type : ' + JSON.stringify(type) + '\t Data : ' + JSON.stringify(data) + '\t\t Event : ' + JSON.stringify(event))
       if(type === 'leaseAcquired') {
-        console.log('\n LeaseAcquired event detected in upsertDeviceLeases ')
         let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
-        console.log('\n updatedDeviceLeases before upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases))
-        //updatedDeviceLeases = Object.assign({}, state.deviceLeases, Object.assign({}, updatedDeviceLeases[data.deviceId].status = 'positive'))
+        console.log('\n LeaseAcquired event detected in upsertDeviceLeases.UpdatedDevices before upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases))
         updatedDeviceLeases[data.deviceId].status = 'positive'
-        console.log('\n updatedDeviceLeases after upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases) )
+        console.log('\n UpdatedDeviceLeases after upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases) )
         commit('setDeviceLeases', updatedDeviceLeases)
       }
 
       if(type === 'leaseExpired') {
         let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
-        console.log('\n updatedDeviceLeases before upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases))
+        console.log('\n UpdatedDeviceLeases before upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases))
         updatedDeviceLeases[data.deviceId].status = 'intermediary'
-        console.log('\n updatedDeviceLeases after upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases) )
+        console.log('\n UpdatedDeviceLeases after upsert for leaseExpired : ' + JSON.stringify(updatedDeviceLeases) )
         commit('setDeviceLeases', updatedDeviceLeases)
       }
     }
 
     if(event === 'addDeviceLease') {
-      console.log('\n Store main actions upsertDeviceLeases called with data : ' + JSON.stringify(data))
+      console.log('\n UpsertDeviceLeases called with data : ' + JSON.stringify(data))
       let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
-      console.log('\n updatedDeviceLeases before add  : ' + JSON.stringify(updatedDeviceLeases))
+      console.log('\n UpdatedDeviceLeases before add  : ' + JSON.stringify(updatedDeviceLeases))
       updatedDeviceLeases[data.deviceId] = { status:'intermediary' }
-      console.log('\n updatedDeviceLeases after add  : ' + JSON.stringify(updatedDeviceLeases))
+      console.log('\n UpdatedDeviceLeases after add  : ' + JSON.stringify(updatedDeviceLeases))
       commit('setDeviceLeases', updatedDeviceLeases)
     }
   },
 
   fetchDhcpSubnets ({commit}) {
     const url = `${localDhcpUri}/dhcp/subnets`
-    console.log('\n Client fetchDhcpSubnets called with url : ' + JSON.stringify(url))
+    console.log('\n FtchDhcpSubnets url : ' + JSON.stringify(url))
     return axios({
       ...apiInit,
       method: 'get',
       url: url
     })
       .then(({data}) => {
-        console.log('\n Client store main fetchDhcpSubnets data : ' + JSON.stringify(data))
+        console.log('\n FetchDhcpSubnets Data : ' + JSON.stringify(data))
         commit('setDhcpSubnets', data)
         return data
       })
@@ -793,10 +757,7 @@ export const actions = {
     console.log('\n Testing state for dhcp subnets : ' + JSON.stringify(state.dhcpSubnets))
     const url = id ? `${localDhcpUri}/dhcp/subnets/${id}` : `${localDhcpUri}/dhcp/subnets`
     const method = id ? 'put' : 'post'
-    console.log('\n Client upsertDhcpSubnet called with url : ' + JSON.stringify(url))
-    console.log('\n Client upsertDhcpSubnet called with method : ' + JSON.stringify(method))
-    console.log('\n Client upsertDhcpSubnet called body : ' + JSON.stringify(data))
-    console.log('\n Client upsertDhcpSubnet called with id : ' + JSON.stringify(id))
+    console.log('\n UpsertDhcpSubnet called with url : ' + JSON.stringify(url) + '\t\t method : ' + JSON.stringify(method) + '\t\t Data : ' + JSON.stringify(data) + '\t\t ID : ' + JSON.stringify(id))
     return axios({
       ...apiInit,
       method: method,
@@ -804,7 +765,7 @@ export const actions = {
       data
     })
       .then(({data}) => {
-        console.log('\n Client upsertDhcpSubnet data : ' + JSON.stringify(data))
+        console.log('\n UpsertDhcpSubnet data : ' + JSON.stringify(data))
         return dispatch('fetchDhcpSubnets')
       })
   },
@@ -812,9 +773,7 @@ export const actions = {
   deleteDhcpSubnet ({state, commit, dispatch}, {id, data}) {
     console.log('\n Testing state for dhcp subnets : ' + JSON.stringify(state.dhcpSubnets))
     const url = `${localDhcpUri}/dhcp/subnets`
-    console.log('\n Client deleteDhcpSubnet called with url : ' + JSON.stringify(url))
-    console.log('\n Client deleteDhcpSubnet called with data : ' + JSON.stringify(data))
-    console.log('\n Client deleteDhcpSubnet called with id : ' + JSON.stringify(id))
+    console.log('\n DeleteDhcpSubnet called with url : ' + JSON.stringify(url) + '\t\t Data : ' + JSON.stringify(data) + '\t\t Id : ' + JSON.stringify(id))
     return axios({
       ...apiInit,
       method: 'delete',
@@ -822,34 +781,30 @@ export const actions = {
       data
     })
       .then(({data}) => {
-        console.log('\n Client deleteDhcpSubnet data : ' + JSON.stringify(data))
+        console.log('\n DeleteDhcpSubnet data : ' + JSON.stringify(data))
         return dispatch('fetchDhcpSubnets')
       })
   },
 
   fetchDhcpSubnetDevices ({commit}, subnetId) {
     const url = `${localDhcpUri}/dhcp/subnets/${subnetId}/devices`
-    console.log('\n Client fetchDhcpSubnetDevices called with url : ' + JSON.stringify(url))
+    console.log('\n FetchDhcpSubnetDevices called with url : ' + JSON.stringify(url))
     return axios({
       ...apiInit,
       method: 'get',
       url: url
     })
       .then(({data}) => {
-        console.log('\n Client fetchDhcpSubnetDevices data : ' + JSON.stringify(data))
+        console.log('\n FetchDhcpSubnetDevices data : ' + JSON.stringify(data))
         commit('setDhcpSubnetDevices', data)
         return data
       })
   },
   upsertDhcpSubnetDevice ({commit, dispatch}, {subnetId, deviceId, data, event}) {
-    console.log('\n Client upsertDhcpSubnetDevice subnetId : ' + JSON.stringify(subnetId))
-    console.log('\n Client upsertDhcpSubnetDevice deviceId : ' + JSON.stringify(deviceId))
-    console.log('\n Client upsertDhcpSubnetDevice body : ' + JSON.stringify(data))
-    console.log('\n Client upsertDhcpSubnetDevice event : ' + JSON.stringify(event))
+    console.log('\n UpsertDhcpSubnetDevice subnetId : ' + JSON.stringify(subnetId) + '\n DeviceId : ' + JSON.stringify(deviceId) + '\n Data : ' + JSON.stringify(data) + '\n Event : ' + JSON.stringify(event))
     const method = event === 'addDhcpSubnetDevice' ? 'post' : 'put'
-    console.log('\n Client upsertDhcpSubnetDevice method : ' + JSON.stringify(method))
     const url = event === 'addDhcpSubnetDevice' ? `${localDhcpUri}/dhcp/subnets/${subnetId}/devices` : `${localDhcpUri}/dhcp/subnets/${subnetId}/devices/${deviceId}`
-    console.log('\n Client upsertDhcpSubnetDevice url : ' + JSON.stringify(url))
+    console.log('\n UpsertDhcpSubnetDevice url : ' + JSON.stringify(url) + '\t\t Method : ' + JSON.stringify(method))
     return axios({
       ...apiInit,
       method: method,
@@ -857,21 +812,21 @@ export const actions = {
       data
     })
       .then(({data}) => {
-        console.log('\n Client upsertDhcpSubnetDevice data: ' + JSON.stringify(data))
+        console.log('\n UpsertDhcpSubnetDevice data: ' + JSON.stringify(data))
         return dispatch('fetchDhcpSubnetDevices', subnetId)
       })
   },
   deleteDhcpSubnetDevice ({commit, dispatch}, {subnetId, deviceId}) {
-    console.log('\n Client deleteDhcpSubnetDevice subnetId : ' + JSON.stringify(subnetId) + '\t\t DeviceId : ' + JSON.stringify(deviceId))
+    console.log('\n DeleteDhcpSubnetDevice subnetId : ' + JSON.stringify(subnetId) + '\t\t DeviceId : ' + JSON.stringify(deviceId))
     const url = `${localDhcpUri}/dhcp/subnets/${subnetId}/devices/${deviceId}`
-    console.log('\n Client deleteDhcpSubnetDevice url : ' + JSON.stringify(url))
+    console.log('\n DeleteDhcpSubnetDevice url : ' + JSON.stringify(url))
     return axios({
       ...apiInit,
       method: 'delete',
       url: url
     })
       .then(({data}) => {
-        console.log('\n Client deleteDhcpSubnetDevice data : ' + JSON.stringify(data))
+        console.log('\n DeleteDhcpSubnetDevice data : ' + JSON.stringify(data))
         return dispatch('fetchDhcpSubnetDevices', subnetId)
       })
   }
