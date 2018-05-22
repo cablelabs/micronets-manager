@@ -69,13 +69,6 @@ export const mutations = {
 }
 
 export const actions = {
-  fetchDeviceLeases ({state, commit, dispatch},{type, data, event}) {
-    console.log('\n fetchDeviceLeases called with event : ' + JSON.stringify(event))
-    if( event === 'init' && state.deviceLeases && state.deviceLeases.length === 0) {
-      console.log('\n None present.Populate device leases by fetchDeviceLeases ')
-      return dispatch('upsertDeviceLeases',{event:'init'})
-    }
-  },
   upsertSubscribers ({state, commit, dispatch}, {type, data}) {
     // let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
     console.log('\n UpsertSubscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
@@ -289,11 +282,11 @@ export const actions = {
   },
   populateSubnetsObject ({state, commit, dispatch}, subnetTagMeta) {
     let subnets = []
-    console.log('\n\n PopulateMultipleSubnets passed subnetTagMeta : ' + JSON.stringify(subnetTagMeta))
+    console.log('\n\n PopulateMultipleSubnets subnetTagMeta : ' + JSON.stringify(subnetTagMeta))
     // var devices = subTagsMeta.map((obj) => { return obj.devices })
     if (subnetTagMeta.devices.length === 1) {
       subnetTagMeta.devices.forEach((device, index) => {
-        console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length) + '\t\t\t Device : ' + JSON.stringify(device))
+        console.log('\n subnetTagMeta Device : ' + JSON.stringify(device))
         subnets.push(Object.assign({}, {
           subnetId: uuidv4(),
           subnetName: `${device.class} Subnet`,
@@ -307,7 +300,7 @@ export const actions = {
       console.log('\n\n Single subnet : ' + JSON.stringify(subnets))
     }
     if (subnetTagMeta.devices.length > 1) {
-      console.log('\n subnetTagMeta.devices.length : ' + JSON.stringify(subnetTagMeta.devices.length))
+      console.log('\n subnetTagMeta devices length : ' + JSON.stringify(subnetTagMeta.devices.length))
       var uniqueClasses = [...new Set(subnetTagMeta.devices.flatten().map(item => item.class))].filter(Boolean)
       console.log('\n PopulateMultipleSubnets Unique classes : ' + JSON.stringify(uniqueClasses))
       uniqueClasses.forEach((classValue, index) => {
@@ -442,9 +435,8 @@ export const actions = {
               let mergedMicronet = merge(subscriber, data)
               newData.push(mergedMicronet)
               console.log('\n Initialize Micronets newData : ' + JSON.stringify(newData))
-              // dispatch('upsertSubnetsForDevicesWithTags', data._id)
               dispatch('populateSubnetsWithTagsMeta', data._id).then((subnetTags) => {
-                console.log('\n InitializeMicronets Inside then of populateSubnetsWithTagsMeta subnetTags : ' + JSON.stringify(subnetTags))
+                console.log('\n InitializeMicronets callback populateSubnetsWithTagsMeta subnetTags : ' + JSON.stringify(subnetTags))
                 dispatch('upsertSubnetsForDevicesWithTags', {id: data._id, subnetTags})
               })
             })
@@ -488,20 +480,17 @@ export const actions = {
     })
       .then(({data}) => {
         console.log('\n\n FetchMicronets : ' + JSON.stringify(data))
-        // if (!id && !data.length) return dispatch('fetchAuthToken')
         commit(id ? 'replaceMicronet' : 'setMicronets', data)
         return data
       })
   },
   upsertMicronet ({commit}, {id, data, event}) {
-    console.log('\n  Client upsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data))
-    console.log('\n  Client upsertMicronet  event : ' + JSON.stringify(event))
+    console.log('\n  UupsertMicronet  Id : ' + JSON.stringify(id) + '\t\t\t Data : ' + JSON.stringify(data) + '\t\t Event : ' + JSON.stringify(event))
     let dataFormatCheck = Object.assign(omitOperationalStateMeta(data), {timestampUtc: (new Date()).toISOString()})
     const valid = ajv.validate(Schema.Definitions.Subnet, dataFormatCheck)
     console.log('\n Ajv Errors : ' + JSON.stringify(ajv.errors))
-
     if (valid === true && event !== 'sessionUpdate') {
-      console.log('\n valid === true && event !== sessionUpdate ')
+      // console.log('\n Valid is true && event !== sessionUpdate ')
       return axios(Object.assign({}, apiInit, {
         method: id ? 'put' : 'post',
         url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
@@ -514,8 +503,8 @@ export const actions = {
     }
 
     if (valid === true && event === 'sessionUpdate') {
-      console.log('\n valid === true && && event === sessionUpdate ')
-      console.log('\n Client upsertMicronet for event : ' + JSON.stringify(event) + '\t\t\t with DATA : ' + JSON.stringify(data))
+      // console.log('\n Valid is true && && event === sessionUpdate ')
+      console.log('\n UpsertMicronet for event : ' + JSON.stringify(event) + '\t\t\t  Data : ' + JSON.stringify(data))
       return axios(Object.assign({}, apiInit, {
         method: id ? 'put' : 'post',
         url: id ? `${micronetsUrl}/${id}` : micronetsUrl,
@@ -543,15 +532,15 @@ export const actions = {
       })
   },
   saveMicronet ({state, dispatch}, {data}) {
-    console.log('\n Save Micronet called with DATA  : ' + JSON.stringify(data))
+    console.log('\n saveMicronet  Data  : ' + JSON.stringify(data))
     const {micronetId, subnetId, deviceId} = state.editTargetIds
     console.log('\n state.editTargetIds : ' + JSON.stringify(state.editTargetIds))
     const micronet = find(propEq('_id', micronetId))(state.micronets)
-    console.log('\n Save Micronet micronet from state  : ' + JSON.stringify(micronet))
+    console.log('\n saveMicronet micronet from state  : ' + JSON.stringify(micronet))
     const subnetIndex = findIndex(propEq('subnetId', subnetId))(micronet.subnets)
-    console.log('\n Save Micronet subnetIndex  : ' + JSON.stringify(subnetIndex))
+    console.log('\n saveMicronet subnetIndex  : ' + JSON.stringify(subnetIndex))
     const subnetLens = lensPath(['subnets', subnetIndex])
-    console.log('\n Save Micronet subnetLens  : ' + JSON.stringify(view(subnetLens,micronet)))
+    console.log('\n saveMicronet subnetLens  : ' + JSON.stringify(view(subnetLens,micronet)))
     if (!deviceId) return dispatch('upsertMicronet', {id: micronetId, data: set(subnetLens, data, micronet)})
     // const deviceIndex = findIndex(propEq('deviceId', deviceId), view(subnetLens, micronet).deviceList)
     // const deviceLens = lensPath(['subnets', subnetIndex, 'deviceList', deviceIndex])
@@ -571,10 +560,10 @@ export const actions = {
       .then(() => { () => commit('setEditTargetIds', {}) })
   },
   addSubnet ({state, commit, dispatch}, data) {
-    console.log('\n Client Add subnet called with Post data :  ' + JSON.stringify(data))
-    console.log('\n Client Add subnet Array.isArray(data) :  ' + JSON.stringify(Array.isArray(data)))
+    console.log('\n addSubnet data :  ' + JSON.stringify(data))
+    console.log('\n addSubnet Array.isArray(data) :  ' + JSON.stringify(Array.isArray(data)))
     const {micronetId} = state.editTargetIds
-    console.log('\n Client Add subnet MicronetId : ' + JSON.stringify(micronetId))
+    console.log('\n addSubnet micronetId : ' + JSON.stringify(micronetId))
     if (Array.isArray(data) && data.length > 1) {
       console.log('\n Data.length : ' + JSON.stringify(data.length) + '\t\t Multiple sub-nets found ...')
       return axios({
@@ -584,14 +573,14 @@ export const actions = {
         data: {data, micronetId}
       }).then(() => {
         commit('setEditTargetIds', {})
-        console.log('\n Inside then of add-subnets ... . Data passed to axios request is : ' + JSON.stringify(data))
+        console.log('\n addSubnets callback.Data passed to axios request is : ' + JSON.stringify(data))
         return dispatch('fetchMicronets', micronetId).then(() => {
           const micronet = find(propEq('_id', micronetId))(state.micronets)
           console.log('\n state.micronets : ' + JSON.stringify(state.micronets))
           data.forEach((subnetFromData, dataIndex) => {
             console.log('\n Current subnetFromData : ' + JSON.stringify(subnetFromData))
             const subnet = find(propEq('subnetId', subnetFromData.subnetId))(micronet.subnets)
-            console.log('\n Inside then of add-subnets subnet : ' + JSON.stringify(subnet))
+            console.log('\n addSubnets callback subnet : ' + JSON.stringify(subnet))
             dispatch('upsertDhcpSubnet', {
               data: Object.assign({}, {
                 subnetId: subnetFromData.subnetId,
@@ -605,7 +594,7 @@ export const actions = {
               subnetFromData.deviceList.forEach((deviceFromData, deviceIndex) => {
                 console.log('\n\n deviceFromData value : ' + JSON.stringify(deviceFromData))
                 const deviceInSubnet = find(propEq('deviceId', deviceFromData.deviceId))(subnet.deviceList)
-                console.log('\n Inside then of upsertDhcpSubnet deviceInSubnet : ' + JSON.stringify(deviceInSubnet))
+                console.log('\n  upsertDhcpSubnet callback deviceInSubnet : ' + JSON.stringify(deviceInSubnet))
                 dispatch('fetchDhcpSubnets').then(() => {
                   dispatch('upsertDhcpSubnetDevice', {
                     subnetId: subnetFromData.subnetId,
@@ -626,7 +615,7 @@ export const actions = {
         })
       })
     } else {
-      console.log('\n Client inside else loop before calling url : ' + JSON.stringify(`${process.env.BASE_URL}/add-subnet`))
+      console.log('\n Else loop before calling url : ' + JSON.stringify(`${process.env.BASE_URL}/add-subnet`))
       console.log('\n Array.isArray(data) : ' + JSON.stringify(Array.isArray(data)))
       let patchedData = {}
       if (Array.isArray(data) && data.length === 1) {
@@ -664,7 +653,7 @@ export const actions = {
                 }
               })
             }).then(() => {
-              console.log('\n Inside then of upsertDhcpSubnet ')
+              console.log('\n upsertDhcpSubnet callback ')
               dispatch('fetchDhcpSubnets').then(() => {
                 dispatch('upsertDhcpSubnetDevice', {
                   subnetId: patchedData.subnetId,
@@ -683,14 +672,14 @@ export const actions = {
           })
         })
         .then(() => {
-          console.log('\n Inside then of upsertDhcpSubnetDevice ')
+          console.log('\n upsertDhcpSubnetDevice callback')
           commit('setEditTargetIds', {})
         })
     }
   },
 
   upsertDeviceLeases ({state,commit}, {type, data, event}) {
-    console.log('\n Store UpsertDeviceLeases State : ' + JSON.stringify(state.deviceLeases) + '\t\t Event : ' + JSON.stringify(event))
+    console.log('\n UpsertDeviceLeases State : ' + JSON.stringify(state.deviceLeases) + '\t\t Event : ' + JSON.stringify(event))
     if(event === 'init') {
       console.log('\n UpsertDeviceLeases initial load for event : ' + JSON.stringify(event))
       let deviceLeasesForState = {}
@@ -710,7 +699,7 @@ export const actions = {
     }
 
     if(event === 'upsert') {
-      console.log('\n UpsertDeviceLeases called with type : ' + JSON.stringify(type) + '\t Data : ' + JSON.stringify(data) + '\t\t Event : ' + JSON.stringify(event))
+      console.log('\n UpsertDeviceLeases  type : ' + JSON.stringify(type) + '\t Data : ' + JSON.stringify(data) + '\t\t Event : ' + JSON.stringify(event))
       if(type === 'leaseAcquired') {
         let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
         console.log('\n LeaseAcquired event detected in upsertDeviceLeases.UpdatedDevices before upsert for leaseAcquired : ' + JSON.stringify(updatedDeviceLeases))
