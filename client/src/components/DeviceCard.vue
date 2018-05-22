@@ -1,9 +1,10 @@
 <template>
   <div class="device-row">
+    <div class="device-indicator"><div v-if="deviceLeases[device.deviceId].status == 'positive'"><status-indicator positive pulse></status-indicator></div>
+      <div v-else-if="deviceLeases[device.deviceId].status == 'intermediary'"><status-indicator intermediary pulse></status-indicator></div>
+      <div v-else="deviceLeases.length == 0"><status-indicator intermediary pulse></status-indicator></div>
+    </div>
     <span class="device-title">
-      <p>Device Lease: {{deviceLeases[device.deviceId].status}}</p>
-      <div v-if="deviceLeases[device.deviceId].status == 'positive'"><status-indicator positive pulse></status-indicator></div>
-      <div v-else="deviceLeases[device.deviceId].status == 'intermediary'"><status-indicator intermediary pulse></status-indicator></div>
       <h3>{{ device.deviceName }}</h3>
       <p>{{ device.deviceDescription }}</p>
     </span>
@@ -76,20 +77,28 @@ export default {
     margin-top: 20px;
   }
 
+  .device-indicator {
+    margin-top :30px
+    text-align center
+    min-width: 4%;
+    min-height: auto;
+  }
+
   .device-title {
     display: inline-block;
-    /*width: 35%;*/
-    height: 75px;
-    padding-top: 1%;
+    /*min-width: auto*/
+    min-width : 35%
+    min-height: auto;
+    max-height: 105px;
+    padding-top: 2%;
     /*margin: 55px 10px 10px 10px;*/
     text-align: left;
     /*border: 3px solid #73AD21;*/
   }
 
   .device-item {
-    width: 30%;
+    min-width: 10%;
     margin: 30px;
-    margin-left: 1%
   }
 
   .device-list {

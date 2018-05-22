@@ -71,6 +71,13 @@ export const mutations = {
 }
 
 export const actions = {
+  fetchDeviceLeases ({state, commit, dispatch},{type, data, event}) {
+    console.log('\n fetchDeviceLeases called with event : ' + JSON.stringify(event))
+    if( event === 'init' && state.deviceLeases && state.deviceLeases.length === 0) {
+      console.log('\n None present.Populate device leases by fetchDeviceLeases ')
+      return dispatch('upsertDeviceLeases',{event:'init'})
+    }
+  },
   upsertSubscribers ({state, commit, dispatch}, {type, data}) {
     // let micronetIndex = findIndex(propEq('id', data.subscriberId))(state.micronets)
     console.log('\n Client upsertSubscribers type : ' + JSON.stringify(type) + '\t\t Data : ' + JSON.stringify(data))
