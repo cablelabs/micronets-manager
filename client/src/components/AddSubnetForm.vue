@@ -5,19 +5,21 @@
         <v-text-field v-model="subnetId" label="Subnet ID" required :rules="subnetIdRules"/>
         <v-text-field v-model="subnetName" label="Subnet Name" required :rules="subnetNameRules"/>
         <div>
-          <v-select
-            :items="configureRegisteredDevices.deviceIds"
-            label="Select Device ID"
-            v-model="deviceId"
-            class="input-group--focused"
-            item-value="text"
-            :rules="[v => !!v || 'Device ID is required']"
-            required
-          ></v-select>
+          <!--<v-select-->
+            <!--:items="configureRegisteredDevices.devicesToAdd"-->
+            <!--label="Select Device ID"-->
+            <!--v-model="deviceId"-->
+            <!--class="input-group&#45;&#45;focused"-->
+            <!--item-value="text"-->
+            <!--:rules="[v => !!v || 'Device ID is required']"-->
+            <!--required-->
+          <!--&gt;</v-select>-->
+          <v-text-field v-model="deviceId" label="Device ID" required :rules="[v => !!v || 'Device ID is required']" />
         </div>
         <v-text-field v-model="deviceName" label="Device Name" required :rules="deviceNameRules"/>
         <v-text-field v-model="deviceDescription" label="Device Description" required :rules="deviceDescriptionRules"/>
-        <v-text-field v-model="macAddress" @input=associatedDeviceMacAddress label="MAC Address" required disabled/>
+        <!--<v-text-field v-model="macAddress" @input=associatedDeviceMacAddress label="MAC Address" required disabled/>-->
+        <v-text-field v-model="macAddress"  label="MAC Address" required :rules="deviceMacAddressRules" />
       </v-form>
     </v-card-text>
     <v-card-actions>
@@ -32,7 +34,7 @@
 <script>
   import pick from 'ramda/src/pick'
   import { find, propEq } from 'ramda'
-
+  import { mapState } from 'vuex'
   export default {
     name: 'add-subnet-form',
     props: {
@@ -40,6 +42,7 @@
       micronets: Array
     },
     computed: {
+      ...mapState({ stateMicronets: state => state.micronets }),
       configureRegisteredDevices () {
         const micronet = find(propEq('_id', this.$route.params.id))(this.micronets)
         // let micronetDevices = micronet.devices.map((device, index) => {
@@ -56,7 +59,13 @@
         let macAddresses = micronet.devices.map((device, index) => {
           return device.macAddress
         })
-        return {micronet, deviceIds, macAddresses}
+        this.devicesToAdd = find(propEq('_id', this.$route.params.id))(this.stateMicronets).devices
+        this.devicesToAdd = this.devicesToAdd.filter(device => !device.hasOwnProperty('class'))
+        let deviceToAddIds = this.devicesToAdd.map((deviceToAdd, index) => {
+           return deviceToAdd.deviceId
+        })
+        console.log('\n Updated deviceToAddIds : ' + JSON.stringify(deviceToAddIds))
+        return {micronet, deviceIds, macAddresses, devicesToAdd: deviceToAddIds}
       },
       associatedDeviceMacAddress () {
         if (this.deviceId) {
@@ -80,6 +89,10 @@
         deviceName: '',
         deviceNameRules: [
           v => !!v || 'Device Name is required'
+        ],
+        deviceMacAddressRules: [
+          v => !!v || 'Device Mac address is required',
+          v => /^^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i.test(v) || 'Device Mac address should be according to standard IEEE 802 format'
         ],
         subnetName: '',
         subnetNameRules: [
@@ -106,7 +119,8 @@
         this.$emit('close', this.childDialog)
         this.$refs.form.reset()
       },
-      created () {}
+      created () {},
+      mounted () {}
     }
   }
 </script>

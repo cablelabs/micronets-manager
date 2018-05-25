@@ -3,6 +3,8 @@ const axios = require('axios')
 const omit = require('ramda/src/omit')
 const R = require('ramda')
 const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v', 'id', 'devices', 'name', 'ssid'])
+const apiInit = {crossDomain: true}
+const apiInitPost = {crossDomain: true, headers: {'Content-type': 'application/json'}}
 
 class Store {
   constructor (context) {
@@ -58,6 +60,165 @@ class Store {
       }) : dispatch('upsertMicronet', {body: message.data}))
   }
 
+  queryDhcpSubnets(_, {params}) {
+    const {dhcp} = this.config
+    console.log('\n Request params : ' + JSON.stringify(params))
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url: params.subnetId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}`
+    })
+      .then((response) => {
+        console.log('\n Response data : ' + JSON.stringify(response.data))
+        return response
+      })
+  }
+
+  queryDhcpSubnetsById(_, {params}) {
+    const {dhcp} = this.config
+    console.log('\n MM Server queryDhcpSubnetsById params : ' + JSON.stringify(params))
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url:  `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}`
+    })
+      .then((response) => {
+        console.log('\n queryDhcpSubnetsById data : ' + JSON.stringify(response.data))
+        return response
+      })
+  }
+
+  upsertDhcpSubnets (_, {body, params}) {
+    const {dhcp} = this.config
+    console.log('\n  Request params : ' + JSON.stringify(params) + '\t\t Body : ' + JSON.stringify(body))
+    const method = params.subnetId ? 'put' : 'post'
+    const url = params.subnetId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}`
+    console.log('\n  Method : ' + JSON.stringify(method) + '\t\t Url : ' + JSON.stringify(url))
+    return axios({
+      ...apiInitPost,
+      method: method,
+      url: url,
+      data: body
+    })
+      .then((response) => {
+        console.log('\n Response data : ' + JSON.stringify(response.data))
+        return response
+      })
+      // .catch((error) => {
+      //   if (error.response) {
+      //     console.log('Error Response data: ' + JSON.stringify(error.response.data)
+      //       + '\n Error Response Status : ' + JSON.stringify(error.response.status)
+      //       + '\n Error Response Headers : ' + JSON.stringify(error.response.headers))
+      //   } else if (error.request) {
+      //     // The request was made but no response was received
+      //     // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      //     // http.ClientRequest in node.js
+      //     console.log(' Error Request: ' + JSON.stringify(error.request));
+      //   } else {
+      //     // Something happened in setting up the request that triggered an Error
+      //     console.log('Error', + JSON.stringify(error.message));
+      //   }
+      // })
+  }
+
+  deleteDhcpSubnets (_, {body, params}) {
+    const {dhcp} = this.config
+    console.log('\n Request params : ' + JSON.stringify(params))
+    const url = `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}`
+    return axios({
+      ...apiInit,
+      method: 'delete',
+      url: `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}`
+    })
+      .then((response) => {
+        console.log('\n Response data : ' + JSON.stringify(response.data))
+        return response
+      })
+  }
+
+  queryDhcpSubnetDevices (_, {params}) {
+    const {dhcp} = this.config
+    console.log('\n Request params : ' + JSON.stringify(params))
+    const url = `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`
+    console.log('\n Request url : ' + JSON.stringify(url))
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url: url
+    })
+      .then((response) => {
+        console.log('\n Response data : ' + JSON.stringify(response.data))
+        return response
+      })
+  }
+
+  queryDhcpSubnetDevicesById (_, {params}) {
+    console.log('\n Request params : ' + JSON.stringify(params))
+    const {dhcp} = this.config
+    const url =  `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}`
+    console.log('\n Request url : ' + JSON.stringify(url))
+    return axios({
+      ...apiInit,
+      method: 'get',
+      url:  url
+    })
+      .then((response) => {
+        console.log('\n Response data : ' + JSON.stringify(response.data))
+        return response
+      })
+  }
+
+  upsertDhcpSubnetDevices (_, {body, params}) {
+    const {dhcp} = this.config
+    console.log('\n Request params : ' + JSON.stringify(params) + '\t\t Body : ' + JSON.stringify(body))
+    const method =  params.deviceId ? 'put' : 'post'
+    const url = params.deviceId ? `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}` : `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices`
+    console.log('\n Request method : ' + JSON.stringify(method))
+    console.log('\n Request url : ' + JSON.stringify(url))
+    return axios({
+      ... apiInitPost,
+      method: method,
+      url: url,
+      data: body
+    })
+      .then((response) => {
+        console.log('\n Response data : ' + JSON.stringify(response.data))
+        return response
+      })
+      // .catch((error) => {
+      //   if (error.response) {
+      //     console.log('Error Response data: ' + JSON.stringify(error.response.data)
+      //       + '\n Error Response Status : ' + JSON.stringify(error.response.status)
+      //       + '\n Error Response Headers : ' + JSON.stringify(error.response.headers))
+      //   } else if (error.request) {
+      //     // The request was made but no response was received
+      //     // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      //     // http.ClientRequest in node.js
+      //     console.log(' Error Request: ' + JSON.stringify(error.request));
+      //   } else {
+      //     // Something happened in setting up the request that triggered an Error
+      //     console.log('Error', + JSON.stringify(error.message));
+      //   }
+      // })
+  }
+
+  deleteDhcpSubnetDevices (_, {params}) {
+    const {dhcp} = this.config
+    console.log('\n Request params : ' + JSON.stringify(params))
+    const url = `${dhcp.host}:${dhcp.port}/${dhcp.path}/${params.subnetId}/devices/${params.deviceId}`
+    console.log('\n Request url : ' + JSON.stringify(url))
+    return axios({
+      ...apiInit,
+      method: 'delete',
+      url: url
+    })
+      .then((response) => {
+        console.log('\n Response data : ' + JSON.stringify(response.data))
+        return response
+      })
+  }
+
+
   upsertInitMicronet ({dispatch}, {body, params = {}}) {
     const message = Object.assign(omitOperationalStateMeta(body.message), {timestampUtc: this.timestamp()})
     // console.log(JSON.stringify(message, null, 2))
@@ -81,15 +242,19 @@ class Store {
   }
 
   upsertMicronet ({dispatch}, {body, params = {}}) {
-    // console.log('\n  UpsertMicronet body : ' + JSON.stringify(body))
+    console.log('\n  UpsertMicronet server body : ' + JSON.stringify(body) +'\t\t\t Params : ' + JSON.stringify(params))
+    body.subnets = body.data ? body.data.subnets : body.subnets
+    body.subnets = Array.isArray(body.subnets) ? R.flatten(body.subnets) : body.subnets
+    console.log('\n\n\n UpsertMicronet server updated body subnets : ' + JSON.stringify(body.subnets))
+    console.log('\n\n\n UpsertMicronet server updated body  : ' + JSON.stringify(body))
     const message = !body.event ? Object.assign(omitOperationalStateMeta(body), {timestampUtc: this.timestamp()}) :
-      Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
-    console.log('\n MTC Message : ' + JSON.stringify(message))
+    Object.assign(omitOperationalStateMeta(body.data), {timestampUtc: this.timestamp()})
+    console.log('\n UpsertMicronet server MTC Message : ' + JSON.stringify(message))
     let mergedMicronet = {}
     return dispatch('callToMtc', message).then(response => {
-      console.log('\n MTC response : ' + JSON.stringify(response))
+      console.log('\n UpsertMicronet server MTC response : ' + JSON.stringify(response))
       if (body.data && body.event) {
-        // console.log('\n Event ' + JSON.stringify(body.event) + ' found in upsertMicronet')
+         console.log('\n UpsertMicronet server Event ' + JSON.stringify(body.event) + ' found in upsertMicronet')
         mergedMicronet = Object.assign({}, {
           devices:body.data.devices,
           id:body.data.id,
@@ -97,22 +262,38 @@ class Store {
           name:body.data.name,
           _id:body.data._id
         }, response);
-        // console.log('\n\n UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
+         console.log('\n\n UpsertMicronet server UpsertMicronet mergedMicronet : ' + JSON.stringify(mergedMicronet))
       }
-      if (response.status >= 1000) {
+      if (response.statusCode >= 1000) {
+        console.log('\n MTC error response : ' + JSON.stringify(response.status))
         const error = new Error('Failed to create micronet')
         error.logEvents = response.logEvents
         error.statusCode = 400
         throw error
       }
-      return params.id
-        ? Micronets.findById(params.id).then((data) => {
-          let prevLogEvents = data.logEvents
-          let allLogEvents = R.concat(prevLogEvents, response.logEvents)
-          let updatedResponse =  body.data && body.event ? Object.assign(mergedMicronet, {logEvents: allLogEvents}) : Object.assign(response, {logEvents: allLogEvents})
-          return Micronets.update({_id: params.id}, updatedResponse).then(data => ({data}))
-        })
-        : (new Micronets(response)).save().then(data => ({statusCode: 201, data}))
+      if (response.statusCode === 0 && response.statusText === "Success!") {
+        console.log('\n MTC response statusCode : ' + JSON.stringify(response.statusCode) + '\t\t Updating database')
+        return params.id
+          ? Micronets.findById(params.id).then((data) => {
+            console.log('\n UpsertMicronet server Micronet found data : ' + JSON.stringify(data) +'\t\t\t Params.id : ' + JSON.stringify(params.id))
+            let prevLogEvents = data.logEvents
+            let allLogEvents = R.concat(prevLogEvents, response.logEvents)
+            let updatedResponse =  body.data && body.event ? Object.assign(mergedMicronet, {logEvents: allLogEvents}) : Object.assign(response, {logEvents: allLogEvents})
+            console.log('\n\n UpsertMicronet server updatedResponse : ' + JSON.stringify(updatedResponse))
+            return Micronets.update({_id: params.id}, updatedResponse).then(data => ({data}))
+          })
+          : (new Micronets(response)).save().then(data => ({statusCode: 201, data}))
+      }
+      // return params.id
+      //   ? Micronets.findById(params.id).then((data) => {
+      //     console.log('\n UpsertMicronet server Micronet found data : ' + JSON.stringify(data) +'\t\t\t Params.id : ' + JSON.stringify(params.id))
+      //     let prevLogEvents = data.logEvents
+      //     let allLogEvents = R.concat(prevLogEvents, response.logEvents)
+      //     let updatedResponse =  body.data && body.event ? Object.assign(mergedMicronet, {logEvents: allLogEvents}) : Object.assign(response, {logEvents: allLogEvents})
+      //     console.log('\n\n UpsertMicronet server updatedResponse : ' + JSON.stringify(updatedResponse))
+      //     return Micronets.update({_id: params.id}, updatedResponse).then(data => ({data}))
+      //   })
+      //   : (new Micronets(response)).save().then(data => ({statusCode: 201, data}))
     })
   }
 
@@ -124,8 +305,47 @@ class Store {
     return Micronets.findById(params.id).then(data => ({data}))
   }
 
-  addSubnet ({dispatch}, {body}) {
+  addSubnets({dispatch}, {body}) {
+    const {data, micronetId} = body
+    console.log('\n Add-Subnets server passed data : ' + JSON.stringify(data) + '\t\t\t Micronet ID : ' + JSON.stringify(micronetId))
+    return Micronets.findById(micronetId).then(micronet => {
+        micronet = JSON.parse(JSON.stringify(micronet))
+        console.log('\n\n Add-Subnets Micro-net found : ' + JSON.stringify(micronet))
+        console.log('\n\n Add-Subnets Micronet subnets : ' + JSON.stringify(micronet.subnets))
+        const isSubnet = x => x.subnetId === subnetId
+        console.log('\n\n Add-Subnets isSubnet : ' + JSON.stringify(isSubnet))
+        let subnetIdx = R.findIndex(isSubnet)(micronet.subnets)
+        console.log('\n\n Add-Subnets subnetIdx : ' + JSON.stringify(subnetIdx))
+        if (subnetIdx < 0) return R.set(
+          R.lensPath(['subnets', micronet.subnets.length]),
+          data,
+          micronet
+        )
+        const subnet = micronet.subnets[subnetIdx]
+        console.log('\n\n Add-Subnets subnet : ' + JSON.stringify(subnet))
+        const isDevice = x => x.deviceId === deviceId
+        console.log('\n\n Add-Subnets isDevice : ' + JSON.stringify(isDevice))
+        const deviceIdx = R.findIndex(isDevice)(subnet.deviceList)
+        console.log('\n\n Add-Subnets deviceIdx : ' + JSON.stringify(deviceIdx))
+        data.deviceList = deviceIdx < 0
+          ? R.concat(subnet.deviceList, data.deviceList)
+          : R.adjust(R.merge(R.__, data.deviceList[0]), deviceIdx, subnet.deviceList)
+        console.log('\n\n Add-Subnets data.deviceList : ' + JSON.stringify(data.deviceList))
+        return R.set(
+          R.lensPath(['subnets', subnetIdx]),
+          R.merge( Array.isArray(subnet) ? R.flatten(subnet) : subnet, Array.isArray(data) ? R.flatten(data) : data),
+          micronet
+        )
+      })
+      .then(updated => {
+        console.log('\n Add-Subnets before  upsertMicronet: ' + JSON.stringify(updated))
+        return dispatch('upsertMicronet', {body: updated, params: {id: micronetId}})
+      })
+  }
+  addSubnetToMicronet ({dispatch}, {body}) {
+    console.log('\n Server addSubnetToMicronet called with body : ' + JSON.stringify(body))
     const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
+    console.log('\n Server addSubnetToMicronet  server MicronetId : ' + JSON.stringify(micronetId))
     const data = {
       subnetId,
       deviceList: [{
@@ -134,12 +354,18 @@ class Store {
         mac: {eui48: macAddress}
       }]
     }
+    console.log('\n\n Server addSubnetToMicronet  server data : ' + JSON.stringify(data))
     if (subnetName) data.subnetName = subnetName
+    if (body.hasOwnProperty('class')) data.class = body.class
     if (deviceName) data.deviceList[0].deviceName = deviceName
     if (deviceDescription) data.deviceList[0].deviceDescription = deviceDescription
+    console.log('\n addSubnetToMicronet server tweaked data : ' + JSON.stringify(data))
     return Micronets.findById(micronetId).then(micronet => {
         micronet = JSON.parse(JSON.stringify(micronet))
+        console.log('\n\n addSubnetToMicronet  server Micro-net found : ' + JSON.stringify(micronet))
+        console.log('\n\n addSubnetToMicronet  server Micronet subnets : ' + JSON.stringify(micronet.subnets))
         const isSubnet = x => x.subnetId === subnetId
+        console.log('\n\n addSubnetToMicronet  isSubnet : ' + JSON.stringify(isSubnet))
         let subnetIdx = R.findIndex(isSubnet)(micronet.subnets)
         if (subnetIdx < 0) return R.set(
           R.lensPath(['subnets', micronet.subnets.length]),
@@ -159,6 +385,57 @@ class Store {
         )
       })
       .then(updated => {
+        console.log('\n addSubnetToMicronet  server Micronet before  upsertMicronet: ' + JSON.stringify(updated))
+        return dispatch('upsertMicronet', {body: updated, params: {id: micronetId}})
+      })
+  }
+
+  addSubnet ({dispatch}, {body}) {
+    console.log('\n AddSubnet server body : ' + JSON.stringify(body))
+    const {micronetId, subnetId, deviceId, macAddress, subnetName, deviceName, deviceDescription} = body
+    //console.log('\n\n AddSubnet server body.macAddress : ' + JSON.stringify(body.macAddress))
+    //console.log('\n\n AddSubnet server body.mac.eui48 : ' + JSON.stringify(body.mac.eui48))
+    console.log('\n AddSubnet server MicronetId : ' + JSON.stringify(micronetId))
+    const data = {
+      subnetId,
+      deviceList: [{
+        deviceId,
+        timestampUtc: this.timestamp(),
+        mac: {eui48: body.macAddress ? macAddress : body.mac.eui48}
+      }]
+    }
+    console.log('\n\n AddSubnet server data : ' + JSON.stringify(data))
+    if (subnetName) data.subnetName = subnetName
+    if (body.hasOwnProperty('class')) data.class = body.class
+    if (deviceName) data.deviceList[0].deviceName = deviceName
+    if (deviceDescription) data.deviceList[0].deviceDescription = deviceDescription
+    console.log('\n AddSubnet server tweaked data : ' + JSON.stringify(data))
+    return Micronets.findById(micronetId).then(micronet => {
+        micronet = JSON.parse(JSON.stringify(micronet))
+        console.log('\n\n AddSubnet server Micro-net found : ' + JSON.stringify(micronet))
+        console.log('\n\n AddSubnet server Micronet subnets : ' + JSON.stringify(micronet.subnets))
+        const isSubnet = x => x.subnetId === subnetId
+        console.log('\n\n isSubnet : ' + JSON.stringify(isSubnet))
+        let subnetIdx = R.findIndex(isSubnet)(micronet.subnets)
+        if (subnetIdx < 0) return R.set(
+          R.lensPath(['subnets', micronet.subnets.length]),
+          data,
+          micronet
+        )
+        const subnet = micronet.subnets[subnetIdx]
+        const isDevice = x => x.deviceId === deviceId
+        const deviceIdx = R.findIndex(isDevice)(subnet.deviceList)
+        data.deviceList = deviceIdx < 0
+          ? R.concat(subnet.deviceList, data.deviceList)
+          : R.adjust(R.merge(R.__, data.deviceList[0]), deviceIdx, subnet.deviceList)
+        return R.set(
+          R.lensPath(['subnets', subnetIdx]),
+          R.merge(subnet, data),
+          micronet
+        )
+      })
+      .then(updated => {
+        console.log('\n AddSubnet server Micronet before  upsertMicronet: ' + JSON.stringify(updated))
         return dispatch('upsertMicronet', {body: updated, params: {id: micronetId}})
       })
   }

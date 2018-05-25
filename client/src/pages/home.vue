@@ -25,7 +25,7 @@
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
     name: 'home',
     computed: {
-      ...mapState(['micronets']),
+      ...mapState(['micronets', 'deviceLeases']),
       ...mapGetters(['editTarget'])
     },
     data: () => ({
@@ -49,7 +49,7 @@
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertSubscribers']),
+      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertSubscribers', 'upsertDeviceLeases']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -60,15 +60,25 @@
     },
     mounted () {
       this.setEditTargetIds({})
-      this.fetchSubscribers().then(({data}) => {})
+      console.log('\n Home.vue mounted called ... ')
+      this.fetchSubscribers().then(() => {
+        console.log('\n\n Home.vue mounted Inside then of fetchSubscribers state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
+        console.log('\n Home.vue mounted Inside then of fetchSubscribers calling upsertDeviceLeases')
+        this.upsertDeviceLeases({event:'init'})
+      })
+    },
+    created () {
       this.$socket.on('socketSessionUpdate', (data) => {
-       // console.log('\n Vue socket event socketSessionUpdate caught with data ' + JSON.stringify(data))
-        this.upsertSubscribers(data)
+        console.log('\n Vue socket event socketSessionUpdate caught with data in created Home.vue ' + JSON.stringify(data))
+        this.upsertSubscribers(data).then(() => {
+          this.fetchMicronets().then(()=> {})
+        })
       })
-      this.$socket.on('socketSessionCreate', (data) => {
-       // console.log('\n Vue socket event socketSessionCreate caught with data ' + JSON.stringify(data))
-        this.upsertSubscribers(data)
-      })
+      // this.$socket.on('socketSessionCreate', (data) => {
+      //   console.log('\n Vue socket event socketSessionCreate caught with data in created Home.vue ' + JSON.stringify(data))
+      //   this.upsertSubscribers(data).then(() => {
+      //   })
+      // })
     }
   }
 </script>

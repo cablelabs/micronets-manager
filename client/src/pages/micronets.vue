@@ -4,7 +4,8 @@
       <template v-if="micronet.id==$route.params.subscriberId">
       <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
       <template v-for="subnet in micronet.subnets">
-        <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id"></SubnetCard>
+        <!--<p>Device Leases from State : {{deviceLeases || []}}</p>-->
+        <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id" ></SubnetCard>
       </template>
       <!--<hr class="mt-4" v-if="index < micronets.length - 1"/>-->
       </template>
@@ -29,13 +30,14 @@
   import SubnetCard from '../components/SubnetCard'
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
+  import io from 'socket.io-client';
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-
+  const socket = io(`${process.env.DHCP_SOCKET_URL}`)
   export default {
     components: { SubnetCard, Layout, AddSubnetForm },
     name: 'micronets',
     computed: {
-      ...mapState(['micronets']),
+      ...mapState(['micronets', 'leases', 'deviceLeases']),
       ...mapGetters(['editTarget'])
     },
     data: () => ({
@@ -44,7 +46,7 @@
     }),
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers']),
+      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertLeases', 'upsertDeviceLeases']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -56,7 +58,21 @@
     mounted () {},
     created () {
       this.setEditTargetIds({})
-      return this.fetchMicronets(this.$router.currentRoute.params.id)
+      this.micronets.length > 0 ? this.upsertDeviceLeases({event:'init'}) : '' // Might be problematic
+      socket.on('leaseAcquired', (data) => {
+        console.log('\n\n Micronets.vue leaseAquired event caught . Data received :  ' + JSON.stringify(data))
+        this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})
+      })
+      socket.on('leaseExpired', (data) => {
+        console.log('\n\n Micronets.vue  leaseExpired event caught . Data received :  ' + JSON.stringify(data))
+        this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})
+
+      })
+      return this.fetchMicronets(this.$router.currentRoute.params.id).then((data) => {
+        if (data.devices && this.deviceLeases.length === 0) {
+          this.upsertDeviceLeases({event:'init'})
+        }
+      })
     }
   }
 </script>
