@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { findIndex, propEq, pathEq, filter, find, lensPath, set, omit, merge, lensProp, view } from 'ramda'
+import {findIndex, propEq, find, lensPath, set, omit, merge, lensProp} from 'ramda'
 import uuidv4 from 'uuid/v4'
 
 const setState = prop => (state, value) => { state[prop] = value }
@@ -98,26 +98,17 @@ export const actions = {
             const devicesLens = lensProp('devices', micronet)
             if (!eventData.device.hasOwnProperty('class')) {
               return dispatch('upsertMicronet', {
-                   id: micronet._id,
-                   data: set(devicesLens, sessionDevices, micronet),
-                   event: 'sessionUpdate'
-                 })
+                id: micronet._id,
+                data: set(devicesLens, sessionDevices, micronet),
+                event: 'sessionUpdate'
+              })
             }
             if (eventData.device.hasOwnProperty('class')) {
               let subnetForClassIndex = findIndex(propEq('class', eventData.device.class))(micronet.subnets)
               if (subnetForClassIndex > -1) {
                 const subnetToUpdate = micronet.subnets[subnetForClassIndex]
-                const updatedDeviceList = subnetToUpdate.deviceList.push(Object.assign({}, {
-                  deviceId: eventData.device.deviceId,
-                  deviceName: `${subnetToUpdate.class} Device`,
-                  deviceDescription: `${subnetToUpdate.class} Device`,
-                  timestampUtc: (new Date()).toISOString(),
-                  mac: {
-                    eui48: eventData.device.macAddress
-                  }
-                }))
-                const subnetDeviceListLens = lensProp('deviceList', subnetForClassIndex)
-                const subnetLens = lensPath('subnets', subnetForClassIndex)
+                // const subnetDeviceListLens = lensProp('deviceList', subnetForClassIndex)
+                // const subnetLens = lensPath('subnets', subnetForClassIndex)
                 commit('setEditTargetIds', {
                   micronetId: micronet._id,
                   subnetId: micronet.subnets[subnetForClassIndex].subnetId
@@ -129,9 +120,9 @@ export const actions = {
                 }).then(() => {
                   // TODO : DHCP Upserts Add device to subnet
                   dispatch('fetchMicronets').then(() => {
-                      const micronetToUpsert = find(propEq('id', eventData.subscriberId))(state.micronets)
-                      const subnetToUpsert = micronetToUpsert.subnets[subnetForClassIndex]
-                      const deviceToUpsert = find(propEq('deviceId', eventData.device.deviceId))(subnetToUpsert.deviceList)
+                    const micronetToUpsert = find(propEq('id', eventData.subscriberId))(state.micronets)
+                    const subnetToUpsert = micronetToUpsert.subnets[subnetForClassIndex]
+                    const deviceToUpsert = find(propEq('deviceId', eventData.device.deviceId))(subnetToUpsert.deviceList)
                     dispatch('fetchDhcpSubnets').then(() => {
                       dispatch('upsertDhcpSubnetDevice', {
                         subnetId: subnetToUpsert.subnetId,
@@ -141,11 +132,11 @@ export const actions = {
                           macAddress: {
                             eui48: deviceToUpsert.macAddress ? deviceToUpsert.macAddress : deviceToUpsert.mac.eui48
                           },
-                          networkAddress: {ipv4:deviceToUpsert.ipv4.host}
+                          networkAddress: {ipv4: deviceToUpsert.ipv4.host}
                         }),
                         event: 'addDhcpSubnetDevice'
                       }).then(() => {
-                        dispatch('upsertDeviceLeases',{event:'addDeviceLease', data:{deviceId:eventData.device.deviceId}})
+                        dispatch('upsertDeviceLeases', {event: 'addDeviceLease', data: {deviceId: eventData.device.deviceId}})
                       })
                     })
                   })
@@ -166,7 +157,7 @@ export const actions = {
                 dispatch('addSubnetToMicronet', subnetToAdd).then(() => {
                  // DHCP Upserts Add subnet and device
                   return dispatch('fetchMicronets').then(() => {
-                    const micronetForSubscriber =  find(propEq('id', eventData.subscriberId))(state.micronets)
+                    const micronetForSubscriber = find(propEq('id', eventData.subscriberId))(state.micronets)
                     const micronet = find(propEq('_id', micronetForSubscriber._id))(state.micronets)
                     const subnet = find(propEq('subnetId', subnetToAdd.subnetId))(micronet.subnets)
                     const deviceInSubnet = find(propEq('deviceId', eventData.device.deviceId))(subnet.deviceList)
@@ -193,7 +184,7 @@ export const actions = {
                           }),
                           event: 'addDhcpSubnetDevice'
                         }).then(() => {
-                          dispatch('upsertDeviceLeases',{event:'addDeviceLease', data:{deviceId:eventData.device.deviceId}})
+                          dispatch('upsertDeviceLeases', {event: 'addDeviceLease', data: {deviceId: eventData.device.deviceId}})
                         })
                       })
                     })
@@ -319,8 +310,8 @@ export const actions = {
         })
       })
       var uniqueMicronetIds = [...new Set(subnetTagsMeta.map(item => item.micronetId))]
-      var devices = subnetTagsMeta.map((obj) => { return obj.devices })
-      var uniqueClasses = [...new Set(devices.flatten().map(item => item.class))]
+      // var devices = subnetTagsMeta.map((obj) => { return obj.devices })
+     // var uniqueClasses = [...new Set(devices.flatten().map(item => item.class))]
       subnetTagsMeta.forEach((subTagMeta, tagMetaIndex) => {
         uniqueMicronetIds.forEach((micronetId, index) => {
           if (micronetId === subTagMeta.micronetId) {
@@ -384,7 +375,7 @@ export const actions = {
       url: authTokenUri,
       data: msoPortalAuthPostConfig
     }).then(({data}) => {
-      return dispatch('initializeMicronets', {token: data.accessToken}).then(()=> {
+      return dispatch('initializeMicronets', {token: data.accessToken}).then(() => {
       })
     })
   },
@@ -529,7 +520,6 @@ export const actions = {
         })
       })
     } else {
-
       let patchedData = {}
       if (Array.isArray(data) && data.length === 1) {
         patchedData = data[0]
@@ -583,13 +573,13 @@ export const actions = {
     }
   },
 
-  upsertDeviceLeases ({state,commit}, {type, data, event}) {
-    if(event === 'init') {
+  upsertDeviceLeases ({state, commit}, {type, data, event}) {
+    if (event === 'init') {
       let deviceLeasesForState = {}
-      state.micronets.forEach((micronet,micronetIndex) => {
+      state.micronets.forEach((micronet, micronetIndex) => {
         micronet.subnets.forEach((subnet, subnetIndex) => {
           subnet.deviceList.forEach((device, deviceIndex) => {
-            deviceLeasesForState[device.deviceId] = Object.assign({},{status:'intermediary'})
+            deviceLeasesForState[device.deviceId] = Object.assign({}, {status: 'intermediary'})
           })
         })
       })
@@ -597,23 +587,23 @@ export const actions = {
       return deviceLeasesForState
     }
 
-    if(event === 'upsert') {
-      if(type === 'leaseAcquired') {
-        let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
+    if (event === 'upsert') {
+      if (type === 'leaseAcquired') {
+        let updatedDeviceLeases = Object.assign({}, state.deviceLeases)
         updatedDeviceLeases[data.deviceId].status = 'positive'
         commit('setDeviceLeases', updatedDeviceLeases)
       }
 
-      if(type === 'leaseExpired') {
-        let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
+      if (type === 'leaseExpired') {
+        let updatedDeviceLeases = Object.assign({}, state.deviceLeases)
         updatedDeviceLeases[data.deviceId].status = 'intermediary'
         commit('setDeviceLeases', updatedDeviceLeases)
       }
     }
 
-    if(event === 'addDeviceLease') {
-      let updatedDeviceLeases =  Object.assign({}, state.deviceLeases)
-      updatedDeviceLeases[data.deviceId] = { status:'intermediary' }
+    if (event === 'addDeviceLease') {
+      let updatedDeviceLeases = Object.assign({}, state.deviceLeases)
+      updatedDeviceLeases[data.deviceId] = { status: 'intermediary' }
       commit('setDeviceLeases', updatedDeviceLeases)
     }
   },
