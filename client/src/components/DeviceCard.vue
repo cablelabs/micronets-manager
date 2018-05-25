@@ -5,8 +5,6 @@
       <div v-else-if="deviceLeases[device.deviceId].status == 'intermediary'"><status-indicator intermediary pulse></status-indicator></div>
     </div>
     <div v-else="!deviceLeases[device.deviceId]" class="device-indicator">
-      <!--<p>Object.keys(deviceLeases).length : {{Object.keys(deviceLeases).length}}</p>-->
-      <!--<p>deviceLeases[device.deviceId] : {{deviceLeases[device.deviceId]}}</p>-->
       <status-indicator intermediary pulse></status-indicator>
     </div>
     <span class="device-title">
@@ -26,7 +24,6 @@
 import { mapMutations, mapState } from 'vuex'
 import { StatusIndicator } from 'vue-status-indicator'
 import 'vue-status-indicator/styles.css'
-import {findIndex, propEq, pathEq, filter} from 'ramda'
 
 export default {
   components: {StatusIndicator},
@@ -36,8 +33,8 @@ export default {
     subnetId: String,
     micronetId: String
   },
-  computed:  {
-    ...mapState(['micronets', 'deviceLeases']),
+  computed: {
+    ...mapState(['micronets', 'deviceLeases'])
   },
   methods: {
     ...mapMutations(['setEditTargetIds']),

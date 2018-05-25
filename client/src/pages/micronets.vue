@@ -30,7 +30,7 @@
   import SubnetCard from '../components/SubnetCard'
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
-  import io from 'socket.io-client';
+  import io from 'socket.io-client'
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
   const socket = io(`${process.env.DHCP_SOCKET_URL}`)
   export default {
@@ -58,19 +58,18 @@
     mounted () {},
     created () {
       this.setEditTargetIds({})
-      this.micronets.length > 0 ? this.upsertDeviceLeases({event:'init'}) : '' // Might be problematic
+      this.micronets.length > 0 ? this.upsertDeviceLeases({event: 'init'}) : '' // Might be problematic
       socket.on('leaseAcquired', (data) => {
         console.log('\n\n Micronets.vue leaseAquired event caught . Data received :  ' + JSON.stringify(data))
-        this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})
+        this.upsertDeviceLeases({type: data.type, data: data.data, event: 'upsert'})
       })
       socket.on('leaseExpired', (data) => {
         console.log('\n\n Micronets.vue  leaseExpired event caught . Data received :  ' + JSON.stringify(data))
-        this.upsertDeviceLeases({type:data.type, data:data.data, event:'upsert'})
-
+        this.upsertDeviceLeases({type: data.type, data: data.data, event: 'upsert'})
       })
       return this.fetchMicronets(this.$router.currentRoute.params.id).then((data) => {
         if (data.devices && this.deviceLeases.length === 0) {
-          this.upsertDeviceLeases({event:'init'})
+          this.upsertDeviceLeases({event: 'init'})
         }
       })
     }
