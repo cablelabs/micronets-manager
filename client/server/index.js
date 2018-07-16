@@ -10,7 +10,7 @@ const NRP = require('node-redis-pubsub')
 const connectToDb = require('./services/db')
 // const methodOverride = require('method-override')
 const ENV = process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
-const config = require('../../config/default.json')[ENV]
+const config = require('./config/default.json')[ENV]
 
 // CONNECT
 const messenger = new NRP(config.redis)
