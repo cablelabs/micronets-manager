@@ -2,7 +2,7 @@ var _ = require('lodash')
 var axios = require('axios')
 var Micronets = require('../models/micronet')
 var utils = require('../utils')
-var config = require('../../config/default.json')
+var config = require('../../../config/default.json')
 var cors = require('cors')
 var NRP = require('node-redis-pubsub')
 

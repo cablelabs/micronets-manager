@@ -10,14 +10,14 @@ const NRP = require('node-redis-pubsub')
 const connectToDb = require('./services/db')
 // const methodOverride = require('method-override')
 const ENV = process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
-const config = require('../config/default.json')[ENV]
+const config = require('../../config/default.json')[ENV]
 
 // CONNECT
 const messenger = new NRP(config.redis)
 const publish = data => messenger.emit(config.channels.publish, data)
 const subscribe = cb => messenger.on(config.channels.subscribe, cb)
 const context = { config, publish, subscribe }
-const store = require('./store')(context)
+const store = require('./store/index')(context)
 
 return Promise.all([
   connectToDb(config.mongodb),
