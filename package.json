@@ -25,9 +25,8 @@
     ]
   },
   "scripts": {
-    "clean": "del public/* '!public/favicon.ico'",
     "lint": "eslint-if-supported semistandard --fix",
-    "start": "babel-node src/",
+    "start": "babel-node api/",
     "docker-build": "docker build -t code.cablelabs.com:4567/micronets/micronets-manager-backend .",
     "docker-publish": "docker login code.cablelabs.com:4567; docker push code.cablelabs.com:4567/micronets/micronets-manager-backend",
     "mocha": "mocha test/ --recursive --exit",
@@ -87,11 +86,9 @@
     "file-loader": "^0.9.0",
     "html-webpack-plugin": "^2.26.0",
     "mocha": "^5.2.0",
-    "node-sass": "^4.3.0",
     "postcss-flexbugs-fixes": "^2.1.0",
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
-    "sass-loader": "^4.1.1",
     "semistandard": "^9.2.1",
     "vue": "^2.1.10",
     "vue-feathers": "^0.1.0",
