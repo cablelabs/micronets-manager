@@ -1,0 +1,45 @@
+version: '3'
+services:
+  api:
+    build:
+      context: ./../..
+      dockerfile: docker/dev/Dockerfile.api
+    image: micronets-manager-api-dev
+    environment:
+      - NODE_ENV=development
+      - PORT=3030
+    volumes:
+      - ./../../api:/usr/src/api
+    ports:
+      - '3030:3030'
+  services:
+    build:
+      context: ./../..
+      dockerfile: docker/dev/Dockerfile.services
+    image: micronets-manager-services-dev
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    volumes:
+      - ./../../app:/usr/src/app
+    ports:
+      - '3000:3000'
+  app:
+    build:
+      context: ./../..
+      dockerfile: docker/dev/Dockerfile.app
+    image: micronets-manager-client-dev
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+    depends_on:
+      - mongo
+      - services
+    volumes:
+      - ./../../app:/usr/src/app
+    ports:
+      - '8080:8080'
+
+
+  mongo:
+    image: mongo:latest
