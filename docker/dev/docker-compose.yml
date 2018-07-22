@@ -1,5 +1,13 @@
 version: '3'
 services:
+  redis:
+      image: redis
+      container_name: cache
+      expose:
+        - 6379
+      ports:
+        - '6379:6379'
+
   api:
     build:
       context: ./../..
@@ -8,22 +16,31 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3030
+    depends_on:
+      - mongo
     volumes:
       - ./../../api:/usr/src/api
     ports:
       - '3030:3030'
+
   services:
     build:
       context: ./../..
       dockerfile: docker/dev/Dockerfile.services
     image: micronets-manager-services-dev
+    links:
+          - redis
     environment:
-      - NODE_ENV=development
-      - PORT=3000
+          - NODE_ENV=development
+          - PORT=3000
+          - REDIS_URL=redis://cache
+    depends_on:
+      - mongo
     volumes:
       - ./../../app:/usr/src/app
     ports:
       - '3000:3000'
+
   app:
     build:
       context: ./../..
@@ -35,11 +52,13 @@ services:
     depends_on:
       - mongo
       - services
+      - api
     volumes:
       - ./../../app:/usr/src/app
     ports:
       - '8080:8080'
 
-
   mongo:
     image: mongo:latest
+
+
