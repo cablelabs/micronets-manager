@@ -2,7 +2,6 @@ version: '3'
 services:
   redis:
       image: redis
-      container_name: cache
       expose:
         - 6379
       ports:
@@ -22,23 +21,22 @@ services:
     ports:
       - '3030:3030'
 
-#  services:
-#    build:
-#      context: ./../..
-#      dockerfile: docker/dev/Dockerfile.services
-#    image: micronets-manager-services-dev
-#    links:
-#          - redis
-#    environment:
-#          - NODE_ENV=development
-#          - PORT=3000
-#          - REDIS_URL=redis://cache
-#    depends_on:
-#      - mongo
-#    volumes:
-#      - ./../../app:/usr/src/app
-#    ports:
-#      - '3000:3000'
+  services:
+    build:
+      context: ./../..
+      dockerfile: docker/dev/Dockerfile.services
+    image: micronets-manager-services-dev
+    links:
+          - redis
+          - mongo
+    environment:
+          - NODE_ENV=development
+          - PORT=3000
+          - REDIS_URL=redis
+    volumes:
+      - ./../../app:/usr/src/app
+    ports:
+      - '3000:3000'
 
   app:
     build:

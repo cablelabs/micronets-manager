@@ -1,12 +1,12 @@
 {
   "dev": {
-    "host": "10.142.10.46",
+    "host": "127.0.0.1",
     "port": 3000,
     "public": "../public/",
-    "mongodb": "mongodb://localhost:27017/micronets",
+    "mongodb": "mongodb://mongo:27017/micronets",
     "redis": {
       "port": 6379,
-      "host": "localhost"
+      "host": "redis"
     },
     "odl":{
       "port": 18080,
@@ -28,10 +28,10 @@
     "host": "localhost",
     "port": 3000,
     "public": "../public/",
-    "mongodb": "mongodb://localhost:27017/micronets",
+    "mongodb": "mongodb://mongo:27017/micronets",
     "redis": {
       "port": 6379,
-      "host": "localhost"
+      "host": "redis"
     },
     "odl":{
       "port": 18080,
