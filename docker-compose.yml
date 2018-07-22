@@ -1,14 +1,14 @@
-#version: '2'
-#services:
-#  micronets-manager:
-#    image: code.cablelabs.com:4567/micronets/micronets-manager-backend
-#    ports:
-#      - "3030:3030"
-#    links:
-#      - mongo
-#  mongo:
-#    image: mongo
-#    volumes:
+version: '3'
+services:
+  micronets-manager:
+    image: code.cablelabs.com:4567/micronets/micronets-manager-backend
+    ports:
+      - "3030:3030"
+    links:
+      - mongo
+  mongo:
+    image: mongo
+#    volumes: // Commented to make it run locally
 #      - /data/mongodb/db:/data/db
-#    ports:
-#      - "27017:27017"
+    ports:
+      - "27017:27017"

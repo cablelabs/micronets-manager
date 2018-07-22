@@ -4,7 +4,7 @@ FROM node:8
 RUN apt-get update;
 
 # Create app directory
-WORKDIR /usr/src/api
+WORKDIR /usr/src/app
 
 # Install app dependencies
 COPY package.json .
@@ -16,4 +16,4 @@ RUN npm install
 COPY . .
 
 EXPOSE 3030
-CMD ["npm", "run", "start"]
+CMD [ "npm", "start"]
