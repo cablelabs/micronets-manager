@@ -1,0 +1,69 @@
+version: '3'
+services:
+  redis:
+      image: redis
+      expose:
+        - 6379
+      ports:
+        - '6379:6379'
+  api:
+    build:
+      context: ./../..
+      dockerfile: docker/dev/Dockerfile.api
+    image: micronets-manager-api-dev
+    environment:
+      - NODE_ENV=production
+      - PORT=3030
+      - MONGO_URL=mongodb://mongo:27017/micronets
+    links:
+      - mongo
+    volumes:
+      - ./../../api:/usr/src/api
+    ports:
+      - '3030:3030'
+
+  services:
+    build:
+      context: ./../..
+      dockerfile: docker/dev/Dockerfile.services
+    image: micronets-manager-services-dev
+    links:
+          - redis
+          - mongo
+    environment:
+          - NODE_ENV=production
+          - PORT=3000
+          - REDIS_URL=redis
+          - MONGO_URL=mongodb://mongo:27017/micronets
+    volumes:
+      - ./../../app:/usr/src/app
+    ports:
+      - '3000:3000'
+
+  app:
+    build:
+      context: ./../..
+      dockerfile: docker/dev/Dockerfile.app
+    image: micronets-manager-client-dev
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - MONGO_URL=mongodb://mongo:27017/micronets
+    links:
+      - mongo
+      - api
+      - services
+    volumes:
+      - ./../../app:/usr/src/app
+    ports:
+      - '8080:8080'
+
+  mongo:
+     image: mongo
+ #    volumes: // Commented to make it run locally
+ #      - /data/mongodb/db:/data/db
+     ports:
+       - "27017:27017"
+
+
+

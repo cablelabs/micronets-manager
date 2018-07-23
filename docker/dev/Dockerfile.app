@@ -6,6 +6,8 @@ WORKDIR /usr/src/app
 COPY app/package.json .
 COPY app/package.json app/package-lock.json ./
 
+ENV MONGO_URL=
+
 RUN npm install
 
 # Bundle app source

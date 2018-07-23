@@ -14,6 +14,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3030
+      - MONGO_URL=mongodb://mongo:27017/micronets
     links:
       - mongo
     volumes:
@@ -33,6 +34,7 @@ services:
           - NODE_ENV=development
           - PORT=3000
           - REDIS_URL=redis
+          - MONGO_URL=mongodb://mongo:27017/micronets
     volumes:
       - ./../../app:/usr/src/app
     ports:
@@ -46,9 +48,11 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=8080
-    depends_on:
+      - MONGO_URL=mongodb://mongo:27017/micronets
+    links:
       - mongo
       - api
+      - services
     volumes:
       - ./../../app:/usr/src/app
     ports:

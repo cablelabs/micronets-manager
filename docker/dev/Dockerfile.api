@@ -1,4 +1,4 @@
-FROM node:8
+FROM node:latest
 
 # Development packages
 RUN apt-get update;
@@ -9,6 +9,8 @@ WORKDIR /usr/src/app
 # Install app dependencies
 COPY package.json .
 COPY package.json package-lock.json ./
+
+ENV MONGO_URL=
 
 RUN npm install
 
