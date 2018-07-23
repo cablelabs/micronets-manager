@@ -8,13 +8,16 @@ module.exports = {
     get: [
       hook => {
       const {params, data, id} = hook
+        console.log('\n Registry get service : ' + JSON.stringify(params.headers))
         const query = Object.assign({ subscriberId: id ? id : params.id }, hook.params.query);
+        console.log('\n Registry get service query : ' + JSON.stringify(query))
         hook.params.mongoose = {
           runValidators: true,
           setDefaultsOnInsert: true
         }
         return hook.app.service('/micronets/v1/mm/registry').find({ query })
           .then(({data}) => {
+            console.log('\n Registry get service data : ' + JSON.stringify(data))
             if(data.length === 1) {
               hook.result = omitMeta(data[0]);
             }

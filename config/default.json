@@ -30,5 +30,5 @@
       "expiresIn": "1d"
     }
   },
-  "mongodb": "MONGO_URL"
+  "mongodb": "mongodb://localhost:27017/micronets"
 }

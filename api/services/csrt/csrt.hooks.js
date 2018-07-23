@@ -12,17 +12,26 @@ module.exports = {
       async (hook) => {
         const { params  , payload } = hook;
         const { headers: { authorization }} = params
+        const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
         let allHeaders = { headers : { 'Authorization' : authorization , crossDomain: true } };
         let registry = await hook.app.service ( '/micronets/v1/mm/registry' ).get(null, {id:hook.data.subscriberId});
        // let registry = await axios.get(`${hook.data.registryUrl}/micronets/v1/mm/registry/${hook.data.subscriberId}`,allHeaders)
         // Call configure url
+        console.log('\n registry : ' + JSON.stringify(registry))
         const data = { subcriberId : hook.data.subscriberId }
         const jwtToken = params.headers.authorization.split ( ' ' )[ 1 ]
-        const configureIdentityService =  await axios.post (`${registry.identityUrl}/configure` , data)
+        const configureIdentityService =  await axios({
+          ...apiInit,
+          method: 'post',
+          url: `${registry.identityUrl}/configure`,
+          data: data
+        })
+        console.log('\n configureIdentityService : ' + JSON.stringify(configureIdentityService.data))
         if(configureIdentityService.data.result) {
-          const csrTemplate = await axios.post (`${registry.identityUrl}/csrt`)
+          const csrTemplate = await axios.post (`${registry.identityUrl}/csrt`, ...apiInit)
+          console.log('\n csrTemplate.data : ' + JSON.stringify(csrTemplate.data))
           const subscriber = await axios.get(`${registry.msoPortalUrl}/internal/subscriber/${hook.data.subscriberId}`,allHeaders)
-
+          console.log('\n subscriber.data : ' + JSON.stringify(subscriber.data))
           if(subscriber.data) {
             // Creating updating user information
             const sessionData = Object.assign ( {} , {
