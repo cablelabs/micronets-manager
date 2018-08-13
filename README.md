@@ -1,4 +1,4 @@
-# micronets-manager
+# Micronets-Manager
 Micronets Manager app
 
 ## About
