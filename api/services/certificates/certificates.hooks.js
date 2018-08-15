@@ -11,14 +11,14 @@ module.exports = {
      async ( hook ) => {
        const { params  , payload, data } = hook;
        let axiosConfig = { headers : { 'Authorization' : params.headers.authorization } };
-       const user = await hook.app.service ( 'micronets/v1/mm/users' ).find()
-       let registry = await hook.app.service ( '/micronets/v1/mm/registry' ).get ( null, { id : data.subscriberId }  );
+       const user = await hook.app.service ( 'mm/v1/micronets/users' ).find()
+       let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get ( null, { id : data.subscriberId }  );
        const subscriber = await axios.get(`${registry.msoPortalUrl}/internal/subscriber/${data.subscriberId}`,axiosConfig)
        const certificates =  await axios.post (`${registry.identityUrl}/certificates` ,  data , axiosConfig)
        if(certificates.data) {
-         hook.app.service ( 'micronets/v1/mm/users' ).find ( { query : { id : data.subscriberId } } )
+         hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : data.subscriberId } } )
            .then ( ( { data } ) => {
-              hook.app.service ( 'micronets/v1/mm/users' ).patch ( null ,{
+              hook.app.service ( 'mm/v1/micronets/users' ).patch ( null ,{
                clientId : params.payload.clientID ,
                deviceId : params.payload.deviceID ,
                macAddress : params.payload.macAddress ,

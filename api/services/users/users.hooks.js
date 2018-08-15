@@ -12,7 +12,7 @@ module.exports = {
       hook => {
         const {params, id} = hook
         const query = Object.assign({ id: id ? id : params.id }, hook.params.query);
-        return hook.app.service('/micronets/v1/mm/users').find({ query })
+        return hook.app.service('/mm/v1/micronets/users').find({ query })
           .then(({data}) => {
             if(data.length === 1) {
               hook.result = omitMeta(data[0]);
@@ -29,7 +29,7 @@ module.exports = {
           ssid: data.ssid,
           devices : [data.devices]
         })
-        hook.app.service ( '/micronets/v1/mm/users' ).emit ( 'userCreate' , {
+        hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userCreate' , {
           type : 'userCreate' ,
           data : { subscriberId : hook.data.id  }
         } );
@@ -43,7 +43,7 @@ module.exports = {
           runValidators: true,
           setDefaultsOnInsert: true
         }
-        return hook.app.service ( 'micronets/v1/mm/users' ).find ( { query : { id : params.query.id } } )
+        return hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : params.query.id } } )
           .then ( ( { data } ) => {
               if(data[0].id && !mongoose.Types.ObjectId.isValid(data[0].id))
               {
@@ -66,7 +66,7 @@ module.exports = {
                   let updatedUser = Object.assign ( {} , originalUser , originalUser.devices.push ( hook.data ) );
                   console.log ( '\n Updated user : ' + JSON.stringify ( updatedUser ) )
                   hook.data =  Object.assign ( {} , updatedUser );
-                  hook.app.service ( 'micronets/v1/mm/users' ).emit ( 'userDeviceAdd' , {
+                  hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceAdd' , {
                     type : 'userDeviceAdd' ,
                     data : { subscriberId : hook.data.id }
                   } );

@@ -15,7 +15,7 @@ module.exports = {
           runValidators: true,
           setDefaultsOnInsert: true
         }
-        return hook.app.service('/micronets/v1/mm/registry').find({ query })
+        return hook.app.service('/mm/v1/micronets/registry').find({ query })
           .then(({data}) => {
             console.log('\n Registry get service data : ' + JSON.stringify(data))
             if(data.length === 1) {

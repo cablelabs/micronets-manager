@@ -16,11 +16,11 @@ server.on('listening', () =>
 io.on('connection' , (() => logger.info('SOCKET IO CONNECTION ')))
 
 io.on('connection' , (socket) => {
-  app.service('/micronets/v1/mm/users').on('userCreate' ,(data) => {
+  app.service('/mm/v1/micronets/users').on('userCreate' ,(data) => {
      console.log('\n FeatherJS event userCreate fired with data : ' + JSON.stringify(data))
     socket.emit('userCreate', data);
   });
-  app.service('/micronets/v1/mm/users').on('userDeviceAdd' ,(data) => {
+  app.service('/mm/v1/micronets/users').on('userDeviceAdd' ,(data) => {
      console.log('\n FeatherJS event userDeviceAdd fired with data : ' + JSON.stringify(data))
     socket.emit('userDeviceAdd', data);
   });

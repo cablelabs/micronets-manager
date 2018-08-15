@@ -13,10 +13,10 @@ module.exports = function (app) {
   };
 
   // Initialize our service with any options it requires
-  app.use('/micronets/v1/mm/users', createService(options));
+  app.use('/mm/v1/micronets/users', createService(options));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('micronets/v1/mm/users');
+  const service = app.service('mm/v1/micronets/users');
 
   service.hooks(hooks);
 };

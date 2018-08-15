@@ -14,7 +14,7 @@ module.exports = {
         const { headers: { authorization }} = params
         const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
         let allHeaders = { headers : { 'Authorization' : authorization , crossDomain: true } };
-        let registry = await hook.app.service ( '/micronets/v1/mm/registry' ).get(null, {id:hook.data.subscriberId});
+        let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get(null, {id:hook.data.subscriberId});
        // let registry = await axios.get(`${hook.data.registryUrl}/micronets/v1/mm/registry/${hook.data.subscriberId}`,allHeaders)
         // Call configure url
         console.log('\n registry : ' + JSON.stringify(registry))
@@ -46,8 +46,8 @@ module.exports = {
                 isRegistered : false
               } )
             } )
-            const user = await hook.app.service ( 'micronets/v1/mm/users' ).find ( { query : { id : subscriber.data.id } } )
-             user.data.length == 0 ?  await hook.app.service ( 'micronets/v1/mm/users').create(sessionData , allHeaders ) :
+            const user = await hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : subscriber.data.id } } )
+             user.data.length == 0 ?  await hook.app.service ( 'mm/v1/micronets/users').create(sessionData , allHeaders ) :
                await hook.app.service ( 'micronets/v1/mm/users' ).patch ( null ,{
                  clientId : params.payload.clientID ,
                  deviceId : params.payload.deviceID ,
