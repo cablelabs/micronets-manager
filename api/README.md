@@ -173,7 +173,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
     
      
  ### 6. Micronets Static Config :
- Reflects the associated static configuration requried to create a micronet
+ Reflects the associated static configuration required to create a micronet
    
  #### url: POST `/mm/v1/micronets/config`
    
@@ -193,7 +193,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  ### 7. Initialize Micronet :
  Create default micronets
    
- #### url: POST `/mm/v1/micronet/init`
+ #### url: POST `/mm/v1/micronets/init`
    
     Header Fields:
       
@@ -242,7 +242,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                 "ssid" : "grandma-gw",
                 "devices" : [],
                 "micronets": {
-                    "micronet": [
+                    "subnets": [
                         {
                             "name": "Micronet_Medical",
                             "class": "Medical",
@@ -283,7 +283,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  ### 8. Create subnet in micronet :
  Create subnet in micronet
    
- #### url: POST `/mm/v1/micronet/subnet`
+ #### url: POST `/mm/v1/micronets/subnet`
    
     Header Fields:
       
@@ -332,9 +332,10 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
           "ssid" : "grandma-gw",
           "devices" : [],
           "micronets": {
-              "micronet": [
+              "subnets": [
                   {
                       "name": "Micronet_Wired",
+                      "class": "Wired",
                       "trunk-gateway-port": "1",
                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
                       "ovs-manager-ip": "10.36.32.55",
@@ -350,6 +351,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                   },
                   {
                       "name": "Micronet_Wireless",
+                      "class": "Wireless",
                       "trunk-gateway-port": "1",
                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
                       "ovs-manager-ip": "10.36.32.55",
@@ -372,7 +374,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
   
  Retrieves subnets in a micronet
   
- #### url: GET `/mm/v1/micronet/subnet`
+ #### url: GET `/mm/v1/micronets/subnet`
   
     Header Fields:
      
@@ -406,7 +408,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                     "micronets": {
                         "subnets": [
                             {
-                                "name": "Micronet_Wired_250",
+                                "name": "Micronet_Medical",
                                 "class" : "Medical"
                                 "trunk-gateway-port": "1",
                                 "connected-devices": [
@@ -428,7 +430,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                 "trunk-gateway-ip": "10.36.32.55"
                             },
                             {
-                                "name": "Micronet_Wired_251",
+                                "name": "Micronet_CableLabs",
                                 "class" : "CableLabs"
                                 "trunk-gateway-port": "1",
                                 "connected-devices": [
@@ -450,7 +452,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                 "trunk-gateway-ip": "10.36.32.55"
                             },
                             {
-                                "name": "Micronet_Wireless_252",
+                                "name": "Micronet_Entertainment",
                                 "class" : "Entertainment"
                                 "trunk-gateway-port": "1",
                                 "connected-devices": [
@@ -486,9 +488,9 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
    
  ### 10. Add devices in micronet :
    
- Add devices to an exisiting micronet
+ Add devices to an existing micronet
    
- #### url: POST `/mm/v1/micronet/subnet/:subnetId/device`
+ #### url: POST `/mm/v1/micronets/subnet/:subnetId/device`
    
     Header Fields:
       
@@ -578,9 +580,10 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                       }
                   ],
                           "micronets": {
-                              "micronet": [
+                              "subnets": [
                                   {
                                       "name": "Micronet_Wired_250",
+                                      "class" : "Wired_250",                       
                                       "trunk-gateway-port": "1",
                                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
                                       "ovs-manager-ip": "10.36.32.55",
@@ -605,6 +608,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                   },
                                   {
                                       "name": "Micronet_Wireless_252",
+                                      "class" : "Wireless_252",    
                                       "trunk-gateway-port": "1",
                                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
                                       "ovs-manager-ip": "10.36.32.55",
