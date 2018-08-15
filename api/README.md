@@ -101,7 +101,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  
  Associated user information.
  
- #### url: POST `/mm/v1/micronets/users`
+ #### url: GET `/mm/v1/micronets/users`
  
  Header Fields:
  
@@ -136,6 +136,19 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  
      content-type: "application/json"
      Authorization: "Bearer <JWT token>"
+     
+ POST Data:
+  
+      {
+            "subscriberId": "9XE3-JI34-00132A",
+            "identityUrl": "http://127.0.0.1:3230",
+            "dhcpUrl": "http://127.0.0.1:5000",
+            "mmUrl": "http://127.0.0.1:3030",
+            "mmClientUrl": "http://127.0.0.1:8080",
+            "websocketUrl": "wss://74.207.229.106:5050",
+            "msoPortalUrl": "http://127.0.0.1:3210",
+            "odlUrl": "http://127.0.0.1:18080"
+      }    
      
  #### Response:
  
