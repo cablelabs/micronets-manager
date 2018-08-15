@@ -1,7 +1,7 @@
 const { authenticate } = require ( '@feathersjs/authentication' ).hooks;
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
-const errors = require('feathers-errors');
+const errors = require('@feathersjs/errors')
 const mongoose = require('mongoose');
 
 module.exports = {

@@ -1,5 +1,5 @@
 # Micronets Manager API's
-Micronets Manager backend API's
+Micronets Manager Backend API's
 
 ## About
 
@@ -27,14 +27,14 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  
  The CSR "template" is just metadata that the client (device) needs when generating a CSR. For now, it is just the encryption type. In addition to the registration token (used to identify the registration context) we also provide the subscriberID, as at this point the subscriber has been authenticated and we know the subscriberID.
  
- #### url: POST `/micronets/v1/mm/csrt`
+ #### url: POST `/mm/v1/micronets/csrt`
  
  Header Fields:
  
      content-type: "application/json"
      Authorization: "Bearer <JWT token>"
  
- POST data:
+ POST Data:
  
      {
        "subscriberId": "9XE3-JI34-00132A"
@@ -68,14 +68,14 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  
  The CSR is submitted to the CA. A wifi certificate is created and signed. The wifi certificate, CA certificate are base64 encoded and returned as JSON along with subscriber metadata.
  
- #### url: POST `/micronets/v1/mm/cert`
+ #### url: POST `/mm/v1/micronets/cert`
  
  Header Fields:
  
      content-type: "application/json"
      Authorization: "Bearer <JWT token>"
  
- POST data:
+ POST Data:
  
      {
        "csr": "<base64 encoded CSR>"
@@ -101,7 +101,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  
  Associated user information.
  
- #### url: POST `/micronets/v1/mm/users`
+ #### url: POST `/mm/v1/micronets/users`
  
  Header Fields:
  
@@ -110,7 +110,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
      
  #### Response:
  
-    ```
     {
         "id": "9XE3-JI34-00132A",
         "name": "Grandma",
@@ -126,12 +125,12 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
             }
         ]
     }
-    ```
+   
     
  ### 4. Registry :
  Associated registry for each subscriber/user.
  
- #### url: POST `/micronets/v1/mm/registry`
+ #### url: POST `/mm/v1/micronets/registry`
  
  Header Fields:
  
@@ -140,7 +139,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
      
  #### Response:
  
-    ```
     {
            "subscriberId": "9XE3-JI34-00132A",
            "identityUrl": "http://127.0.0.1:3230",
@@ -150,9 +148,499 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
            "websocketUrl": "wss://74.207.229.106:5050",
            "msoPortalUrl": "http://127.0.0.1:3210"
     }
-    ```
- 
- 
+    
+    
+ ### 5. Gateway Status :
+ Reflects if the associated gateway is online or offline
+  
+ #### url: POST `/mm/v1/micronets/gwty/status`
+  
+ Header Fields:
+   
+       content-type: "application/json"
+   
+ POST Data:
+   
+       { TBD }
+   
+ #### Response:
+  
+     
+     { 
+       gatewayId: '123',
+       status: 'online'
+     }
+    
+     
+ ### 6. Micronets Static Config :
+ Reflects the associated static configuration requried to create a micronet
+   
+ #### url: POST `/mm/v1/micronets/config`
+   
+    Header Fields:
+    
+        content-type: "application/json"
+    
+ POST Data:
+    
+        { TBD }
+   
+ #### Response:
+     
+      { TBD }
+      
+     
+ ### 7. Initialize Micronet :
+ Create default micronets
+   
+ #### url: POST `/mm/v1/micronet/init`
+   
+    Header Fields:
+      
+      content-type: "application/json"
+      
+ POST Data:
+      
+          {
+                     "micronets" : {
+                       "micronet" : [
+                         {
+                           "name" : "Micronet_Medical",
+                           "micronet-subnet-id": "WIRED_enp4s0",
+                           "micronet-subnet" : "192.168.250.0/24",
+                           "micronet-gateway-ip" : "192.168.250.1",
+                           "trunk-gateway-port" : "{{port_trunk}}",
+                           "trunk-gateway-ip" : "{{ovshost}}",
+                           "dhcp-server-port" : "{{port_bridge}}",
+                           "dhcp-zone" : "192.168.250.0/24",
+                           "ovs-bridge-name" : "{{bridge}}",
+                           "ovs-manager-ip" : "{{ovshost}}",
+                           "connected-devices" : []
+                         },
+                         {
+                           "name" : "Micronet_CableLabs",
+                           "micronet-subnet-id": "WIRELESS_wlp2s0",
+                           "micronet-subnet" : "192.168.251.0/24",
+                           "micronet-gateway-ip" : "192.168.251.1",
+                           "trunk-gateway-port" : "{{port_trunk}}",
+                           "trunk-gateway-ip" : "{{ovshost}}",
+                           "dhcp-server-port" : "{{port_bridge}}",
+                           "dhcp-zone" : "192.168.251.0/24",
+                           "ovs-bridge-name" : "{{bridge}}",
+                           "ovs-manager-ip" : "{{ovshost}}",
+                           "connected-devices" : []
+                         }
+                       ]
+                     }
+                   }
+   
+ #### Response:
+   
+      {  
+                "id" : "7B2A-BE88-08817Z",
+                "name" : "Grandma's LINKSYS 1900",
+                "ssid" : "grandma-gw",
+                "devices" : [],
+                "micronets": {
+                    "micronet": [
+                        {
+                            "name": "Micronet_Medical",
+                            "class": "Medical",
+                            "trunk-gateway-port": "1",
+                            "micronet-bridge-openflow-node-id": "openflow:2945788526319",
+                            "ovs-manager-ip": "10.36.32.55",
+                            "dhcp-server-port": "LOCAL",
+                            "micronet-subnet-id": "WIRED_enp4s0",
+                            "dhcp-zone": "192.168.250.0/24",
+                            "micronet-id": 1534270984,
+                            "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
+                            "micronet-subnet": "192.168.250.0/24",
+                            "micronet-gateway-ip": "192.168.250.1",
+                            "ovs-bridge-name": "brmn001",
+                            "trunk-gateway-ip": "10.36.32.55"
+                        },
+                        {
+                            "name": "Micronet_CableLabs",
+                            "class": "CableLabs",
+                            "trunk-gateway-port": "1",
+                            "micronet-bridge-openflow-node-id": "openflow:2945788526319",
+                            "ovs-manager-ip": "10.36.32.55",
+                            "dhcp-server-port": "LOCAL",
+                            "micronet-subnet-id": "WIRELESS_wlp2s0",
+                            "dhcp-zone": "192.168.251.0/24",
+                            "micronet-id": 1534270985,
+                            "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
+                            "micronet-subnet": "192.168.251.0/24",
+                            "micronet-gateway-ip": "192.168.251.1",
+                            "ovs-bridge-name": "brmn001",
+                            "trunk-gateway-ip": "10.36.32.55"
+                        }
+                    ]
+                }
+      }
+      
+      
+ ### 8. Create subnet in micronet :
+ Create subnet in micronet
+   
+ #### url: POST `/mm/v1/micronet/subnet`
+   
+    Header Fields:
+      
+          content-type: "application/json"
+      
+ POST data:
+      
+          {
+            "micronets" : {
+              "micronet" : [
+                {
+                  "name" : "Micronet_Wired",
+                  "micronet-subnet-id": "WIRED_enp4s0",
+                  "micronet-subnet" : "192.168.250.0/24",
+                  "micronet-gateway-ip" : "192.168.250.1",
+                  "trunk-gateway-port" : "{{port_trunk}}",
+                  "trunk-gateway-ip" : "{{ovshost}}",
+                  "dhcp-server-port" : "{{port_bridge}}",
+                  "dhcp-zone" : "192.168.250.0/24",
+                  "ovs-bridge-name" : "{{bridge}}",
+                  "ovs-manager-ip" : "{{ovshost}}",
+                  "connected-devices" : []
+                },
+                {
+                  "name" : "Micronet_Wireless",
+                  "micronet-subnet-id": "WIRELESS_wlp2s0",
+                  "micronet-subnet" : "192.168.251.0/24",
+                  "micronet-gateway-ip" : "192.168.251.1",
+                  "trunk-gateway-port" : "{{port_trunk}}",
+                  "trunk-gateway-ip" : "{{ovshost}}",
+                  "dhcp-server-port" : "{{port_bridge}}",
+                  "dhcp-zone" : "192.168.251.0/24",
+                  "ovs-bridge-name" : "{{bridge}}",
+                  "ovs-manager-ip" : "{{ovshost}}",
+                  "connected-devices" : []
+                }
+              ]
+            }
+          }
+   
+ #### Response:
+   
+      
+      {   "id" : "7B2A-BE88-08817Z",
+          "name" : "Grandma's LINKSYS 1900",
+          "ssid" : "grandma-gw",
+          "devices" : [],
+          "micronets": {
+              "micronet": [
+                  {
+                      "name": "Micronet_Wired",
+                      "trunk-gateway-port": "1",
+                      "micronet-bridge-openflow-node-id": "openflow:2945788526319",
+                      "ovs-manager-ip": "10.36.32.55",
+                      "dhcp-server-port": "LOCAL",
+                      "micronet-subnet-id": "WIRED_enp4s0",
+                      "dhcp-zone": "192.168.250.0/24",
+                      "micronet-id": 1534270984,
+                      "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
+                      "micronet-subnet": "192.168.250.0/24",
+                      "micronet-gateway-ip": "192.168.250.1",
+                      "ovs-bridge-name": "brmn001",
+                      "trunk-gateway-ip": "10.36.32.55"
+                  },
+                  {
+                      "name": "Micronet_Wireless",
+                      "trunk-gateway-port": "1",
+                      "micronet-bridge-openflow-node-id": "openflow:2945788526319",
+                      "ovs-manager-ip": "10.36.32.55",
+                      "dhcp-server-port": "LOCAL",
+                      "micronet-subnet-id": "WIRELESS_wlp2s0",
+                      "dhcp-zone": "192.168.251.0/24",
+                      "micronet-id": 1534270985,
+                      "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
+                      "micronet-subnet": "192.168.251.0/24",
+                      "micronet-gateway-ip": "192.168.251.1",
+                      "ovs-bridge-name": "brmn001",
+                      "trunk-gateway-ip": "10.36.32.55"
+                  }
+              ]
+          }
+      }
+      
+     
+ ### 9. Retrieve subnets :
+  
+ Retrieves subnets in a micronet
+  
+ #### url: GET `/mm/v1/micronet/subnet`
+  
+    Header Fields:
+     
+         content-type: "application/json"
+         
+ #### Response:
+        
+        {      "id" : "7B2A-BE88-08817Z",
+               "name" : "Grandma's LINKSYS 1900",
+               "ssid" : "grandma-gw",
+               "devices" : [ 
+                   {
+                       "clientId" : "https://ST-healthcare.org/",
+                       "deviceId" : "h2h0h43188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
+                       "macAddress" : "b8:27:eb:8d:30:27",
+                       "class" : "Medical"
+                   },
+                   {
+                        "clientId" : "https://ST-healthcare.org/",
+                        "deviceId" : "j2h0j42188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
+                        "macAddress" : "b8:27:eb:df:ae:a7",
+                        "class" : "CableLabs"
+                   },
+                   {
+                        "clientId" : "https://ST-healthcare.org/",
+                        "deviceId" : "e2h0e52188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
+                        "macAddress" : "b8:27:eb:ab:41:12",
+                        "class" : "Entertainment"
+                   }
+               ],
+                    "micronets": {
+                        "subnets": [
+                            {
+                                "name": "Micronet_Wired_250",
+                                "class" : "Medical"
+                                "trunk-gateway-port": "1",
+                                "connected-devices": [
+                                    {
+                                        "device-mac": "b8:27:eb:8d:30:27",
+                                        "device-ip": "192.168.250.2",
+                                        "device-openflow-port": "2",
+                                        "device-name": "pia",
+                                        "device-id": "Raspberry-Pi3-Model-B-v1.2"
+                                    }
+                                ],
+                                "ovs-manager-ip": "10.36.32.55",
+                                "micronet-subnet": "192.168.250.0/24",
+                                "dhcp-server-port": "LOCAL",
+                                "micronet-gateway-ip": "192.168.250.1",
+                                "ovs-bridge-name": "brmn001",
+                                "micronet-subnet-id": "WIRED_enp4s0",
+                                "dhcp-zone": "10.36.32.0/24",
+                                "trunk-gateway-ip": "10.36.32.55"
+                            },
+                            {
+                                "name": "Micronet_Wired_251",
+                                "class" : "CableLabs"
+                                "trunk-gateway-port": "1",
+                                "connected-devices": [
+                                    {
+                                        "device-mac": "b8:27:eb:df:ae:a7",
+                                        "device-ip": "192.168.251.2",
+                                        "device-openflow-port": "3",
+                                        "device-name": "pib",
+                                        "device-id": "Raspberry-Pi3-Model-B-v1.2"
+                                    }
+                                ],
+                                "ovs-manager-ip": "10.36.32.55",
+                                "micronet-subnet": "192.168.251.0/24",
+                                "dhcp-server-port": "LOCAL",
+                                "micronet-gateway-ip": "192.168.251.1",
+                                "ovs-bridge-name": "brmn001",
+                                "micronet-subnet-id": "WIRED_enp4s0",
+                                "dhcp-zone": "192.168.251.0/24",
+                                "trunk-gateway-ip": "10.36.32.55"
+                            },
+                            {
+                                "name": "Micronet_Wireless_252",
+                                "class" : "Entertainment"
+                                "trunk-gateway-port": "1",
+                                "connected-devices": [
+                                    {
+                                        "device-mac": "b8:27:eb:ab:41:12",
+                                        "device-ip": "192.168.252.2",
+                                        "device-openflow-port": "4",
+                                        "device-name": "picw",
+                                        "device-id": "Raspberry-Pi3-Model-B-v1.2"
+                                    },
+                                    {
+                                        "device-mac": "b8:27:eb:19:11:87",
+                                        "device-ip": "192.168.252.3",
+                                        "device-openflow-port": "4",
+                                        "device-name": "pidw",
+                                        "device-id": "Raspberry-Pi3-Model-B-v1.2"
+                                    }
+                                ],
+                                "ovs-manager-ip": "10.36.32.55",
+                                "micronet-subnet": "192.168.252.0/24",
+                                "dhcp-server-port": "LOCAL",
+                                "micronet-gateway-ip": "192.168.252.1",
+                                "ovs-bridge-name": "brmn001",
+                                "micronet-subnet-id": "WIRELESS_wlp2s0",
+                                "dhcp-zone": "10.36.32.0/24",
+                                "trunk-gateway-ip": "10.36.32.55"
+                            }
+                        ]
+                    }
+         }
+        
+   
+   
+ ### 10. Add devices in micronet :
+   
+ Add devices to an exisiting micronet
+   
+ #### url: POST `/mm/v1/micronet/subnet/:subnetId/device`
+   
+    Header Fields:
+      
+          content-type: "application/json"
+    
+ POST Data:
+          
+              {
+                "micronets" : {
+                  "micronet" : [
+                    {
+                      "name" : "Micronet_Wired_250",
+                      "micronet-subnet-id": "WIRED_enp4s0",
+                      "micronet-subnet" : "192.168.250.0/24",
+                      "micronet-gateway-ip" : "192.168.250.1",
+                      "trunk-gateway-port" : "{{port_trunk}}",
+                      "trunk-gateway-ip" : "{{ovshost}}",
+                      "dhcp-server-port" : "{{port_bridge}}",
+                      "dhcp-zone" : "10.36.32.0/24",
+                      "ovs-bridge-name" : "{{bridge}}",
+                      "ovs-manager-ip" : "{{ovshost}}",
+                      "connected-devices" : [
+                          {
+                            "device-name": "pia",
+                            "device-id": "Raspberry-Pi3-Model-B-v1.2",
+                            "device-mac" : "b8:27:eb:8d:30:27",
+                            "device-ip" : "192.168.250.2",
+                            "device-openflow-port" : "{{port_wired}}"
+                          }
+                      ]
+                    },
+                    {
+                      "name" : "Micronet_Wireless_252",
+                      "micronet-subnet-id": "WIRELESS_wlp2s0",
+                      "micronet-subnet" : "192.168.252.0/24",
+                      "micronet-gateway-ip" : "192.168.252.1",
+                      "trunk-gateway-port" : "{{port_trunk}}",
+                      "trunk-gateway-ip" : "{{ovshost}}",
+                      "dhcp-server-port" : "{{port_bridge}}",
+                      "dhcp-zone" : "10.36.32.0/24",
+                      "ovs-bridge-name" : "{{bridge}}",
+                      "ovs-manager-ip" : "{{ovshost}}",
+                        "connected-devices" : [
+                          {
+                            "device-name": "picw",
+                            "device-id": "Raspberry-Pi3-Model-B-v1.2",
+                            "device-mac" : "b8:27:eb:ab:41:12",
+                            "device-ip" : "192.168.252.2",
+                            "device-openflow-port" : "{{port_wireless}}"
+                          },
+                          {
+                            "device-name": "pidw",
+                            "device-id": "Raspberry-Pi3-Model-B-v1.2",
+                            "device-mac" : "b8:27:eb:19:11:87",
+                            "device-ip" : "192.168.252.3",
+                            "device-openflow-port" : "{{port_wireless}}"
+                          }
+                        ]
+                    }
+                  ]
+                }
+              } 
+          
+ #### Response:
+   
+           {      "id" : "7B2A-BE88-08817Z",
+                  "name" : "Grandma's LINKSYS 1900",
+                  "ssid" : "grandma-gw",
+                  "devices" : [ 
+                      {
+                          "clientId" : "https://ST-healthcare.org/",
+                          "deviceId" : "h2h0h43188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
+                          "macAddress" : "b8:27:eb:8d:30:27",
+                          "class" : "Medical"
+                      },
+                      {
+                           "clientId" : "https://ST-healthcare.org/",
+                           "deviceId" : "j2h0j42188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
+                           "macAddress" : "b8:27:eb:df:ae:a7",
+                           "class" : "CableLabs"
+                      },
+                      {
+                           "clientId" : "https://ST-healthcare.org/",
+                           "deviceId" : "e2h0e52188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
+                           "macAddress" : "b8:27:eb:ab:41:12",
+                           "class" : "Entertainment"
+                      }
+                  ],
+                          "micronets": {
+                              "micronet": [
+                                  {
+                                      "name": "Micronet_Wired_250",
+                                      "trunk-gateway-port": "1",
+                                      "micronet-bridge-openflow-node-id": "openflow:2945788526319",
+                                      "ovs-manager-ip": "10.36.32.55",
+                                      "dhcp-server-port": "LOCAL",
+                                      "micronet-subnet-id": "WIRED_enp4s0",
+                                      "dhcp-zone": "10.36.32.0/24",
+                                      "micronet-id": 1533936267,
+                                      "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
+                                      "connected-devices": [
+                                          {
+                                              "device-mac": "b8:27:eb:8d:30:27",
+                                              "device-ip": "192.168.250.2",
+                                              "device-openflow-port": "2",
+                                              "device-name": "pia",
+                                              "device-id": "Raspberry-Pi3-Model-B-v1.2"
+                                          }
+                                      ],
+                                      "micronet-subnet": "192.168.250.0/24",
+                                      "micronet-gateway-ip": "192.168.250.1",
+                                      "ovs-bridge-name": "brmn001",
+                                      "trunk-gateway-ip": "10.36.32.55"
+                                  },
+                                  {
+                                      "name": "Micronet_Wireless_252",
+                                      "trunk-gateway-port": "1",
+                                      "micronet-bridge-openflow-node-id": "openflow:2945788526319",
+                                      "ovs-manager-ip": "10.36.32.55",
+                                      "dhcp-server-port": "LOCAL",
+                                      "micronet-subnet-id": "WIRELESS_wlp2s0",
+                                      "dhcp-zone": "10.36.32.0/24",
+                                      "micronet-id": 1533936269,
+                                      "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
+                                      "connected-devices": [
+                                          {
+                                              "device-mac": "b8:27:eb:ab:41:12",
+                                              "device-ip": "192.168.252.2",
+                                              "device-openflow-port": "4",
+                                              "device-name": "picw",
+                                              "device-id": "Raspberry-Pi3-Model-B-v1.2"
+                                          },
+                                          {
+                                              "device-mac": "b8:27:eb:19:11:87",
+                                              "device-ip": "192.168.252.3",
+                                              "device-openflow-port": "4",
+                                              "device-name": "pidw",
+                                              "device-id": "Raspberry-Pi3-Model-B-v1.2"
+                                          }
+                                      ],
+                                      "micronet-subnet": "192.168.252.0/24",
+                                      "micronet-gateway-ip": "192.168.252.1",
+                                      "ovs-bridge-name": "brmn001",
+                                      "trunk-gateway-ip": "10.36.32.55"
+                                  }
+                              ]
+                          }
+                      
+           }
+           
+      
+        
  ## Getting Started
  
  Getting up and running is as easy as 1, 2, 3.
@@ -161,7 +649,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  2. Install your dependencies
  
      ```
-     cd path/to/micronets-manager-backend; npm install
+     cd path/to/micronets-manager; npm install
      ```
  
  3. Start your app
