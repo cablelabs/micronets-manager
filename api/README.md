@@ -146,7 +146,8 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
            "mmUrl": "http://127.0.0.1:3030",
            "mmClientUrl": "http://127.0.0.1:8080",
            "websocketUrl": "wss://74.207.229.106:5050",
-           "msoPortalUrl": "http://127.0.0.1:3210"
+           "msoPortalUrl": "http://127.0.0.1:3210",
+           "odlUrl": "http://127.0.0.1:18080"
     }
     
     
