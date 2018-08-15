@@ -564,19 +564,19 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                           "clientId" : "https://ST-healthcare.org/",
                           "deviceId" : "h2h0h43188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
                           "macAddress" : "b8:27:eb:8d:30:27",
-                          "class" : "Medical"
+                          "class" : "Wired_250"
                       },
                       {
                            "clientId" : "https://ST-healthcare.org/",
                            "deviceId" : "j2h0j42188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
                            "macAddress" : "b8:27:eb:df:ae:a7",
-                           "class" : "CableLabs"
+                           "class" : "Wireless_252"
                       },
                       {
                            "clientId" : "https://ST-healthcare.org/",
                            "deviceId" : "e2h0e52188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
                            "macAddress" : "b8:27:eb:ab:41:12",
-                           "class" : "Entertainment"
+                           "class" : "Wireless_252"
                       }
                   ],
                           "micronets": {
