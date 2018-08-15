@@ -283,7 +283,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  ### 8. Create subnet in micronet :
  Create subnet in micronet
    
- #### url: POST `/mm/v1/micronets/subnet`
+ #### url: POST `/mm/v1/micronets/:micronetId/subnet`
    
     Header Fields:
       
@@ -374,7 +374,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
   
  Retrieves subnets in a micronet
   
- #### url: GET `/mm/v1/micronets/subnet`
+ #### url: GET `/mm/v1/micronets/:micronetId/subnets`
   
     Header Fields:
      
@@ -462,13 +462,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                         "device-openflow-port": "4",
                                         "device-name": "picw",
                                         "device-id": "Raspberry-Pi3-Model-B-v1.2"
-                                    },
-                                    {
-                                        "device-mac": "b8:27:eb:19:11:87",
-                                        "device-ip": "192.168.252.3",
-                                        "device-openflow-port": "4",
-                                        "device-name": "pidw",
-                                        "device-id": "Raspberry-Pi3-Model-B-v1.2"
                                     }
                                 ],
                                 "ovs-manager-ip": "10.36.32.55",
@@ -490,7 +483,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
    
  Add devices to an existing micronet
    
- #### url: POST `/mm/v1/micronets/subnet/:subnetId/device`
+ #### url: POST `/mm/v1/micronets/:micronetId/subnets/:subnetId/device`
    
     Header Fields:
       
