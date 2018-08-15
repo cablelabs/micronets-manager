@@ -20,31 +20,31 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
 
  1. MongoDB - https://www.mongodb.com/
  2. Mongoose - http://mongoosejs.com/
- 
+
  ## API
- 
+
  ### 1. Request CSR Template
- 
+
  The CSR "template" is just metadata that the client (device) needs when generating a CSR. For now, it is just the encryption type. In addition to the registration token (used to identify the registration context) we also provide the subscriberID, as at this point the subscriber has been authenticated and we know the subscriberID.
- 
+
  #### url: POST `/mm/v1/micronets/csrt`
- 
+
  Header Fields:
- 
+
      content-type: "application/json"
      Authorization: "Bearer <JWT token>"
- 
+
  POST Data:
- 
+
      {
        "subscriberId": "9XE3-JI34-00132A"
      }
- 
+
  The `subscriberId` identifies a subscriber account. The Registration Server obtains this when the subscriber authenticates using the clinic browser (eg. scanning QR Code)
- 
+
  #### Response:
  (optional debug: contents of the registration context)
- 
+
  	{
  	  "csrTemplate": {
  	    "keyType": "RSA:2048"
@@ -63,29 +63,29 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  	    }
  	  }
  	}
- 	
+
  ### 2. Submit CSR:
- 
+
  The CSR is submitted to the CA. A wifi certificate is created and signed. The wifi certificate, CA certificate are base64 encoded and returned as JSON along with subscriber metadata.
- 
+
  #### url: POST `/mm/v1/micronets/cert`
- 
+
  Header Fields:
- 
+
      content-type: "application/json"
      Authorization: "Bearer <JWT token>"
- 
+
  POST Data:
- 
+
      {
        "csr": "<base64 encoded CSR>"
      }
- 
+
  **NOTE:** The CSR, wifiCert and caCert are base64 encoded to preserve line endings. **REQUIRED!**
- 
+
  #### Response:
  The response is ultimately returned to the device.
- 
+
      {
  	  "subscriber": {
  		"id": 9XE3-JI34-00132A,
@@ -95,21 +95,21 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  	  "wifiCert": "<base64 encoded WiFi Certificate>",
  	  "caCert": "<base64 encoded CA Certificate>"
      }
-     
- 
+
+
  ### 3. Users :
- 
+
  Associated user information.
- 
+
  #### url: POST `/mm/v1/micronets/users`
- 
+
  Header Fields:
- 
+
      content-type: "application/json"
      Authorization: "Bearer <JWT token>"
-     
+
  #### Response:
- 
+
     {
         "id": "9XE3-JI34-00132A",
         "name": "Grandma",
@@ -125,20 +125,20 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
             }
         ]
     }
-   
-    
+
+
  ### 4. Registry :
  Associated registry for each subscriber/user.
- 
+
  #### url: POST `/mm/v1/micronets/registry`
- 
+
  Header Fields:
- 
+
      content-type: "application/json"
      Authorization: "Bearer <JWT token>"
-     
+
  #### Response:
- 
+
     {
            "subscriberId": "9XE3-JI34-00132A",
            "identityUrl": "http://127.0.0.1:3230",
@@ -149,59 +149,84 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
            "msoPortalUrl": "http://127.0.0.1:3210",
            "odlUrl": "http://127.0.0.1:18080"
     }
-    
-    
+
+
  ### 5. Gateway Status :
  Reflects if the associated gateway is online or offline
-  
+
  #### url: POST `/mm/v1/micronets/gwty/status`
-  
+
  Header Fields:
-   
+
        content-type: "application/json"
-   
+       Authorization: TBD
+
  POST Data:
-   
-       { TBD }
-   
+
+      {
+        gatewayId: '123',
+        timestamp: "20180815T142345-0600",
+        uptime: 1234.567
+      }
+
  #### Response:
-  
-     
-     { 
+
+
+     {
        gatewayId: '123',
        status: 'online'
      }
-    
-     
+
+
  ### 6. Micronets Static Config :
  Reflects the associated static configuration required to create a micronet
-   
+
  #### url: POST `/mm/v1/micronets/config`
-   
+
     Header Fields:
-    
+
         content-type: "application/json"
-    
+        Authorization: TBD
+
  POST Data:
-    
-        { TBD }
-   
+
+ {
+   gatewayId: '123',
+   hw_model_id: '123456-789',
+   'ovs-version': '2.9.2',
+   bridges: [
+     {
+       bridge: 'brmn001',
+       ports: [
+         { port: 1, interface: 'enp3s0',        hwtype: 'trunk', subnet: '10.36.32.0/24', ipv4: "10.36.32.55", hwaddr: '02:ad:de:ad:be:ef', vlanid: 0 },
+         { port: 2, interface: 'enp4s0',        hwtype: 'wired', subnet: '192.168.250.0/24', vlanid: 0 },
+         { port: 3, interface: 'enp5s0',        hwtype: 'wired', subnet: '192.168.251.0/24', vlanid: 0 },
+         { port: 4, interface: 'veth00001.128', hwtype: 'wifi',  subnet: '192.168.252.0/24', vlanid: 128 },
+         { port: 4, interface: 'veth00001.129', hwtype: 'wifi',  subnet: '192.168.253.0/24', vlanid: 129 },
+         { port: 4, interface: 'veth00001.130', hwtype: 'wifi',  subnet: '192.168.254.0/24', vlanid: 130 },
+         { port: 4, interface: 'veth00001.131', hwtype: 'wifi',  subnet: '192.168.255.0/24', vlanid: 131 }
+       ]
+     }
+   ]
+ }
+
+
  #### Response:
-     
-      { TBD }
-      
-     
+
+      none.
+
+
  ### 7. Initialize Micronet :
  Create default micronets
-   
+
  #### url: POST `/mm/v1/micronets/init`
-   
+
     Header Fields:
-      
+
       content-type: "application/json"
-      
+
  POST Data:
-      
+
           {
                      "micronets" : {
                        "micronet" : [
@@ -234,10 +259,10 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                        ]
                      }
                    }
-   
+
  #### Response:
-   
-      {  
+
+      {
                 "id" : "7B2A-BE88-08817Z",
                 "name" : "Grandma's LINKSYS 1900",
                 "ssid" : "grandma-gw",
@@ -279,19 +304,19 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                     ]
                 }
       }
-      
-      
+
+
  ### 8. Create subnet in micronet :
  Create subnet in micronet
-   
+
  #### url: POST `/mm/v1/micronets/:micronetId/subnet`
-   
+
     Header Fields:
-      
+
           content-type: "application/json"
-      
+
  POST data:
-      
+
           {
             "micronets" : {
               "micronet" : [
@@ -324,10 +349,10 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
               ]
             }
           }
-   
+
  #### Response:
-   
-      
+
+
       {   "id" : "7B2A-BE88-08817Z",
           "name" : "Grandma's LINKSYS 1900",
           "ssid" : "grandma-gw",
@@ -369,24 +394,24 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
               ]
           }
       }
-      
-     
+
+
  ### 9. Retrieve subnets :
-  
+
  Retrieves subnets in a micronet
-  
+
  #### url: GET `/mm/v1/micronets/:micronetId/subnets`
-  
+
     Header Fields:
-     
+
          content-type: "application/json"
-         
+
  #### Response:
-        
+
         {      "id" : "7B2A-BE88-08817Z",
                "name" : "Grandma's LINKSYS 1900",
                "ssid" : "grandma-gw",
-               "devices" : [ 
+               "devices" : [
                    {
                        "clientId" : "https://ST-healthcare.org/",
                        "deviceId" : "h2h0h43188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
@@ -477,21 +502,21 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                         ]
                     }
          }
-        
-   
-   
+
+
+
  ### 10. Add devices in micronet :
-   
+
  Add devices to an existing micronet
-   
+
  #### url: POST `/mm/v1/micronets/:micronetId/subnets/:subnetId/device`
-   
+
     Header Fields:
-      
+
           content-type: "application/json"
-    
+
  POST Data:
-          
+
               {
                 "micronets" : {
                   "micronet" : [
@@ -546,14 +571,14 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                     }
                   ]
                 }
-              } 
-          
+              }
+
  #### Response:
-   
+
            {      "id" : "7B2A-BE88-08817Z",
                   "name" : "Grandma's LINKSYS 1900",
                   "ssid" : "grandma-gw",
-                  "devices" : [ 
+                  "devices" : [
                       {
                           "clientId" : "https://ST-healthcare.org/",
                           "deviceId" : "h2h0h43188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
@@ -577,7 +602,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                               "subnets": [
                                   {
                                       "name": "Micronet_Wired_250",
-                                      "class" : "Wired_250",                       
+                                      "class" : "Wired_250",
                                       "trunk-gateway-port": "1",
                                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
                                       "ovs-manager-ip": "10.36.32.55",
@@ -602,7 +627,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                   },
                                   {
                                       "name": "Micronet_Wireless_252",
-                                      "class" : "Wireless_252",    
+                                      "class" : "Wireless_252",
                                       "trunk-gateway-port": "1",
                                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
                                       "ovs-manager-ip": "10.36.32.55",
@@ -634,57 +659,57 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                   }
                               ]
                           }
-                      
+
            }
-           
-      
-        
+
+
+
  ## Getting Started
- 
+
  Getting up and running is as easy as 1, 2, 3.
- 
+
  1. Make sure you have [NodeJS](https://nodejs.org/) and [npm](https://www.npmjs.com/) installed.
  2. Install your dependencies
- 
+
      ```
      cd path/to/micronets-manager; npm install
      ```
- 
+
  3. Start your app
- 
+
      ```
      npm start
      ```
- 
+
  ## Testing
- 
+
  Simply run `npm test` and all your tests in the `test/` directory will be run.
- 
+
  ## Scaffolding
- 
+
  Feathers has a powerful command line interface. Here are a few things it can do:
- 
+
  ```
  $ npm install -g @feathersjs/cli          # Install Feathers CLI
- 
+
  $ feathers generate service               # Generate a new Service
  $ feathers generate hook                  # Generate a new Hook
  $ feathers generate model                 # Generate a new Model
  $ feathers help                           # Show all commands
  ```
- 
+
  ## Help
- 
+
  For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).
- 
+
  ## Changelog
- 
+
  __0.1.0__
- 
+
  - Initial release
- 
+
  ## License
- 
+
  Copyright (c) 2018
- 
+
  Licensed under the [MIT license](LICENSE).
