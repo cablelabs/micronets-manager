@@ -3,6 +3,7 @@ const certificates = require('./certificates/certificates.service.js');
 const csrt = require('./csrt/csrt.service.js');
 const registry = require('./registry/registry.service.js');
 const users = require('./users/users.service.js');
+const gateway = require('./gateway/gateway.service.js');
 // eslint-disable-next-line no-unused-vars
 module.exports = function (app) {
   app.configure(token);
@@ -10,4 +11,5 @@ module.exports = function (app) {
   app.configure(csrt);
   app.configure(registry);
   app.configure(users);
+  app.configure(gateway);
 };
