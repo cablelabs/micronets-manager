@@ -46,9 +46,9 @@ module.exports = {
                 isRegistered : false
               } )
             } )
-            const user = await hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : subscriber.data.id } } )
-             user.data.length == 0 ?  await hook.app.service ( 'mm/v1/micronets/users').create(sessionData , allHeaders ) :
-               await hook.app.service ( 'micronets/v1/mm/users' ).patch ( null ,{
+            const user = await hook.app.service ( '/mm/v1/micronets/users' ).find ( { query : { id : subscriber.data.id } } )
+             user.data.length == 0 ?  await hook.app.service ( '/mm/v1/micronets/users').create(sessionData , allHeaders ) :
+               await hook.app.service ( '/mm/v1/micronets/users' ).patch ( null ,{
                  clientId : params.payload.clientID ,
                  deviceId : params.payload.deviceID ,
                  macAddress : params.payload.macAddress ,

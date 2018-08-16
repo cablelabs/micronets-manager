@@ -16,7 +16,7 @@ module.exports = function (app) {
   app.use('/mm/v1/micronets/users', createService(options));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('mm/v1/micronets/users');
+  const service = app.service('/mm/v1/micronets/users');
 
   service.hooks(hooks);
 };
