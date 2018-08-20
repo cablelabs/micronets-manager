@@ -30,7 +30,7 @@
   },
   "scripts": {
     "lint": "eslint-if-supported semistandard --fix",
-    "start": "nodemon api/",
+    "start": "npm install && nodemon api/",
     "docker-build": "docker build -t code.cablelabs.com:4567/micronets/micronets-manager-backend .",
     "docker-publish": "docker login code.cablelabs.com:4567; docker push code.cablelabs.com:4567/micronets/micronets-manager-backend",
     "mocha": "mocha test/ --recursive --exit",
