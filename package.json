@@ -66,6 +66,7 @@
     "feathers-mongodb": "^3.2.0",
     "feathers-mongoose": "^6.1.2",
     "helmet": "^3.12.1",
+    "moment": "^2.22.2",
     "mongodb": "^3.0.10",
     "mongoose": "^5.2.1",
     "nodemon": "^1.17.5",

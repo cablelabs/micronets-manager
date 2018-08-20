@@ -6,9 +6,10 @@ module.exports = function (app) {
   const mongooseClient = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const gateway = new Schema({
-    gatewayId: { type: String, required: true },
-    timestamp: { type: Date, required: false },
-    uptime: {type: Number, required: false}
+    gatewayId: { type: String, required: true, unique: true, primaryKey: true },
+    timeStamp: { type: String, required: true },
+    uptime: {type: Number, required: false},
+    status: {type:String, required:false}
   }, {
     timestamps: true
   });

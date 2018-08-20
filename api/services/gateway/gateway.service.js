@@ -13,10 +13,10 @@ module.exports = function (app) {
   };
 
   // Initialize our service with any options it requires
-  app.use('/mm/v1/micronets/gateway/status', createService(options));
+  app.use('/mm/v1/micronets/gtwystatus', createService(options));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('mm/v1/micronets/gateway/status');
+  const service = app.service('mm/v1/micronets/gtwystatus');
 
   service.hooks(hooks);
 };
