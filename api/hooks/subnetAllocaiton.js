@@ -63,6 +63,7 @@ module.exports.getNewSubnet = function (vlan) {
         me.currentSubnet = {
           subnet: me.nextSubnet,
           micronetSubnet: network.address,
+          cdir: network.subnetMask,
           mask: mask.addressMinusSuffix,
           micronetGatewayIp: gateway.addressMinusSuffix,
           vlan: vlan
@@ -80,7 +81,6 @@ module.exports.getNewSubnet = function (vlan) {
 
 module.exports.getNewIps = function (subnet, devices) {
   let me = this;
-  console.log('Get New IPs')
   return new Promise(async function (resolve, reject) {
     if (!subnet) {
       reject(new Error("Subnet cannot be undefined"))
@@ -149,15 +149,12 @@ function allocateSubnet(me) {
       }
       else {
         if (results.length === 0) {
-          console.log('empty ' + me.SUBNET_MIN);
           me.nextSubnet = me.SUBNET_MIN;
         }
         else {
-          console.log('not empty');
           me.nextSubnet = 1;
           for (let i = 0; i < results.length; i++) {
             if (results[i].subnet >= me.nextSubnet) {
-              console.log(results[i].subnet);
               me.nextSubnet = results[i].subnet + me.SUBNET_OFFSET
             }
           }
@@ -194,7 +191,7 @@ function allocateHost(device, me) {
     return (new Error('No Host IPs available on subnet ' + me.currentSubnet.subnet))
   }
   else {
-    let host = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.currentSubnet.subnet + '.' + me.nextAvailableHost + '/24');
+    let host = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.currentSubnet.subnet + '.' + me.nextAvailableHost + '/' + me.currentSubnet.cdir);
     device.deviceIp = host.addressMinusSuffix;
     device.host = me.nextAvailableHost;
     return device;
