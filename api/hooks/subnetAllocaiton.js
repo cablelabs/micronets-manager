@@ -63,7 +63,7 @@ module.exports.getNewSubnet = function (vlan) {
         me.currentSubnet = {
           subnet: me.nextSubnet,
           micronetSubnet: network.address,
-          cdir: network.subnetMask,
+          cidr: network.subnetMask,
           mask: mask.addressMinusSuffix,
           micronetGatewayIp: gateway.addressMinusSuffix,
           vlan: vlan
@@ -191,7 +191,7 @@ function allocateHost(device, me) {
     return (new Error('No Host IPs available on subnet ' + me.currentSubnet.subnet))
   }
   else {
-    let host = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.currentSubnet.subnet + '.' + me.nextAvailableHost + '/' + me.currentSubnet.cdir);
+    let host = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.currentSubnet.subnet + '.' + me.nextAvailableHost + '/' + me.currentSubnet.cidr);
     device.deviceIp = host.addressMinusSuffix;
     device.host = me.nextAvailableHost;
     return device;
