@@ -30,7 +30,8 @@
   },
   "scripts": {
     "lint": "eslint-if-supported semistandard --fix",
-    "start": "npm install && nodemon api/",
+    "dev": "npm install && nodemon api/",
+    "start": "npm install && node api/",
     "docker-build": "docker build -t code.cablelabs.com:4567/micronets/micronets-manager-backend .",
     "docker-publish": "docker login code.cablelabs.com:4567; docker push code.cablelabs.com:4567/micronets/micronets-manager-backend",
     "mocha": "mocha test/ --recursive --exit",
@@ -92,6 +93,7 @@
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
     "semistandard": "^9.2.1",
+    "shx": "^0.3.2",
     "vue": "^2.1.10",
     "vue-feathers": "^0.1.0",
     "vue-loader": "^10.0.0",

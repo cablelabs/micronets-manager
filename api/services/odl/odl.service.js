@@ -1,7 +1,7 @@
-// Initializes the `gateway` service on path `/mm/v1/micronets/gateway/status`
+// Initializes the `odl` service on path `/old/v1/micronets/config`
 const createService = require('feathers-mongoose');
-const createModel = require('../../models/gateway.model');
-const hooks = require('./gateway.hooks');
+const createModel = require('../../models/odl.model');
+const hooks = require('./odl.hooks');
 
 module.exports = function (app) {
   const Model = createModel(app);
@@ -13,9 +13,10 @@ module.exports = function (app) {
   };
 
   // Initialize our service with any options it requires
-  app.use('/mm/v1/micronets/gtwystatus', createService(options));
+  app.use('/odl/v1/micronets/config', createService(options));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('mm/v1/micronets/gtwystatus');
+  const service = app.service('odl/v1/micronets/config');
+
   service.hooks(hooks);
 };

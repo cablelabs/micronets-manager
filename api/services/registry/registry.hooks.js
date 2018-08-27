@@ -8,7 +8,9 @@ module.exports = {
     get: [
       hook => {
       const {params, data, id} = hook
-        console.log('\n Registry get service : ' + JSON.stringify(params.headers))
+        console.log('\n Registry get service params.headers : ' + JSON.stringify(params.headers))
+        console.log('\n Registry get service params.id : ' + JSON.stringify(params.id))
+        console.log('\n Registry get service hook.params.query : ' + JSON.stringify(hook.params.query))
         const query = Object.assign({ subscriberId: id ? id : params.id }, hook.params.query);
         console.log('\n Registry get service query : ' + JSON.stringify(query))
         hook.params.mongoose = {
