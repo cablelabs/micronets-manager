@@ -22,6 +22,8 @@ const mongodb = require('./mongodb');
 
 const mongoose = require('./mongoose');
 
+const subnet = require('./subnet')
+
 const app = express(feathers());
 
 // Load app configuration
@@ -43,6 +45,8 @@ app.configure(socketio());
 app.configure(mongodb);
 
 app.configure(mongoose);
+
+app.configure(subnet)
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);

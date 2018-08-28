@@ -21,7 +21,7 @@ module.exports = {
         const data = { subcriberId : hook.data.subscriberId }
         const jwtToken = params.headers.authorization.split ( ' ' )[ 1 ]
         const configureIdentityService =  await axios({
-          ...apiInit,
+          // ...apiInit,
           method: 'post',
           url: `${registry.identityUrl}/configure`,
           data: data
