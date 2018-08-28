@@ -43,7 +43,7 @@ module.exports = function (app) {
   // });
 
   const odl = new Schema({
-    gatewayId: { type: String, required: true },
+    gatewayId: { type: String, required: true , unique: true, primaryKey: true },
     hwModelId: { type: String, required: true },
     ovsVersion: { type: String, required: true },
     switchConfig: { type: bridges, required: true },
