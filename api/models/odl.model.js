@@ -6,7 +6,26 @@ module.exports = function (app) {
   const mongooseClient = app.get('mongooseClient');
   const { Schema } = mongooseClient;
 
-  const switchConfig = new Schema({
+  const ports = new Schema({
+    port: { type: Number, required: true },
+    interface: { type: String, required: true },
+    hwtype: { type: String, required: true },
+    subnet: { type: String, required: true },
+    ipv4: { type: String, required: false },
+    hwaddr:{ type: String, required: false },
+    vlanid: { type: String, required: true  },
+  });
+
+  const bridge = new Schema({
+    bridge: { type: String, required: true },
+    ports: [{ type:ports, required: true }]
+  });
+
+  const bridges = new Schema({
+    bridges: [{ type: bridge, required: true }],
+  });
+
+  const odlConfig = new Schema({
     portTrunk: { type: String, required: true },
     ovsHost: { type: String, required: true },
     subnet: { type: String, required: true },
@@ -17,15 +36,27 @@ module.exports = function (app) {
     portBridge: { type:String, required: true  }
   });
 
+  // const odl = new Schema({
+  //   switchConfig: [{ type:Schema.Types.ObjectId, ref: odlConfig, required: true }],
+  // }, {
+  //   timestamps: true
+  // });
+
   const odl = new Schema({
-    switchConfig: { type: [switchConfig], required: true },
+    gatewayId: { type: String, required: true },
+    hwModelId: { type: String, required: true },
+    ovsVersion: { type: String, required: true },
+    switchConfig: { type: bridges, required: true },
   }, {
     timestamps: true
   });
+
+
   return mongooseClient.model('odl', odl);
 };
 
 /* Sample data
+
 {
    gatewayId: '123',
    hw_model_id: '123456-789',
@@ -45,5 +76,6 @@ module.exports = function (app) {
      }
    ]
  }
+
 */
 
