@@ -14,7 +14,7 @@ module.exports = function (app) {
   const service = app.service('token');
 
   mongoClient.then(db => {
-    service.Model = db.collection('token');
+    service.Model = db.db().collection('token');
   });
 
   service.hooks(hooks);

@@ -17,6 +17,19 @@ module.exports = function (app) {
 
   // Get our initialized service so that we can register hooks
   const service = app.service('mm/v1/micronets');
-
   service.hooks(hooks);
+
+  app.use('/mm/v1/micronets/init', async (req, res, next) => {
+    const data = {reqUrl: '/mm/v1/micronets/init',path:'/mm/v1/micronets/init', method: 'POST' }
+    const result =  await service.create ( {
+      data : { reqUrl : '/mm/v1/micronets/init' , path : '/mm/v1/micronets/init' , method : 'POST' } ,
+      params : service.hooks.params
+    } )
+     console.log('\n service.create result : ' + JSON.stringify(result))
+    service.on('created' , (micronet)=> {
+      console.log('\n Created event captured micronet : ' + JSON.stringify(micronet))
+    })
+     res.json(result)
+  });
+
 };

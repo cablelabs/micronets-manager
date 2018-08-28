@@ -34,7 +34,8 @@ module.exports = function (app) {
 
 
   const micronets = new Schema({
-    micronet: [{ type:Schema.Types.ObjectId , ref:'subnets' }]
+    micronet: [{ type:Schema.Types.ObjectId , ref:'subnets' , required:false }],
+    message: { type: String, required: true }
   }, {
     timestamps: true
   });
