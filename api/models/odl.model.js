@@ -16,17 +16,8 @@ module.exports = function (app) {
     vlanid: { type: String, required: true  },
   });
 
-  const bridge = new Schema({
-    bridge: { type: String, required: true },
-    ports: [{ type:ports, required: true }]
-  });
-
-  const bridges = new Schema({
-    bridges: [{ type: bridge, required: true }],
-  });
-
   const odlConfig = new Schema({
-    portTrunk: { type: String, required: true },
+    portTrunk: { type: String, required: false },
     ovsHost: { type: String, required: true },
     subnet: { type: String, required: true },
     vLanId: { type: String, required: true },
@@ -34,6 +25,19 @@ module.exports = function (app) {
     portWireless:{ type: String, required: false },
     bridge: { type: String, required: true  },
     portBridge: { type:String, required: true  }
+  });
+
+  const bridge = new Schema({
+    bridgeName: { type: String, required: true },
+    ports: [{ type:ports, required: true }]
+  });
+
+  // const bridges = new Schema({
+  //   bridges: [{ type: bridge, required: true }],
+  // });
+
+  const bridges = new Schema({
+    bridges: [{ type: odlConfig, required: true }],
   });
 
   // const odl = new Schema({
@@ -78,4 +82,64 @@ module.exports = function (app) {
  }
 
 */
+
+/* POST Body
+{
+   "gatewayId": "123",
+   "hwModelId": "123456-789",
+   "ovsVersion": "2.9.2",
+   "switchConfig":{
+   	"bridges": [
+     {
+
+       	"bridge": "brmn001",
+       "ports": [
+         { "port": "1", "interface": "enp3s0","hwtype": "trunk", "subnet": "10.36.32.0/24", "ipv4": "10.36.32.55", "hwaddr": "02:ad:de:ad:be:ef", "vlanid": "0" },
+         { "port": "2", "interface": "enp4s0","hwtype": "wired", "subnet": "192.168.250.0/24", "vlanid": "0" },
+         { "port": "3", "interface": "enp5s0","hwtype": "wired", "subnet": "192.168.251.0/24", "vlanid": "0" },
+         { "port": "4", "interface": "veth00001.128", "hwtype": "wifi",  "subnet": "192.168.252.0/24", "vlanid": "128" },
+         { "port": "4", "interface": "veth00001.129", "hwtype": "wifi",  "subnet": "192.168.253.0/24", "vlanid": "129" },
+         { "port": "4", "interface": "veth00001.130", "hwtype": "wifi",  "subnet": "192.168.254.0/24", "vlanid": "130" },
+         { "port": "4", "interface": "veth00001.131", "hwtype": "wifi",  "subnet": "192.168.255.0/24", "vlanid": "131" }
+       ]
+     }
+
+   ]
+}
+ }
+ */
+
+
+/* POST Body
+{
+   "gatewayId": "1234",
+   "hwModelId": "123156-789",
+   "ovsVersion": "2.9.2",
+   "switchConfig":{
+   	"bridges": [
+     {
+
+       	"portTrunk":"trunk",
+       	"ovsHost":"192.0.0.1",
+       	"subnet": "10.36.32.0/24",
+       	"vLanId":"0",
+       	"portWired":"",
+       	"portWireless":"",
+       	"bridge":"brmn001",
+       	"portBridge":"1"
+     },
+     {
+       	"portTrunk":"",
+       	"ovsHost":"192.0.0.1",
+       	"subnet": "192.168.250.0/24",
+       	"vLanId":"0",
+       	"portWired":"wired",
+       	"portWireless":"",
+       	"bridge":"brmn001",
+       	"portBridge":"2"
+     }
+   ]
+}
+ }
+ */
 
