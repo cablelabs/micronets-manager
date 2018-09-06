@@ -7,12 +7,11 @@ module.exports = function (app) {
   const { Schema } = mongooseClient;
 
   const connectedDevices = new Schema({
-    name: { type: String, required: true },
-    class: { type: String, required: true },
+    'device-name': { type: String, required: true },
+    class: { type: String, required: false },
     'device-mac': { type: String, required: true },
     'device-ip': { type: String, required: true },
     'device-openflow-port': { type: String, required: false },
-    'device-name':{ type: String, required: false },
     'device-id': { type: String, required: true  }
   });
 
@@ -25,7 +24,7 @@ module.exports = function (app) {
     'dhcp-server-port':{ type: String, required: false },
     'micronet-subnet-id': { type: String, required: true  },
     'micronet-bridge-nodeid': { type:String, required: false  },  // Is this required ?
-    'connected-devices': [{type:Array, ref:'connectedDevices'}],
+    'connected-devices': [{type:connectedDevices}],
     'micronet-subnet': { type: String, required: true },
     'micronet-gateway-ip': { type: String, required: false },
     'ovs-bridge-name':{ type: String, required: false },

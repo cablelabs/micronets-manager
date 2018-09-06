@@ -56,41 +56,7 @@ const populateOdlConfig = async (hook,requestBody,gatewayId) => {
   return reqBodyWithOdlConfig
 }
 
-
-const getSubnets = async (hook,reqBody) => {
-  console.log('\n getSubnets hook reqBody : ' + JSON.stringify(reqBody))
-  const subnetDetails = reqBody.micronets.micronet.map((micronet, index) => {
-    const connectedDevices = micronet['connected-devices' ]
-    console.log('\n Micronet connectedDevices : ' + JSON.stringify(connectedDevices) + '\t\t Length : ' + JSON.stringify(connectedDevices.length))
-    console.log('\n Micronet connectedDevices device-mac: ' + JSON.stringify(connectedDevices[0]['device-mac']))
-    return connectedDevices.map((device, index) => {
-      return Object.assign ( {} , {
-        name : micronet.name ,
-        devices : [ Object.assign ( {} , {
-          noOfDevices : micronet[ 'connected-devices' ].length ,
-          deviceMac : device ['device-mac' ] ,
-          deviceName : device[ 'device-name' ] ,
-          deviceId : device[ 'device-id' ]
-        } )
-        ]
-      })
-    })
-  })
-
-  console.log('\n Subnet Details : ' + JSON.stringify(subnetDetails))
-
-  const promises =  await Promise.all(subnetDetails.map(async(subnet,index) => {
-    console.log('\n Calling IPAllocator for subnet : ' + JSON.stringify(subnet) + '\t\t At Index : ' + JSON.stringify(index))
-    const subnets = await subnetAllocation.getNewSubnet(rn(options))
-    console.log('\n Subnet Obtained from IPAllocator : ' + JSON.stringify(subnets))
-    return Object.assign({},subnets)
-  }))
-  console.log('\n getSubnets Obtained promises : ' + JSON.stringify(promises))
-  return { subnetsDetails:subnetDetails, subnets:promises }
-
-}
-
-const getSubnet = async (hook) => {
+const getSubnet = async (hook, index) => {
   const subnet = await subnetAllocation.getNewSubnet(rn(options))
   return subnet
 }
@@ -100,7 +66,8 @@ const getSubnetIps = async (hook,subnetDetails,requestBody) => {
   console.log('\n GET SUBNET IPs  subnetDetails : ' + JSON.stringify(subnetDetails))
   const promises =  await Promise.all(subnetDetails.map(async(subnet,index) => {
     console.log('\n Calling IPAllocator for subnet : ' + JSON.stringify(subnet) + '\t\t At Index : ' + JSON.stringify(index))
-    const subnets = await subnetAllocation.getNewSubnet(index)
+     const subnets = await subnetAllocation.getNewSubnet(index)
+    //const subnets = await getSubnet(index)
     console.log('\n GET SUBNET IPs Subnet Obtained from IPAllocator : ' + JSON.stringify(subnets))
     return Object.assign({},subnets)
   }))
