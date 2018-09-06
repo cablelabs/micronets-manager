@@ -20,16 +20,53 @@ module.exports = function (app) {
   service.hooks(hooks);
 
   app.use('/mm/v1/micronets/init', async (req, res, next) => {
-    const data = { reqUrl: '/mm/v1/micronets/init',path:'/mm/v1/micronets/init', method: 'POST' }
+    const { path, originalUrl, method } = req
+    console.log('\n REQUEST PATH : ' + JSON.stringify(path) + '\t\t ORIGINAL URL : ' + JSON.stringify(originalUrl) + '\t\t METHOD : ' + JSON.stringify(method))
     const result =  await service.create ( {
       data : { req : req } ,
       params : service.hooks.params
     } )
-    console.log('\n service.create result : ' + JSON.stringify(result))
+    console.log('\n MICRO-NETS SERVICE RESULT : ' + JSON.stringify(result))
     service.on('created' , (micronet) => {
-      console.log('\n Created event captured micronet : ' + JSON.stringify(micronet))
+      console.log('\n MICRO-NETS SERVICE INIT CREATE EVENT : ' + JSON.stringify(micronet))
     })
      res.json(result)
   });
+
+  app.use(`/mm/v1/micronets/:micronetId/subnets/:subnetId/devices`, async (req, res, next) => {
+    const { path, originalUrl, method, params } = req
+    console.log('\n REQUEST PATH : ' + JSON.stringify(path) + '\t\t ORIGINAL URL : ' + JSON.stringify(originalUrl) + '\t\t METHOD : ' + JSON.stringify(method) + '\t\t PARAMS : ' + JSON.stringify(params))
+    if(method == 'POST') {
+      const result =  await service.create ( {
+        data : { req : req } ,
+        params : service.hooks.params
+      } )
+      console.log('\n MICRO-NETS ADD DEVICE TO SUBNET SERVICE RESULT : ' + JSON.stringify(result))
+      service.on('created' , (micronet) => {
+        console.log('\n MICRO-NETS ADD DEVICE TO SUBNET SERVICE CREATE EVENT : ' + JSON.stringify(micronet))
+      })
+      res.json(result)
+    }
+
+  });
+
+  app.use(`/mm/v1/micronets/:micronetId/subnets`, async (req, res, next) => {
+    const { path, originalUrl, method, params } = req
+    console.log('\n REQUEST PATH : ' + JSON.stringify(path) + '\t\t ORIGINAL URL : ' + JSON.stringify(originalUrl) + '\t\t METHOD : ' + JSON.stringify(method) + '\t\t PARAMS : ' + JSON.stringify(params))
+    if(method == 'POST') {
+      const result =  await service.create ( {
+        data : { req : req } ,
+        params : service.hooks.params
+      } )
+      console.log('\n MICRO-NETS ADD SUBNET SERVICE RESULT : ' + JSON.stringify(result))
+      service.on('created' , (micronet) => {
+        console.log('\n MICRO-NETS ADD SUBNET SERVICE CREATE EVENT : ' + JSON.stringify(micronet))
+      })
+      res.json(result)
+    }
+
+  });
+
+
 
 };
