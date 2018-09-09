@@ -4,13 +4,27 @@ const micronetWithDevices = require('../../mock-data/micronetWithDevices');
 const micronetWithoutDevices = require('../../mock-data/micronetWithoutDevices');
 var rn = require('random-number');
 var async = require("async");
+const axios = require ( 'axios' );
+const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
+
 
 var options = {
   integer: true
 }
 
-const isGatewayUp = async hook => {
+const isGatewayUp = async (hook) => {
   console.log('\n isGatewayUp hook')
+  return true
+}
+
+const isODLAlive = async (hook) => {
+  console.log('\n isODLAlive hook')
+   const odlNotifications = await axios({
+     ...apiInit,
+     method: 'get',
+     url: `http://127.0.0.1:3030/mm/v1/mock/restconf/config/micronets-notifications:micronets-notifications`,
+   })
+  console.log('\n isODLAlive ODL Notifications : ' + JSON.stringify(odlNotifications.data))
   return true
 }
 
@@ -217,10 +231,11 @@ module.exports = {
          const { body, originalUrl, method, path } = req
          console.log('\n Printing request body data : ' + JSON.stringify(body))
          if(originalUrl.toString() == '/mm/v1/micronets/init') {
-           console.log('\n\n /mm/v1/micronets/init detected')
-           const isGatewayUpResult = await isGatewayUp(hook)
-           if(isGatewayUp) {
-             console.log('\n isGatewayUpResult : ' + JSON.stringify(isGatewayUpResult) + ' Get ODL Static config')
+           console.log('\n\n URL : ' + JSON.stringify(originalUrl))
+           const isGatewayUpRes = await isGatewayUp(hook)
+           const isOdlAlive = await isODLAlive(hook)
+           if(isGatewayUpRes && isOdlAlive) {
+             console.log('\n isGatewayUp : ' + JSON.stringify(isGatewayUpRes) + '\t\t isODLAlive : ' + JSON.stringify(isOdlAlive))
              const postBody = await populatePostObj(hook,body)
              console.log('\n CREATE HOOK OBTAINED POST BODY : ' + JSON.stringify(postBody))
              const result = await initializeMicronets(hook, postBody)
@@ -230,10 +245,11 @@ module.exports = {
 
          }
          if(originalUrl.toString() == `/mm/v1/micronets/${req.params.micronetId}/subnets`) {
-           console.log('\n\n URL : ' + JSON.stringify(`/mm/v1/micronets/${req.params.micronetId}/subnets`) )
-           const isGatewayUpResult = await isGatewayUp(hook)
-           if(isGatewayUp) {
-             console.log('\n isGatewayUpResult : ' + JSON.stringify(isGatewayUpResult) + ' Get ODL Static config')
+           console.log('\n\n URL : ' + JSON.stringify(originalUrl))
+           const isGatewayUpRes = await isGatewayUp(hook)
+           const isOdlAlive = await isODLAlive(hook)
+           if(isGatewayUpRes && isOdlAlive ) {
+             console.log('\n isGatewayUp : ' + JSON.stringify(isGatewayUpRes) + '\t\t isODLAlive : ' + JSON.stringify(isOdlAlive))
              const postBody = await populatePostObj(hook,body)
              console.log('\n CREATE HOOK ADD SUBNET TO MICRO-NET OBTAINED POST BODY : ' + JSON.stringify(postBody))
              const result = await addSubnetsToMicronet(hook, postBody)
@@ -242,10 +258,11 @@ module.exports = {
            }
          }
          if(originalUrl.toString() == `/mm/v1/micronets/${req.params.micronetId}/subnets/${req.params.subnetId}/devices`) {
-           console.log('\n\n URL : ' + JSON.stringify(`/mm/v1/micronets/${req.params.micronetId}/subnets/${req.params.subnetId}/devices`) )
-           const isGatewayUpResult = await isGatewayUp(hook)
-           if(isGatewayUp) {
-             console.log('\n isGatewayUpResult : ' + JSON.stringify(isGatewayUpResult) + ' Get ODL Static config')
+           console.log('\n\n URL : ' + JSON.stringify(originalUrl))
+           const isGatewayUpRes = await isGatewayUp(hook)
+           const isOdlAlive = await isODLAlive(hook)
+           if(isGatewayUpRes && isOdlAlive) {
+             console.log('\n isGatewayUp : ' + JSON.stringify(isGatewayUpRes) + '\t\t isODLAlive : ' + JSON.stringify(isOdlAlive))
              const postBody = await populatePostObj(hook,body)
              console.log('\n CREATE HOOK ADD DEVICE TO SUBNET OBTAINED POST BODY : ' + JSON.stringify(postBody))
              const result = await addDevicesToMicronet(hook, postBody)

@@ -4,6 +4,7 @@ const createModel = require('../../models/mock-micronets.model');
 const hooks = require('./mock-micronets.hooks');
 const micronetWithDevices = require('../../mock-data/micronetWithDevices');
 const micronetWithoutDevices = require('../../mock-data/micronetWithoutDevices');
+const micronetNotifications = require('../../mock-data/micronetNotifications');
 
 module.exports = function (app) {
   const Model = createModel(app);
@@ -20,6 +21,11 @@ module.exports = function (app) {
   const service = app.service('mm/v1/mock/micronets');
   service.hooks(hooks);
 
+  app.use('/mm/v1/mock/restconf/config/micronets-notifications:micronets-notifications', (req, res, next) => {
+    res.json(micronetNotifications);
+  });
+
+
   app.use('/mm/v1/mock/micronets/:micronetId/subnet/:subnetId/devices', (req, res, next) => {
     // console.log('\n Request : ' + JSON.stringify(req.originalUrl))
     // console.log('\n req.path : ' + JSON.stringify(req.path))
@@ -34,6 +40,7 @@ module.exports = function (app) {
   app.use('/mm/v1/mock/micronets/init', (req, res, next) => {
     res.json(micronetWithoutDevices);
   });
+
 
 
 

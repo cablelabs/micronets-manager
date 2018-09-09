@@ -43,6 +43,7 @@ module.exports = {
           "micronet-gateway-ip" : "192.168.250.1" ,
           "ovs-bridge-name" : "brmn001" ,
           "micronet-subnet-id" : "WIRED_enp4s0" ,
+          "micronet-id": 1533936267,
           "dhcp-zone" : "10.36.32.0/24" ,
           "trunk-gateway-ip" : "10.36.32.55"
         } ,
@@ -65,6 +66,7 @@ module.exports = {
           "micronet-gateway-ip" : "192.168.251.1" ,
           "ovs-bridge-name" : "brmn001" ,
           "micronet-subnet-id" : "WIRED_enp4s0" ,
+          "micronet-id": 1533936269,
           "dhcp-zone" : "192.168.251.0/24" ,
           "trunk-gateway-ip" : "10.36.32.55"
         } ,
@@ -87,6 +89,7 @@ module.exports = {
           "micronet-gateway-ip" : "192.168.252.1" ,
           "ovs-bridge-name" : "brmn001" ,
           "micronet-subnet-id" : "WIRELESS_wlp2s0" ,
+          "micronet-id": 1533936249,
           "dhcp-zone" : "10.36.32.0/24" ,
           "trunk-gateway-ip" : "10.36.32.55"
         }
