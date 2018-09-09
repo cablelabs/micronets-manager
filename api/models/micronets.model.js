@@ -8,7 +8,7 @@ module.exports = function (app) {
 
   const connectedDevices = new Schema({
     'device-name': { type: String, required: true },
-    class: { type: String, required: false },
+     class: { type: String, required: false },
     'device-mac': { type: String, required: true },
     'device-ip': { type: String, required: true },
     'device-openflow-port': { type: String, required: false },
@@ -23,6 +23,8 @@ module.exports = function (app) {
     'ovs-manager-ip': { type: String, required: false },
     'dhcp-server-port':{ type: String, required: false },
     'micronet-subnet-id': { type: String, required: true  },
+    "dhcp-zone" : { type: String, required: true  } ,
+    "micronet-id" : { type: String, required: true } ,
     'micronet-bridge-nodeid': { type:String, required: false  },  // Is this required ?
     'connected-devices': [{type:connectedDevices}],
     'micronet-subnet': { type: String, required: true },
