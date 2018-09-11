@@ -46,6 +46,20 @@ describe.only('Test Subnet Allocation', function() {
         newSubnet.vlan.should.equal(0)
       }).then(done, done)
   })
+  it('Get Array of Subnet Objects', (done) => {
+    let promiseList = []
+    for (let i = 0;i < 10; i ++) {
+      promiseList.push(subnet.getNewSubnet(0))
+    }
+    Promise.all(promiseList)
+      .then((snArray) => {
+        console.log(snArray)
+        snArray.length.should.equal(10)
+        for (let subnet = 0; subnet < 10; subnet++) {
+          snArray[subnet].subnet.should.equal(12 + (2*subnet))
+        }
+      }).then(done, done)
+  })
   it('Get Two Host Objects', (done) => {
     let devices = [
       {
@@ -83,10 +97,10 @@ describe.only('Test Subnet Allocation', function() {
     subnet.getNewSubnet(0)
       .then((sn) => {
         newSubnet = sn
-        newSubnet.subnet.should.equal(12)
-        newSubnet.micronetSubnet.should.equal('192.168.12.0/24')
+        newSubnet.subnet.should.equal(32)
+        newSubnet.micronetSubnet.should.equal('192.168.32.0/24')
         newSubnet.mask.should.equal('255.255.255.0')
-        newSubnet.micronetGatewayIp.should.equal('192.168.12.1')
+        newSubnet.micronetGatewayIp.should.equal('192.168.32.1')
         newSubnet.vlan.should.equal(0)
       }).then(done, done)
   })
@@ -106,20 +120,20 @@ describe.only('Test Subnet Allocation', function() {
     subnet.getNewIps(newSubnet.subnet, devices)
       .then((sn) => {
         newSubnet = sn;
-        newSubnet.subnet.should.equal(12)
-        newSubnet.micronetSubnet.should.equal('192.168.12.0/24')
+        newSubnet.subnet.should.equal(32)
+        newSubnet.micronetSubnet.should.equal('192.168.32.0/24')
         newSubnet.mask.should.equal('255.255.255.0')
-        newSubnet.micronetGatewayIp.should.equal('192.168.12.1')
+        newSubnet.micronetGatewayIp.should.equal('192.168.32.1')
         newSubnet.vlan.should.equal(0)
         newSubnet.connectedDevices.length.should.equal(2)
         newSubnet.connectedDevices[0].deviceMac.should.equal(devices[0].deviceMac)
         newSubnet.connectedDevices[0].deviceId.should.equal(devices[0].deviceId)
-        newSubnet.connectedDevices[0].deviceIp.should.equal('192.168.12.2')
+        newSubnet.connectedDevices[0].deviceIp.should.equal('192.168.32.2')
         newSubnet.connectedDevices[0].host.should.equal(2)
 
         newSubnet.connectedDevices[1].deviceMac.should.equal(devices[1].deviceMac)
         newSubnet.connectedDevices[1].deviceId.should.equal(devices[1].deviceId)
-        newSubnet.connectedDevices[1].deviceIp.should.equal('192.168.12.3')
+        newSubnet.connectedDevices[1].deviceIp.should.equal('192.168.32.3')
         newSubnet.connectedDevices[1].host.should.equal(3)
       }).then(done, done)
   })
