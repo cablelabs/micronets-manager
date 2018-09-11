@@ -19,6 +19,7 @@ module.exports = {
   IP_MIN: 2,
   IP_MAX: 254,
 
+  lock: false,
   currentSubnet: {},
   nextSubnet: 0,
   db: {},
@@ -53,6 +54,30 @@ module.exports.setup = function (app, config) {
 };
 
 module.exports.getNewSubnet = function (vlan) {
+  let me = this
+  return new Promise(async function (resolve, reject) {
+    if (me.lock) {
+      resolve(me.getSyncNewSubnet(vlan))
+    }
+    else {
+      const intervalObj = setInterval(() => {
+        if (me.lock === false) {
+          clearInterval(intervalObj)
+          resolve(me.getSyncNewSubnet(vlan))
+        }
+        else {
+          // console.log('no lock for me')
+        }
+      }, 10);
+    }
+  })
+}
+
+
+module.exports.getSyncNewSubnet = function (vlan) {
+  if (this.lock) console.log('Error:  Lock System Broke')
+  this.lock = true
+  // console.log('I have the lock')
   let me = this;
   return new Promise(async function (resolve, reject) {
     allocateSubnet(me)
@@ -70,6 +95,8 @@ module.exports.getNewSubnet = function (vlan) {
         };
         me.db.insertOne(me.currentSubnet, function (err, res) {
           resolve(me.currentSubnet)
+          me.lock = false
+          // console.log('I have released the lock')
         })
       })
       .catch((err) => {
@@ -152,7 +179,7 @@ function allocateSubnet(me) {
           me.nextSubnet = me.SUBNET_MIN;
         }
         else {
-          me.nextSubnet = 1;
+          me.nextSubnet = me.SUBNET_MIN;
           for (let i = 0; i < results.length; i++) {
             if (results[i].subnet >= me.nextSubnet) {
               me.nextSubnet = results[i].subnet + me.SUBNET_OFFSET
