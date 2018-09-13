@@ -29,16 +29,7 @@ module.exports = {
     create: [
       hook => {
         const { data , params } = hook
-        hook.data = Object.assign ( {} ,
-          {
-            subscriberId : hook.data.subscriberId ,
-            identityUrl : hook.data.identityUrl ,
-            dhcpUrl : hook.data.dhcpUrl ,
-            mmUrl : hook.data.mmUrl ,
-            mmClientUrl : hook.data.mmClientUrl ,
-            websocketUrl : hook.data.websocketUrl,
-            msoPortalUrl : hook.data.msoPortalUrl
-          } )
+        hook.data = Object.assign ( {} , data )
       }
     ],
     update: [],
