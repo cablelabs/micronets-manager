@@ -78,6 +78,10 @@ module.exports = function (app) {
 
   });
 
+  app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceRegistered' , ( data ) => {
+    console.log('\n Micronets service userDeviceRegistered event detected with data : ' + JSON.stringify(data))
+    service.create ( {...data}, { params : service.hooks.params })
+  })
 
 
 };
