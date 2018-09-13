@@ -16,6 +16,7 @@ module.exports = function (app) {
   });
 
   const subnet = new Schema({
+    _id:false,
     name: { type: String, required: true },
     class: { type: String, required: true },
     'trunk-gateway-port': { type: String, required: true },
@@ -34,7 +35,8 @@ module.exports = function (app) {
   });
 
   const Subnets = new Schema({
-    subnets: [{ type: subnet, required: true }],
+    _id:false,
+    micronet: [{ type: subnet, required: true }],
   });
 
   // const micronets = new Schema({

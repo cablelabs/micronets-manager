@@ -50,18 +50,29 @@ module.exports = function (app) {
 
   });
 
-  app.use(`/mm/v1/micronets/:micronetId/subnets`, async (req, res, next) => {
+  app.use(`/mm/v1/micronets/subnets`, async (req, res, next) => {
     const { path, originalUrl, method, params } = req
     console.log('\n REQUEST PATH : ' + JSON.stringify(path) + '\t\t ORIGINAL URL : ' + JSON.stringify(originalUrl) + '\t\t METHOD : ' + JSON.stringify(method) + '\t\t PARAMS : ' + JSON.stringify(params))
     if(method == 'POST') {
+      console.log('\n METHOD EQUALS : ' + JSON.stringify(method))
+      // const result =  await service.patch ( null,{ req },
+      //   { query : { }, mongoose: { upsert: true }
+      // } )
       const result =  await service.create ( {
-        data : { req : req } ,
+          data : { req : req }    ,
         params : service.hooks.params
       } )
       console.log('\n MICRO-NETS ADD SUBNET SERVICE RESULT : ' + JSON.stringify(result))
       service.on('created' , (micronet) => {
         console.log('\n MICRO-NETS ADD SUBNET SERVICE CREATE EVENT : ' + JSON.stringify(micronet))
       })
+      res.json(result)
+    }
+
+    else if(method == 'GET') {
+      console.log('\n METHOD EQUALS : ' + JSON.stringify(method))
+      const result =  await service.get({...params})
+      console.log('\n MICRO-NETS GET SUBNETS SERVICE RESULT : ' + JSON.stringify(result))
       res.json(result)
     }
 

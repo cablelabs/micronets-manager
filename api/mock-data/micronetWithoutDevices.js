@@ -1,9 +1,9 @@
 module.exports = {
   "micronets" : {
-    "subnets" : [
+    "micronet" : [
       {
-        "name" : "Micronet_Wired" ,
-        "class" : "Wired" ,
+        "name" : "Medical" ,
+        "class" : "Medical" ,
         "trunk-gateway-port" : "1" ,
         "micronet-bridge-openflow-node-id" : "openflow:2945788526319" ,
         "ovs-manager-ip" : "10.36.32.55" ,
@@ -18,8 +18,8 @@ module.exports = {
         "trunk-gateway-ip" : "10.36.32.55"
       } ,
       {
-        "name" : "Micronet_Wireless" ,
-        "class" : "Wireless" ,
+        "name" : "CableLabs" ,
+        "class" : "CableLabs" ,
         "trunk-gateway-port" : "1" ,
         "micronet-bridge-openflow-node-id" : "openflow:2945788526319" ,
         "ovs-manager-ip" : "10.36.32.55" ,

@@ -23,9 +23,9 @@ module.exports = {
       }
     ] ,
     "micronets" : {
-      "subnets" : [
+      "micronet" : [
         {
-          "name" : "Micronet_Medical" ,
+          "name" : "Medical" ,
           "class" : "Medical",
           "trunk-gateway-port" : "1" ,
           "connected-devices" : [
@@ -48,7 +48,7 @@ module.exports = {
           "trunk-gateway-ip" : "10.36.32.55"
         } ,
         {
-          "name" : "Micronet_CableLabs" ,
+          "name" : "CableLabs" ,
           "class" : "CableLabs",
           "trunk-gateway-port" : "1" ,
           "connected-devices" : [
@@ -71,7 +71,7 @@ module.exports = {
           "trunk-gateway-ip" : "10.36.32.55"
         } ,
         {
-          "name" : "Micronet_Entertainment" ,
+          "name" : "Entertainment" ,
           "class" : "Entertainment",
           "trunk-gateway-port" : "1" ,
           "connected-devices" : [
