@@ -51,6 +51,7 @@ module.exports = {
                 const foundDeviceIndex = originalUser.devices.findIndex( device => device.clientId ==  hook.data.clientId && device.deviceId == hook.data.deviceId && device.macAddress == hook.data.macAddress && device.class == hook.data.class);
 
                 if(foundDeviceIndex >= 0 ) {
+                  console.log('\n Device already present.')
                   if(data.isRegistered == originalUser.devices[foundDeviceIndex].isRegistered) {
                     return Promise.resolve(hook)
                   }
@@ -59,6 +60,10 @@ module.exports = {
                     let updatedDevice = Object.assign(originalUser.devices[foundDeviceIndex], {isRegistered: true})
                     let updatedUser = Object.assign ( {} , originalUser , updatedDevice);
                     hook.data =  Object.assign ( {} , updatedUser );
+                    hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceRegistered' , {
+                      type : 'userDeviceRegistered' ,
+                      data : { subscriberId : hook.data.id , device : updatedDevice }
+                    } );
                   }
 
                 }
@@ -68,7 +73,7 @@ module.exports = {
                   hook.data =  Object.assign ( {} , updatedUser );
                   hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceAdd' , {
                     type : 'userDeviceAdd' ,
-                    data : { subscriberId : hook.data.id }
+                    data : { subscriberId : hook.data.id , device : hook.data }
                   } );
                   // return Promise.resolve(hook)
                 }

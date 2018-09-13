@@ -258,7 +258,6 @@ const populateMMWithOdlResponse = async hook => {
 const initializeMicronets = async ( hook , postBody ) => {
   console.log ( '\n Initialize Micro-nets function postBody: ' + JSON.stringify ( postBody ) )
   hook.data = Object.assign ( {} , { micronets : micronetWithoutDevices.micronets } )
-  console.log ( '\n Initialize Micro-nets function hook.data : ' + JSON.stringify ( hook.data ) )
   return hook
 }
 
@@ -372,6 +371,7 @@ const updateMicronetModel = async ( hook , response ) => {
   console.log ( '\n dbModelResponse : ' + JSON.stringify ( dbModelResponse ) )
   return dbModelResponse
 }
+
 module.exports = {
   before : {
     all : [ // authenticate('jwt')
@@ -422,31 +422,6 @@ module.exports = {
           }
 
         }
-        // if ( originalUrl.toString () == `/mm/v1/micronets/${req.params.micronetId}/subnets` ) {
-        //   console.log ( '\n\n URL : ' + JSON.stringify ( originalUrl ) )
-        //   const isGtwyAlive = await isGatewayAlive ( hook )
-        //   const isOdlAlive = await isODLAlive ( hook )
-        //   const isGatewayConnected = await connectToGateway ( hook )
-        //   if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
-        //     console.log ( '\n isGatewayAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) + '\t\t isODLAlive : ' + JSON.stringify ( isOdlAlive ) )
-        //     //const postBody = await populatePostObj(hook,body)
-        //     //console.log('\n CREATE HOOK ADD SUBNET TO MICRO-NET OBTAINED POST BODY : ' + JSON.stringify(postBody))
-        //     const postBodyForODL = await upsertSubnetsToMicronet ( hook , body )
-        //     console.log ( '\n CREATE MICRO-NET ADD SUBNET TO MICRO-NET postBodyForODL : ' + JSON.stringify ( postBodyForODL ) )
-        //     /* ODL API's */
-        //     // const odlConfigResponse = await upsertOdLConfigState(hook,postBodyForODL)
-        //     // console.log('\n odlConfigResponse : ' + JSON.stringify(odlConfigResponse))
-        //     // if(odlConfigResponse) {
-        //     //   // const odlResponse = await fetchOdlOperationalState(hook,timer())
-        //     //   const odlResponse = await fetchOdlOperationalState(hook,timer())
-        //     //   if(odlResponse) {
-        //     //     console.log('\n odlResponse : ' + JSON.stringify(odlResponse))
-        //     //   }
-        //     // }
-        //     /* Call ODL API to add subnet to micronet */
-        //     return Promise.resolve ( hook );
-        //   }
-        // }
 
         if ( originalUrl.toString () == `/mm/v1/micronets/subnets` ) {
           console.log ( '\n CREATE' )
@@ -486,19 +461,15 @@ module.exports = {
                 console.log ( '\n odlResponse : ' + JSON.stringify ( odlResponse ) )
                 const dbUpdateResult = await updateMicronetModel ( hook , odlResponse )
                 console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
-                // hook.data = dbUpdateResult
                 const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
                    { micronets : { micronet : dbUpdateResult }}  ,
                   { query : {  }, mongoose: { upsert: true}});
-
+                console.log('\n CREATE HOOK ADD SUBNET PATCH REQUEST RESULT : ' + JSON.stringify(patchResult))
                 hook.result = patchResult
                 return Promise.resolve(hook)
               }
             }
-            /* Call ODL API to add subnet to micronet */
-
           }
-
         }
         if ( originalUrl.toString () == `/mm/v1/micronets/${req.params.micronetId}/subnets/${req.params.subnetId}/devices` ) {
           console.log ( '\n\n URL : ' + JSON.stringify ( originalUrl ) )
@@ -520,60 +491,10 @@ module.exports = {
     patch : [
       async (hook) => {
         const { data , id } = hook;
-        console.log('\n PATCH HOOK MICRONETS data : ' + JSON.stringify(data) + '\t ID : ' + JSON.stringify(id))
+        console.log('\n PATCH HOOK data : ' + JSON.stringify(data) + '\t ID : ' + JSON.stringify(id))
         hook.data = data
         return Promise.resolve(hook)
       }
-
-      // async hook => {
-      //   console.log ( '\n PATCH' )
-      //   const { data , id } = hook;
-      //   const micronetFromDB = await getMicronet ( hook , {} )
-      //   console.log ( '\n PATCH micronetFromDB : ' + JSON.stringify ( micronetFromDB ) )
-      //   hook.id = micronetFromDB._id
-      //   console.log ( '\n HOOK.ID PATCH METHOD : ' + JSON.stringify ( hook.id ) )
-      //   const { req } = hook.data
-      //   const { body , originalUrl , method , path , params } = req
-      //   console.log ( '\n PATCH HOOK BODY : ' + JSON.stringify ( body ) )
-      //   console.log ( '\n PATCH HOOK ORIGINAL-URL : ' + JSON.stringify ( originalUrl ) )
-      //   console.log ( '\n PATCH HOOK METHOD : ' + JSON.stringify ( method ) )
-      //   console.log ( '\n PATCH HOOK path : ' + JSON.stringify ( path ) )
-      //   console.log ( '\n PATCH HOOK params : ' + JSON.stringify ( params ) )
-      //   hook.params.mongoose = {
-      //     runValidators : true ,
-      //     setDefaultsOnInsert : true
-      //   }
-      //   console.log ( '\n Update hook micronets to update database  id : ' + '\t\t ID : ' + JSON.stringify ( id ) )
-      //   if ( originalUrl.toString () == `/mm/v1/micronets/${req.params.micronetId}/subnets` ) {
-      //     console.log ( '\n\n URL : ' + JSON.stringify ( originalUrl ) )
-      //     const isGtwyAlive = await isGatewayAlive ( hook )
-      //     const isOdlAlive = await isODLAlive ( hook )
-      //     const isGatewayConnected = await connectToGateway ( hook )
-      //     if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
-      //       console.log ( '\n isGatewayAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) + '\t\t isODLAlive : ' + JSON.stringify ( isOdlAlive ) )
-      //       //const postBody = await populatePostObj(hook,body)
-      //       //console.log('\n CREATE HOOK ADD SUBNET TO MICRO-NET OBTAINED POST BODY : ' + JSON.stringify(postBody))
-      //       const postBodyForODL = await upsertSubnetsToMicronet ( hook , body )
-      //       console.log ( '\n CREATE MICRO-NET ADD SUBNET TO MICRO-NET postBodyForODL : ' + JSON.stringify ( postBodyForODL ) )
-      //       /* ODL API's */
-      //       const odlConfigResponse = await upsertOdLConfigState ( hook , postBodyForODL )
-      //       console.log ( '\n odlConfigResponse : ' + JSON.stringify ( odlConfigResponse ) )
-      //       if ( odlConfigResponse ) {
-      //         // const odlResponse = await fetchOdlOperationalState(hook,timer())
-      //         const odlResponse = await fetchOdlOperationalState ( hook )
-      //         if ( odlResponse ) {
-      //           console.log ( '\n odlResponse : ' + JSON.stringify ( odlResponse ) )
-      //           const dbUpdateResult = await updateMicronetModel ( hook , odlResponse )
-      //           console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
-      //           // hook.data = dbUpdateResult
-      //           return Promise.resolve ( hook );
-      //         }
-      //       }
-      //       /* Call ODL API to add subnet to micronet */
-      //
-      //     }
-      //   }
-      // }
     ] ,
     remove : []
   } ,

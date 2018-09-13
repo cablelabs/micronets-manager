@@ -44,3 +44,18 @@ app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceAdd' , ( data ) => {
   } );
 } );
 
+app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceRegistered' , ( data ) => {
+  console.log ( '\n FeatherJS event userDeviceRegistered fired with data : ' + JSON.stringify ( data ) )
+  io.on ( 'connection' , ( socket ) => {
+    logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
+    socket.emit ( 'userDeviceRegistered' , data );
+    socket.on ( 'disconnect' , () => {
+      console.log ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
+      socket.removeAllListeners ( 'send message' );
+      socket.removeAllListeners ( 'disconnect' );
+      socket.removeAllListeners ( 'connection' );
+      socket.disconnect ( true );
+    } );
+  } );
+} );
+
