@@ -83,4 +83,9 @@ module.exports = function ( app ) {
     service.create ( { ...data } , { params : service.hooks.params } )
   } )
 
+  app.service ( '/mm/v1/micronets/users' ).on ( 'userCreate' , ( data ) => {
+    console.log ( '\n Micro-nets service uuserCreate event detected with data : ' + JSON.stringify ( data ) )
+     service.create ( { ...data } , { params : service.hooks.params } )
+  } )
+
 };

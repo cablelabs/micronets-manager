@@ -63,18 +63,30 @@ const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
   const { micronet } = requestBody.micronets;
   const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
   const { switchConfig } = odlStaticConfig
+  const trunkIndex = switchConfig.bridges.findIndex((bridge) => bridge.portTrunk == 'trunk')
+  const trunkGatewayPort = switchConfig.bridges[trunkIndex]
+  const ovsHost = switchConfig.bridges[trunkIndex].ovsHost
+  const wirelessPortIndex = switchConfig.bridges.findIndex((bridge) => bridge.portWireless == 'wireless')
+  const wiredPortIndex = switchConfig.bridges.findIndex((bridge) => bridge.portWired == 'wired')
+  const portWired = switchConfig.bridges[wiredPortIndex].portBridge
+  const portWireless = switchConfig.bridges[wirelessPortIndex].portBridge
+  console.log('\n TrunkGatewayPort : ' + JSON.stringify(trunkGatewayPort) + '\t\t OVS Host : ' + JSON.stringify(ovsHost))
+  console.log('\n Port Wired : ' + JSON.stringify(portWired) + '\t\t Port Wireless : ' + JSON.stringify(portWireless))
+
   console.log ( '\n  ODL STATIC CONFIG FROM API  : ' + JSON.stringify ( switchConfig ) )
   const reqBodyWithOdlConfig = micronet.map ( ( micronet , index ) => {
+
     return {
       ...micronet ,
-      "trunk-gateway-port" : switchConfig.bridges[ index ].portTrunk ,
-      "trunk-gateway-ip" : switchConfig.bridges[ index ].ovsHost ,
-      "dhcp-server-port" : switchConfig.bridges[ index ].portBridge ,
+      "trunk-gateway-port" : trunkGatewayPort ,
+      "trunk-gateway-ip" : ovsHost ,
+      "dhcp-server-port" : "" ,
+      "dhcp-zone" : switchConfig.bridges[index].subnet,
       "ovs-bridge-name" : switchConfig.bridges[ index ].bridge ,
-      "ovs-manager-ip" : switchConfig.bridges[ index ].ovsHost
+      "ovs-manager-ip" : ovsHost
     }
   } )
-  return reqBodyWithOdlConfig
+  return { reqBodyWithOdlConfig , portWireless, portWired }
 }
 
 const getSubnet = ( hook , index ) => {
@@ -199,14 +211,42 @@ function hasProp ( obj , prop ) {
   return Object.prototype.hasOwnProperty.call ( obj , prop );
 }
 
+
+const getRegistryForSubscriber = async (hook, subscriberId) => {
+  const query = Object.assign({ id: subscriberId }, hook.params.query);
+  return hook.app.service('/mm/v1/micronets/registry').find({ query })
+    .then(({data}) => {
+      if(data.length === 1) {
+        return omitMeta(data[0]);
+      }
+    })
+}
+
+const getRegistry = async(hook) => {
+  const micronetFromDB = await getMicronet(hook,{})
+  const subscriberId = micronetFromDB.id
+  console.log('\n GET GATEWAY ID HOOK subscriberId : ' + JSON.stringify(subscriberId))
+  const registry = await getRegistryForSubscriber(hook,subscriberId)
+  return registry
+}
+
+
 const populatePostObj = async ( hook , reqBody ) => {
   console.log ( '\n POPULATE POST OBJ Request Body : ' + JSON.stringify ( reqBody ) )
   const { micronet } = reqBody.micronets
   const noOfMicronets = micronet.length
   console.log ( '\n POPULATE POST OBJ noOfMicro-nets : ' + JSON.stringify ( noOfMicronets ) )
 
+  /* Get gatewayId */
+   const registry = await getRegistry(hook)
+   console.log('\n Registry obtained : ' + JSON.stringify(registry))
+   const gatewayId = registry.gatewayId
+  /* Get gatewayId */
+
   /* Populate ODL Static Config */
-  const reqBodyWithOdlConfig = await populateOdlConfig ( hook , reqBody , '1234' )
+  const config = await populateOdlConfig ( hook , reqBody , gatewayId )
+  const { reqBodyWithOdlConfig, portWired, portWireless } = config
+  console.log('\n POPULATE-ODL-CONFIG CONFIG : '+ JSON.stringify(config))
   console.log ( '\n\n POPULATE POST OBJ reqBodyWithOdlConfig : ' + JSON.stringify ( reqBodyWithOdlConfig ) )
 
   /* Populate Sub-nets and Devices Config */
@@ -221,7 +261,7 @@ const populatePostObj = async ( hook , reqBody ) => {
       "micronet-subnet" : subnetAndDeviceIps[ index ].micronetSubnet ,
       "micronet-gateway-ip" : subnetAndDeviceIps[ index ].micronetGatewayIp ,
       "dhcp-zone" : subnetAndDeviceIps[ index ].micronetSubnet ,
-      "connected-devices" : subnetAndDeviceIps[ index ].connectedDevices
+      "connected-devices" : subnetAndDeviceIps[ index ].connectedDevices.concat({"device-openflow-port":portWired})
     }
   } )
   updatedReqPostBody = [].concat ( ...updatedReqPostBody )
@@ -337,44 +377,6 @@ const createSubnetInMicronet = async ( hook , postBody , subnetsToAdd ) => {
   return finalPostBody
 }
 
-/* Add single / multiple devices in subnet */
-const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
-  console.log ( '\n addDevicesInSubnet micronetId : ' + JSON.stringify ( micronetId ) )
-  console.log ( '\n addDevicesInSubnet subnetId : ' + JSON.stringify ( subnetId ) )
-  devices = [].concat ( devices )
-  console.log ( '\n addDevicesInSubnet devices : ' + JSON.stringify ( devices ) )
-  let formattedDevices = devices.map ( ( device , index ) => {
-    return {
-      deviceMac : device.macAddress ,
-      deviceName : device.deviceName || `Test Device ${index}` ,  // deviceName not present in Token
-      deviceId : device.deviceId
-    }
-  } )
-  console.log ( '\n formattedDevices : ' + JSON.stringify ( formattedDevices ) )
-  const micronetFromDB = await getMicronet ( hook , {} )
-  console.log ( '\n addDevicesInSubnet micronetFromDB : ' + JSON.stringify ( micronetFromDB ) )
-  const micronetToUpdateIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => {
-    return (micronetId == micronet[ 'micronet-id' ] && subnetId == micronet[ 'micronet-subnet-id' ])
-  } )
-  console.log ( '\n Micronet to Update Index: ' + JSON.stringify ( micronetToUpdateIndex ) )
-  const micronetToUpdate = micronetFromDB.micronets.micronet[ micronetToUpdateIndex ]
-  const micronetSubnet = micronetToUpdate[ 'micronet-subnet' ]
-  console.log ( '\n micronetSubnet : ' + JSON.stringify ( micronetSubnet ) )
-  const subnetNo = parseInt ( micronetSubnet.split ( '.' )[ 2 ] , 10 );
-  console.log ( '\n subnetNo for subnet : ' + JSON.stringify ( subnetNo ) )
-  // Remove hard-coded subnetNo later
-  const subnetWithDevices = await subnetAllocation.getNewIps ( subnetNo , formattedDevices )
-  console.log ( '\n subnetWithDevices : ' + JSON.stringify ( subnetWithDevices ) )
-  const updatedMicronetwithDevices = Object.assign ( {} , micronetToUpdate , { 'connected-devices' : micronetToUpdate[ 'connected-devices' ].concat ( subnetWithDevices.connectedDevices ) } )
-  console.log ( '\n updatedMicronetwithDevices : ' + JSON.stringify ( updatedMicronetwithDevices ) )
-
-  const postBodyForODL = micronetFromDB
-  postBodyForODL.micronets.micronet[ micronetToUpdateIndex ] = updatedMicronetwithDevices
-  console.log ( '\n postBodyForODL : ' + JSON.stringify ( postBodyForODL ) )
-  return postBodyForODL
-
-}
-
 const upsertSubnetsToMicronet = async ( hook , body ) => {
   let postBodyForODL = []
   console.log ( '\n UPSERT SUBNETS TO MICRO-NET BODY : ' + JSON.stringify ( body ) )
@@ -401,14 +403,6 @@ const upsertSubnetsToMicronet = async ( hook , body ) => {
   // hook.data = Object.assign ( {} , { micronets : micronetWithoutDevices.micronets } )
   // console.log ( '\n ADD SUBNET TO MICRONET function hook.data : ' + JSON.stringify ( hook.data ) )
   return postBodyForODL
-}
-
-// MOCK METHOD
-const mockaAddDevicesToMicronet = async ( hook , postBody ) => {
-  console.log ( '\n ADD DEVICES TO MICRONET function postBody: ' + JSON.stringify ( postBody ) )
-  hook.data = Object.assign ( {} , { micronets : micronetWithDevices.micronets } )
-  console.log ( '\n ADD DEVICES TO MICRONET function hook.data : ' + JSON.stringify ( hook.data ) )
-  return hook
 }
 
 const updateMicronetModel = async ( hook , response ) => {
@@ -495,6 +489,44 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
   return true
 }
 
+const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
+  console.log ( '\n addDevicesInSubnet micronetId : ' + JSON.stringify ( micronetId ) )
+  console.log ( '\n addDevicesInSubnet subnetId : ' + JSON.stringify ( subnetId ) )
+  devices = [].concat ( devices )
+  console.log ( '\n addDevicesInSubnet devices : ' + JSON.stringify ( devices ) )
+  let formattedDevices = devices.map ( ( device , index ) => {
+    return {
+      deviceMac : device.macAddress ,
+      deviceName : device.deviceName || `Test Device ${index}` ,  // deviceName not present in Token
+      deviceId : device.deviceId
+    }
+  } )
+  console.log ( '\n formattedDevices : ' + JSON.stringify ( formattedDevices ) )
+  const micronetFromDB = await getMicronet ( hook , {} )
+  console.log ( '\n addDevicesInSubnet micronetFromDB : ' + JSON.stringify ( micronetFromDB ) )
+  const micronetToUpdateIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => {
+    return (micronetId == micronet[ 'micronet-id' ] && subnetId == micronet[ 'micronet-subnet-id' ])
+  } )
+  console.log ( '\n Micronet to Update Index: ' + JSON.stringify ( micronetToUpdateIndex ) )
+  const micronetToUpdate = micronetFromDB.micronets.micronet[ micronetToUpdateIndex ]
+  const micronetSubnet = micronetToUpdate[ 'micronet-subnet' ]
+  console.log ( '\n micronetSubnet : ' + JSON.stringify ( micronetSubnet ) )
+  const subnetNo = parseInt ( micronetSubnet.split ( '.' )[ 2 ] , 10 );
+  console.log ( '\n subnetNo for subnet : ' + JSON.stringify ( subnetNo ) )
+  // Remove hard-coded subnetNo later
+  const subnetWithDevices = await subnetAllocation.getNewIps ( subnetNo , formattedDevices )
+  console.log ( '\n subnetWithDevices : ' + JSON.stringify ( subnetWithDevices ) )
+  const updatedMicronetwithDevices = Object.assign ( {} , micronetToUpdate , { 'connected-devices' : micronetToUpdate[ 'connected-devices' ].concat ( subnetWithDevices.connectedDevices ) } )
+  console.log ( '\n updatedMicronetwithDevices : ' + JSON.stringify ( updatedMicronetwithDevices ) )
+
+  const postBodyForODL = micronetFromDB
+  postBodyForODL.micronets.micronet[ micronetToUpdateIndex ] = updatedMicronetwithDevices
+  console.log ( '\n postBodyForODL : ' + JSON.stringify ( postBodyForODL ) )
+  return postBodyForODL
+
+}
+/* Add Registered devices to existing or new subnet */
+
 module.exports = {
   before : {
     all : [ // authenticate('jwt')
@@ -527,13 +559,33 @@ module.exports = {
     create : [
       async hook => {
         const { params , id } = hook;
+        console.log('\n BEFORE CREATE HOOK ... ')
         const micronetFromDB = await getMicronet ( hook , {} )
+
         if(micronetFromDB) {
           hook.id = micronetFromDB._id
           console.log ( '\n micronetFromDB._id for patch : ' + JSON.stringify ( micronetFromDB._id ) )
         }
 
-        if ( hook.data && hook.data.type == 'userDeviceRegistered' ) {
+        if(hook.data && hook.data.type == 'userCreate') {
+          const {type, data} = hook.data
+          console.log ( '\n User Create event detected.Creating micronets in database TYPE .... : ' + JSON.stringify ( type ) + '\t\t DATA : ' + JSON.stringify(data))
+          const query = Object.assign({ id: data.subscriberId });
+          let user = await hook.app.service('/mm/v1/micronets/users').find({ query })
+          user = user.data[0]
+          console.log('\n USER FOUND : ' + JSON.stringify(user))
+          hook.data = Object.assign({},{
+            id: user.id,
+            name: user.name,
+            ssid: user.ssid,
+            micronets: Object.assign({},{
+              micronet:[]
+            })
+          })
+         return Promise.resolve(hook)
+        }
+
+        else if ( hook.data && hook.data.type == 'userDeviceRegistered' ) {
           console.log ( '\n User Device Registered event detected.Adding device to new or exisiting subnet for data .... : ' + JSON.stringify ( hook.data ) )
           const { type , data } = hook.data
           const { subscriberId , device } = data
@@ -558,6 +610,7 @@ module.exports = {
         else {
           const { req } = hook.data
           const { body , originalUrl , method , path } = req
+          const micronetFromDB = await getMicronet ( hook , {} )
           if ( originalUrl.toString () == '/mm/v1/micronets/init' ) {
             console.log ( '\n INCOMING REQUEST BODY  : ' + JSON.stringify ( body ) )
             console.log ( '\n\n URL : ' + JSON.stringify ( originalUrl ) )
@@ -566,11 +619,26 @@ module.exports = {
             const isGatewayConnected = await connectToGateway ( hook )
             if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
               console.log ( '\n isGatewayAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) + '\t\t isODLAlive : ' + JSON.stringify ( isOdlAlive ) )
-              const postBody = await populatePostObj ( hook , body )
-              console.log ( '\n CREATE HOOK OBTAINED POST BODY : ' + JSON.stringify ( postBody ) )
+              const postBodyForODL = await populatePostObj ( hook , body )
+              console.log ( '\n CREATE HOOK INIT OBTAINED POST BODY : ' + JSON.stringify ( postBody ) )
               const result = await initializeMicronets ( hook , postBody )
               console.log ( '\n CREATE MICRO-NET INIT HOOK RESULT : ' + JSON.stringify ( result ) )
-              return Promise.resolve ( hook );
+              /* ODL CALLS */
+              const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
+
+              // if ( odlResponse ) {
+              //   console.log ( '\n odlResponse : ' + JSON.stringify ( odlResponse ) )
+              //   const dbUpdateResult = await updateMicronetModel ( hook , odlResponse )
+              //   console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
+              //   const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
+              //     { micronets : { micronet : dbUpdateResult } } ,
+              //     { query : {} , mongoose : { upsert : true } } );
+              //   console.log ( '\n CREATE HOOK INIT PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
+              //   hook.result = patchResult
+              //   return Promise.resolve ( hook )
+              // }
+              /* ODL CALLS */
+              return Promise.resolve ( hook )
             }
 
           }
