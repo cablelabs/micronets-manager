@@ -59,3 +59,18 @@ app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceRegistered' , ( data ) 
   } );
 } );
 
+app.service ( '/mm/v1/micronets' ).on ( 'micronetUpdated' , ( data ) => {
+  console.log ( '\n FeatherJS event micronetUpdated fired with data : ' + JSON.stringify ( data ) )
+  io.on ( 'connection' , ( socket ) => {
+    logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
+    socket.emit ( 'micronetUpdated' , data );
+    socket.on ( 'disconnect' , () => {
+      console.log ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
+      socket.removeAllListeners ( 'send message' );
+      socket.removeAllListeners ( 'disconnect' );
+      socket.removeAllListeners ( 'connection' );
+      socket.disconnect ( true );
+    } );
+  } );
+} );
+

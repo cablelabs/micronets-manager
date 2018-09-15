@@ -128,7 +128,7 @@ const getDeviceForSubnet = async ( hook , subnetDetails , subnets ) => {
   console.log ( '\n getDeviceForSubnet devicesWithIp : ' + JSON.stringify ( devicesWithIp ) )
   return devicesWithIp
 }
-
+// TODO : Pass Switch Config object and wired and wireless subnet
 const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
   console.log ( '\n getSubnetAndDeviceIps requestBody : ' + JSON.stringify ( requestBody ) )
   const noOfSubnets = requestBody.length
@@ -140,6 +140,8 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
     } )
   } )
   console.log ( '\n getSubnetAndDeviceIps Subnet Details : ' + JSON.stringify ( subnetDetails ) )
+
+  // TODO: Pass the subnetNo from odlConfig and request that subnet from IP Allocator
   const subnets = await getSubnetIps ( hook , subnetDetails , requestBody )
   console.log ( '\n getSubnetAndDeviceIps Obtained subnets : ' + JSON.stringify ( subnets ) )
 
@@ -225,6 +227,7 @@ const getRegistry = async ( hook ) => {
   const registry = await getRegistryForSubscriber ( hook , subscriberId )
   return registry
 }
+
 
 const populatePostObj = async ( hook , reqBody ) => {
   console.log ( '\n PopulatePostObj Request-Body : ' + JSON.stringify ( reqBody ) )
@@ -665,7 +668,7 @@ module.exports = {
 
           if ( originalUrl.toString () == `/mm/v1/micronets/subnets` ) {
             const { data , id } = hook;
-            const { req } = hook.data.data
+            const { req } = hook.data
             const micronetFromDB = await getMicronet ( hook , {} )
             // console.log ( '\n CREATE micronetFromDB : ' + JSON.stringify ( micronetFromDB ) )
             hook.id = micronetFromDB._id
@@ -781,7 +784,16 @@ module.exports = {
     get : [] ,
     create : [] ,
     update : [] ,
-    patch : [] ,
+    patch : [
+      async(hook) => {
+       const {data, id, params} = hook
+       console.log('\n PATCH AFTER HOOK DATA : ' + JSON.stringify(data) + '\t\t ID : ' + JSON.stringify(id) + '\t\t PARAMS : ' + JSON.stringify(params))
+        hook.app.service ( '/mm/v1/micronets' ).emit ( 'micronetUpdated' , {
+          type : 'micronetUpdated' ,
+          data : data
+        } );
+      }
+    ] ,
     remove : []
   } ,
 
