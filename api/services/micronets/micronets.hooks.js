@@ -659,14 +659,14 @@ module.exports = {
     ] ,
     remove : [
       async ( hook ) => {
-         const {data, id, params } = hook;
+         const { data, id, params } = hook;
          console.log('\n DELETE HOOK DATA : ' + JSON.stringify(data))
          const odlResponse = await odlOperationsForUpserts(hook,data)
          console.log('\n DELETE HOOK odlResponse : ' + JSON.stringify(odlResponse))
          const micronetFromDB = await getMicronet(hook,{})
          if(odlResponse){
            const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
-             { micronets : { micronet : odlResponse } } ,
+             { micronets : { micronet : [] } } , // TODO : Add actual response
              { query : {} , mongoose : { upsert : true } } );
            console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
            hook.result = patchResult
