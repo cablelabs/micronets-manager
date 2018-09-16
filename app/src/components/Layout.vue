@@ -14,7 +14,7 @@
           <v-icon class="grey--text">close</v-icon>
         </v-btn>
       </v-toolbar>
-      <v-list v-if="micronets.length > 0 && micronetIndex!= -1">
+      <v-list v-if="subscriber.micronets.micronet.length > 0">
         <v-container
           style="max-height: max-content"
           class="scroll-y"
@@ -27,16 +27,16 @@
             v-scroll:#scroll-target="onScroll"
             style="height: auto"
           >
-            <template v-for="(message,index) in micronets[micronetIndex].logEvents">
-              <div class="message-list">
-                <span class="message--text message-content">{{ formatLogMessage(message) }}</span>
-                <v-divider v-if="index + 1 < micronets[micronetIndex].logEvents.length" :key="index" class="message-divider"/>
-              </div>
-            </template>
+            <!--<template v-for="(message,index) in subscriber.micronets.micronet[micronetIndex].logEvents">-->
+              <!--<div class="message-list">-->
+                <!--<span class="message&#45;&#45;text message-content">{{ formatLogMessage(message) }}</span>-->
+                <!--<v-divider v-if="index + 1 < micronets[micronetIndex].logEvents.length" :key="index" class="message-divider"/>-->
+              <!--</div>-->
+            <!--</template>-->
           </v-layout>
         </v-container>
       </v-list>
-      <v-list v-if="micronets.length > 0 && micronetIndex == -1">
+      <v-list v-if="subscriber.micronets.micronet.length > 0 && micronetIndex == -1">
         <v-subheader v-if="Object.keys(this.$router.currentRoute.params).length == 0">All Logs</v-subheader>
         <v-container
           style="max-height: max-content"
@@ -93,9 +93,10 @@
   export default {
     name: 'Layout',
     computed: {
-      ...mapState(['micronets']),
+      ...mapState(['subscriber']),
       micronetIndex () {
-        const micronetIndex = findIndex(propEq('_id', this.$route.params.id))(this.micronets)
+        const micronetIndex = findIndex(propEq('_id', this.$route.params.id))(this.subscriber)
+        console.log('\n micronetIndex : ' + JSON.stringify(micronetIndex))
         return micronetIndex
       }
     },

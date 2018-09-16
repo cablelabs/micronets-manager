@@ -1,9 +1,25 @@
+<!--<template>-->
+  <!--<Layout>-->
+    <!--<template v-for="(micronet, index) in subscriber.micronets.micronet">-->
+         <!--<Subscriber :subscriberId=subscriber.id  :subscriberName="micronet.name" :ssId="micronet.ssid" :devices="micronet['connected-devices']" :index=index :id="micronet._id"/>-->
+    <!--</template>-->
+    <!--<template v-if="subscriber.micronets.micronet.length == 0">-->
+      <!--<v-card>-->
+        <!--<v-card-title class="no-subnets">No Micro-nets found</v-card-title>-->
+        <!--<v-card-actions>-->
+          <!--&lt;!&ndash;<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>&ndash;&gt;-->
+        <!--</v-card-actions>-->
+      <!--</v-card>-->
+    <!--</template>-->
+  <!--</Layout>-->
+<!--</template>-->
+
 <template>
   <Layout>
-    <template v-for="(micronet, index) in micronets">
-         <Subscriber :subscriberId=micronet.id  :subscriberName="micronet.name" :ssId="micronet.ssid" :devices=micronet.devices :index=index :id="micronet._id"/>
+    <template v-for="(micronet, index) in subscriber.micronets.micronet">
+      <Subscriber :subscriberId=subscriber.id  :subscriberName="micronet.name" :ssId="micronet.ssid" :devices="micronet['connected-devices']" :index=index :id="micronet._id"/>
     </template>
-    <template v-if="micronets.length == 0">
+    <template v-if="subscriber.micronets.micronet.length == 0">
       <v-card>
         <v-card-title class="no-subnets">No Micro-nets found</v-card-title>
         <v-card-actions>
@@ -25,7 +41,7 @@
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
     name: 'home',
     computed: {
-      ...mapState(['micronets', 'deviceLeases']),
+      ...mapState(['subscriber', 'deviceLeases']),
       ...mapGetters(['editTarget'])
     },
     data: () => ({
@@ -49,7 +65,7 @@
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertSubscribers', 'upsertDeviceLeases']),
+      ...mapActions(['fetchMicronets', 'upsertDeviceLeases']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -60,23 +76,16 @@
     },
     mounted () {
       this.setEditTargetIds({})
-      this.fetchSubscribers().then(() => {
-        console.log('\n\n  state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
-        this.upsertDeviceLeases({event: 'init'})
+      this.fetchMicronets().then(() => {
+        console.log('\n mounted STATE OBJ Subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n\n Mounted state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
+        // this.upsertDeviceLeases({event: 'init'})
       })
     },
     created () {
-      this.$socket.on('socketSessionUpdate', (data) => {
-        console.log('\n Vue socket event socketSessionUpdate caught with data in created Home.vue ' + JSON.stringify(data))
-        this.upsertSubscribers(data).then(() => {
-          this.fetchMicronets().then(() => {})
-        })
+      this.fetchMicronets().then(() => {
+        console.log('\n created STATE OBJ Subscriber : ' + JSON.stringify(this.subscriber))
       })
-      // this.$socket.on('socketSessionCreate', (data) => {
-      //   console.log('\n Vue socket event socketSessionCreate caught with data in created Home.vue ' + JSON.stringify(data))
-      //   this.upsertSubscribers(data).then(() => {
-      //   })
-      // })
     }
   }
 </script>

@@ -8,12 +8,12 @@
       <status-indicator intermediary pulse></status-indicator>
     </div>
     <span class="device-title">
-      <h3>{{ device.deviceName }}</h3>
-      <p>{{ device.deviceDescription }}</p>
+      <h3>{{ device["device-name"] }}</h3>
+      <p>{{ device["device-id"] }}</p>
     </span>
-    <span class="device-item">{{ device.mac.eui48}}</span>
-    <span class="device-item">{{ device.ipv4.host }}</span>
-    <v-btn class="configure-btn" @click.native.stop="configureMicronet">Configure</v-btn>
+    <span class="device-item">{{ device["device-mac"]}}</span>
+    <span class="device-item">{{ device["device-ip"] }}</span>
+    <!--<v-btn class="configure-btn" @click.native.stop="configureMicronet">Configure</v-btn>-->
     <v-btn flat icon class="more-icon" color="grey">
       <v-icon>more_vert</v-icon>
     </v-btn>

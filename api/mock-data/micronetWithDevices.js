@@ -1,33 +1,21 @@
 module.exports = {
-    "id" : "7B2A-BE88-08817Z" ,
-    "name" : "Grandma's LINKSYS 1900" ,
-    "ssid" : "grandma-gw" ,
-    "devices" : [
-      {
-        "clientId" : "https://ST-healthcare.org/" ,
-        "deviceId" : "h2h0h43188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842" ,
-        "macAddress" : "b8:27:eb:8d:30:27" ,
-        "class" : "Medical"
-      } ,
-      {
-        "clientId" : "https://ST-healthcare.org/" ,
-        "deviceId" : "j2h0j42188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842" ,
-        "macAddress" : "b8:27:eb:df:ae:a7" ,
-        "class" : "CableLabs"
-      } ,
-      {
-        "clientId" : "https://ST-healthcare.org/" ,
-        "deviceId" : "e2h0e52188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842" ,
-        "macAddress" : "b8:27:eb:ab:41:12" ,
-        "class" : "Entertainment"
-      }
-    ] ,
     "micronets" : {
       "micronet" : [
         {
           "name" : "Medical" ,
           "class" : "Medical",
           "trunk-gateway-port" : "1" ,
+          "micronet-bridge-openflow-node-id" : "openflow:2945788526319" ,
+          "ovs-manager-ip" : "10.36.32.55" ,
+          "dhcp-server-port" : "LOCAL" ,
+          "micronet-subnet-id" : "WIRED_enp4s0" ,
+          "dhcp-zone" : "192.168.12.0/24" ,
+          "micronet-id" : 1534270984 ,
+          "micronet-bridge-nodeid" : "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001" ,
+          "micronet-subnet" : "192.168.12.0/24" ,
+          "micronet-gateway-ip" : "192.168.12.1" ,
+          "ovs-bridge-name" : "brmn001" ,
+          "trunk-gateway-ip" : "10.36.32.55",
           "connected-devices" : [
             {
               "device-mac" : "b8:27:eb:8d:30:27" ,
@@ -35,22 +23,31 @@ module.exports = {
               "device-openflow-port" : "2" ,
               "device-name" : "pia" ,
               "device-id" : "Raspberry-Pi3-Model-B-v1.2"
+            },
+            {
+              "device-mac" : "b2:25:eb:8d:30:27" ,
+              "device-ip" : "192.168.250.2" ,
+              "device-openflow-port" : "2" ,
+              "device-name" : "pia" ,
+              "device-id" : "Raspberry-Pi3-Model-B-v1.3"
             }
-          ] ,
-          "ovs-manager-ip" : "10.36.32.55" ,
-          "micronet-subnet" : "192.168.250.0/24" ,
-          "dhcp-server-port" : "LOCAL" ,
-          "micronet-gateway-ip" : "192.168.250.1" ,
-          "ovs-bridge-name" : "brmn001" ,
-          "micronet-subnet-id" : "WIRED_enp4s0" ,
-          "micronet-id": 1533936267,
-          "dhcp-zone" : "10.36.32.0/24" ,
-          "trunk-gateway-ip" : "10.36.32.55"
+          ]
         } ,
         {
           "name" : "CableLabs" ,
           "class" : "CableLabs",
           "trunk-gateway-port" : "1" ,
+          "micronet-bridge-openflow-node-id" : "openflow:2945788526319" ,
+          "ovs-manager-ip" : "10.36.32.55" ,
+          "dhcp-server-port" : "LOCAL" ,
+          "micronet-subnet-id" : "WIRELESS_wlp2s0" ,
+          "dhcp-zone" : "192.168.10.0/24" ,
+          "micronet-id" : 1534270985 ,
+          "micronet-bridge-nodeid" : "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001" ,
+          "micronet-subnet" : "192.168.10.0/24" ,
+          "micronet-gateway-ip" : "192.168.10.1" ,
+          "ovs-bridge-name" : "brmn001" ,
+          "trunk-gateway-ip" : "10.36.32.55",
           "connected-devices" : [
             {
               "device-mac" : "b8:27:eb:df:ae:a7" ,
@@ -59,39 +56,7 @@ module.exports = {
               "device-name" : "pib" ,
               "device-id" : "Raspberry-Pi3-Model-B-v1.2"
             }
-          ] ,
-          "ovs-manager-ip" : "10.36.32.55" ,
-          "micronet-subnet" : "192.168.251.0/24" ,
-          "dhcp-server-port" : "LOCAL" ,
-          "micronet-gateway-ip" : "192.168.251.1" ,
-          "ovs-bridge-name" : "brmn001" ,
-          "micronet-subnet-id" : "WIRED_enp4s0" ,
-          "micronet-id": 1533936269,
-          "dhcp-zone" : "192.168.251.0/24" ,
-          "trunk-gateway-ip" : "10.36.32.55"
-        } ,
-        {
-          "name" : "Entertainment" ,
-          "class" : "Entertainment",
-          "trunk-gateway-port" : "1" ,
-          "connected-devices" : [
-            {
-              "device-mac" : "b8:27:eb:ab:41:12" ,
-              "device-ip" : "192.168.252.2" ,
-              "device-openflow-port" : "4" ,
-              "device-name" : "picw" ,
-              "device-id" : "Raspberry-Pi3-Model-B-v1.2"
-            }
-          ] ,
-          "ovs-manager-ip" : "10.36.32.55" ,
-          "micronet-subnet" : "192.168.252.0/24" ,
-          "dhcp-server-port" : "LOCAL" ,
-          "micronet-gateway-ip" : "192.168.252.1" ,
-          "ovs-bridge-name" : "brmn001" ,
-          "micronet-subnet-id" : "WIRELESS_wlp2s0" ,
-          "micronet-id": 1533936249,
-          "dhcp-zone" : "10.36.32.0/24" ,
-          "trunk-gateway-ip" : "10.36.32.55"
+          ]
         }
       ]
     }

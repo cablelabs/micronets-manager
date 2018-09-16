@@ -33,7 +33,7 @@
     },
     methods: {
       showMicronets () {
-        this.$router.push(`${this.subscriberId}/micronets/${this.id}`)
+        this.$router.push(`${this.subscriberId}/micronets`)
       }
     },
     props: {

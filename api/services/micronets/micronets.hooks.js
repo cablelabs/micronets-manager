@@ -1,6 +1,7 @@
 const { authenticate } = require ( '@feathersjs/authentication' ).hooks;
 const subnetAllocation = require ( '../../hooks/subnetAllocaiton' )
 const micronetWithDevices = require ( '../../mock-data/micronetWithDevices' );
+const micronetWithDevices2 = require ( '../../mock-data/micronetWithDevices2' );
 const micronetWithoutDevices = require ( '../../mock-data/micronetWithoutDevices' );
 const micronetOperationalConfig = require ( '../../mock-data/micronetsOperationalConfig' );
 var rn = require ( 'random-number' );
@@ -297,9 +298,9 @@ const initializeMicronets = async ( hook , postBody ) => {
   hook.data = Object.assign ( {} , {
     id : micronetFromDB.id ,
     name : micronetFromDB.name ,
-    ssid : micronetFromDB.ssid , micronets : { micronet : micronetWithoutDevices.micronets }
+    ssid : micronetFromDB.ssid , micronets : { micronet : micronetWithDevices2.micronets }
   } )
-  return hook
+  return hook.data
 }
 
 const getMicronet = async ( hook , query ) => {
@@ -644,21 +645,21 @@ module.exports = {
               console.log ( '\n CREATE MICRO-NET INIT HOOK RESULT : ' + JSON.stringify ( result ) )
 
               /* ODL CALLS */
-              const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-              // if ( odlResponse ) {
-              //   // console.log ( '\n odlResponse : ' + JSON.stringify ( odlResponse ) )
-              //   const dbUpdateResult = await updateMicronetModel ( hook , odlResponse )
-              //   // console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
-              //   const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
-              //     { id : micronetFromDB.id ,
-              //       name : micronetFromDB.name ,
-              //       ssid : micronetFromDB.ssid ,
-              //       micronets : { micronet : dbUpdateResult } } ,
-              //     { query : {} , mongoose : { upsert : true } } );
-              //   console.log ( '\n CREATE HOOK INIT PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
-              //   hook.result = patchResult
-              //   return Promise.resolve ( hook )
-              // }
+               const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
+              if ( odlResponse ) {
+                // console.log ( '\n odlResponse : ' + JSON.stringify ( odlResponse ) )
+               // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse )
+                // console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
+                const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
+                  { id : micronetFromDB.id ,
+                    name : micronetFromDB.name ,
+                    ssid : micronetFromDB.ssid ,
+                    micronets : { micronet : result.micronets.micronet } } ,
+                  { query : {} , mongoose : { upsert : true } } );
+                console.log ( '\n CREATE HOOK INIT PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
+                hook.result = patchResult
+                return Promise.resolve ( hook )
+              }
               /* ODL CALLS */
 
               return Promise.resolve ( hook )
