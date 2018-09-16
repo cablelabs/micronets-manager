@@ -298,7 +298,7 @@ const initializeMicronets = async ( hook , postBody ) => {
   hook.data = Object.assign ( {} , {
     id : micronetFromDB.id ,
     name : micronetFromDB.name ,
-    ssid : micronetFromDB.ssid , micronets : { micronet : micronetWithDevices2.micronets }
+    ssid : micronetFromDB.ssid , micronets : { micronet : micronetWithDevices2.micronets.micronet }
   } )
   return hook.data
 }
