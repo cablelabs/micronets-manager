@@ -50,7 +50,7 @@
             v-scroll:#scroll-target="onScroll"
             style="height: auto"
           >
-            <template v-for="(micronet, index) in micronets">
+            <template v-for="(micronet, index) in subscriber.micronets.micronet">
               <template v-for="(message,msgIndex) in micronet.logEvents">
                 <div class="message-list">
                   <span class="message--text message-content">{{ formatLogMessage(message) }}</span>
