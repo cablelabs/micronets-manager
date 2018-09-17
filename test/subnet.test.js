@@ -7,7 +7,7 @@ var app = require('../api/app')
 const port = app.get('port');
 var server
 
-describe.only('Test Subnet Allocation', function() {
+describe.skip('Test Subnet Allocation', function() {
   before(function(done) {
     app.get('subnet')
       .then((subnetObj) => {
