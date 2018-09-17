@@ -29,7 +29,7 @@
     "start": " babel-node api/ && nodemon /api",
     "docker-build": "docker build -t code.cablelabs.com:4567/micronets/micronets-manager-backend .",
     "docker-publish": "docker login code.cablelabs.com:4567; docker push code.cablelabs.com:4567/micronets/micronets-manager-backend",
-    "mocha": "mocha test/ --recursive --exit",
+    "mocha": "mocha test/ --recursive --exit --timeout 10000",
     "test": "npm run clean --silent && npm run lint --silent && npm run mocha --silent",
     "watch": "npm run clean --silent && cross-env NODE_ENV=development babel-node src/"
   },
@@ -69,7 +69,10 @@
     "ramda": "^0.25.0",
     "serve-favicon": "^2.5.0",
     "socket.io": "^2.1.1",
-    "winston": "^3.0.0"
+    "websocket": "^1.0.26",
+    "websocket-as-promised": "^0.9.0",
+    "winston": "^3.0.0",
+    "ws": "^6.0.0"
   },
   "devDependencies": {
     "assert": "^1.4.1",
