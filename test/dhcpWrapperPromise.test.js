@@ -219,10 +219,10 @@ describe.only('Test DHCP Wrapper Promise', function () {
           gateway: '192.168.1.2'
         },
         nameservers: ['1.2.3.4', '1.2.3.5']
-      }, 'PUT', 'mocksubnet001'));
+      }, 'PUT', 'subnet', 'mocksubnet001'));
       promiseList.push(dw.send({
         nameservers: ['1.2.3.40', '1.2.3.50']
-      }, 'PUT', 'mocksubnet002'));
+      }, 'PUT', 'subnet', 'mocksubnet002'));
 
 
       let expected = [{
@@ -286,7 +286,7 @@ describe.only('Test DHCP Wrapper Promise', function () {
 
       let expected = {
         body: {
-            "message": "Subnet 'mocksubnet001' already exists"
+          "message": "Subnet 'mocksubnet001' already exists"
         },
         status: 409
       };
@@ -355,7 +355,7 @@ describe.only('Test DHCP Wrapper Promise', function () {
       },
         {
           body: {
-           "message": "Required field 'subnetId' missing from {'ipv4Network': {'mask': '255.255.255.0', 'network': '192.168.10.0'}, 'nameservers': ['1.2.3.4', '1.2.3.5']}"
+            "message": "Required field 'subnetId' missing from {'ipv4Network': {'mask': '255.255.255.0', 'network': '192.168.10.0'}, 'nameservers': ['1.2.3.4', '1.2.3.5']}"
           },
           status: 400
         }
@@ -431,18 +431,149 @@ describe.only('Test DHCP Wrapper Promise', function () {
         })
     });
   });
-  describe('Postive Device Tests', function () {
+  describe('Positive Device Tests', function () {
+    it('POST a device', (done) => {
+      let promiseList = []
+      promiseList.push(dw.send({
+        "deviceId": "MyDevice01",
+        "macAddress": {
+          "eui48": "00:23:12:0f:b0:26"
+        },
+        "networkAddress": {
+          "ipv4": "192.168.1.42"
+        }
+      }, 'POST', 'device', 'mocksubnet001'));
+
+      let expected = {
+        body:
+          {
+            "device": {
+              "deviceId": "MyDevice01",
+              "macAddress": {
+                "eui48": "00:23:12:0f:b0:26"
+              },
+              "networkAddress": {
+                "ipv4": "192.168.1.42"
+              }
+            }
+          },
+        status: 201
+      };
+      Promise.all(promiseList)
+        .then(responses => {
+          console.log(responses)
+          responses.length.should.equal(1)
+          let response3 = responses[0]
+          response3.should.eql(expected)
+          done()
+        })
+        .catch(err => {
+          done(err)
+        })
+    });
+    it('Get all devices', (done) => {
+      let promiseList = []
+      promiseList.push(dw.send({}, 'GET', 'device', 'mocksubnet001'));
+
+      let expected = {
+        body:
+          {
+            "devices": [
+              {
+                "deviceId": "MyDevice01",
+                "macAddress": {
+                  "eui48": "00:23:12:0f:b0:26"
+                },
+                "networkAddress": {
+                  "ipv4": "192.168.1.42"
+                }
+              }
+            ]
+          },
+        status: 200
+      };
+      Promise.all(promiseList)
+        .then(responses => {
+          console.log(responses)
+          responses.length.should.equal(1)
+          let response3 = responses[0]
+          response3.should.eql(expected)
+          done()
+        })
+        .catch(err => {
+          done(err)
+        })
+    });
+    it.skip('Updating a device', (done) => {
+      let promiseList = []
+      promiseList.push(dw.send({
+        "deviceId": "MyDevice01",
+        "macAddress": {
+          "eui48": "00:23:12:0f:b0:27"
+        },
+        "networkAddress": {
+          "ipv4": "192.168.1.42"
+        }
+      }, 'PUT', 'device', 'mocksubnet001', 'MyDevice01'));
+
+      let expected = {
+        body:
+          {
+            "device": {
+              "deviceId": "MyDevice01",
+              "macAddress": {
+                "eui48": "00:23:12:0f:b0:26"
+              },
+              "networkAddress": {
+                "ipv4": "192.168.1.43"
+              }
+            }
+          },
+        status: 200
+      };
+      Promise.all(promiseList)
+        .then(responses => {
+          console.log(responses)
+          responses.length.should.equal(1)
+          let response3 = responses[0]
+          response3.should.eql(expected)
+          done()
+        })
+        .catch(err => {
+          done(err)
+        })
+    });
 
   });
   describe('Clean up', function () {
+    it('Delete Device', (done) => {
+      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+        .then(() => {
+          let promiseList = []
+          promiseList.push(dw.send({}, 'DELETE', 'device', 'mocksubnet001', 'MyDevice01'));
+
+
+          Promise.all(promiseList)
+            .then(responses => {
+              responses.length.should.equal(1);
+              for (let i = 0; i < 1; i++) {
+                responses[i].status.should.equal(200) //this should be 204 but its not right now
+              }
+            }).then(done, done)
+
+        })
+        .catch(err => {
+          done(err)
+        })
+    });
     it('Delete Subnets', (done) => {
       dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
         .then(() => {
           let promiseList = []
-          promiseList.push(dw.send({}, 'DELETE', 'mocksubnet001'));
-          promiseList.push(dw.send({}, 'DELETE', 'mocksubnet002'));
-          promiseList.push(dw.send({}, 'DELETE', 'mocksubnet008'));
-          promiseList.push(dw.send({}, 'DELETE', 'mocksubnet009'));
+          promiseList.push(dw.send({}, 'DELETE', 'subnet', 'mocksubnet001'));
+          promiseList.push(dw.send({}, 'DELETE', 'subnet', 'mocksubnet002'));
+          promiseList.push(dw.send({}, 'DELETE', 'subnet', 'mocksubnet008'));
+          promiseList.push(dw.send({}, 'DELETE', 'subnet', 'mocksubnet009'));
 
 
           Promise.all(promiseList)

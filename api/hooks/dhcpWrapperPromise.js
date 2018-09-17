@@ -96,10 +96,10 @@ module.exports.connect = (address) => {
 };
 
 
-module.exports.send = function (json, method, id) {
+module.exports.send = function (json, method, type, subnetId, deviceId) {
   return new Promise(async function (resolve, reject) {
     if (wsp.isOpened) {
-      let webSocketFormat = convertTo(json, method, id)
+      let webSocketFormat = convertTo(json, method, type, subnetId, deviceId)
       wsp.sendRequest(webSocketFormat, {requestId: webSocketFormat.message.messageId})
         .then(response => {
           console.log('Received Response')
@@ -126,7 +126,7 @@ module.exports.close = function() {
 }
 
 
-const convertTo = function (json, method, id) {
+const convertTo = function (json, method, type, subnetId, deviceId) {
   /*
   “messageType”: “REST:REQUEST”,
    “requiresResponse”: true,
@@ -137,10 +137,20 @@ const convertTo = function (json, method, id) {
    “dataFormat”: <mime data format for the messageBody>
    “messageBody”: <either a string encoded according to the mime type, base64 string if dataFormat is “application/octet-stream”, or JSON object if dataFormat is “application/json”>
    */
-  let path = '/micronets/v1/dhcp/subnets';
-  if (id) {
-    path = path + '/' + id;
+  let path = '';
+  if (type && type === 'device') {
+    path = '/micronets/v1/dhcp/subnets/' + subnetId + '/devices';
+    if (deviceId) {
+      path = path + '/' + deviceId;
+    }
   }
+  else { //Assume subnets
+    path = '/micronets/v1/dhcp/subnets';
+    if (subnetId) {
+      path = path + '/' + subnetId;
+    }
+  }
+
   let body = json;
   if (Array.isArray(json)) {
     body = {subnets: json}
