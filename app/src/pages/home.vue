@@ -1,19 +1,3 @@
-<!--<template>-->
-  <!--<Layout>-->
-    <!--<template v-for="(micronet, index) in subscriber.micronets.micronet">-->
-         <!--<Subscriber :subscriberId=subscriber.id  :subscriberName="micronet.name" :ssId="micronet.ssid" :devices="micronet['connected-devices']" :index=index :id="micronet._id"/>-->
-    <!--</template>-->
-    <!--<template v-if="subscriber.micronets.micronet.length == 0">-->
-      <!--<v-card>-->
-        <!--<v-card-title class="no-subnets">No Micro-nets found</v-card-title>-->
-        <!--<v-card-actions>-->
-          <!--&lt;!&ndash;<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>&ndash;&gt;-->
-        <!--</v-card-actions>-->
-      <!--</v-card>-->
-    <!--</template>-->
-  <!--</Layout>-->
-<!--</template>-->
-
 <template>
   <Layout>
     <template v-for="(micronet, index) in subscriber.micronets.micronet">
@@ -77,14 +61,14 @@
     mounted () {
       this.setEditTargetIds({})
       this.fetchMicronets().then(() => {
-        console.log('\n mounted STATE OBJ Subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n Mounted state obj Subscriber : ' + JSON.stringify(this.subscriber))
         console.log('\n\n Mounted state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
         // this.upsertDeviceLeases({event: 'init'})
       })
     },
     created () {
       this.fetchMicronets().then(() => {
-        console.log('\n created STATE OBJ Subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n Created state obj Subscriber : ' + JSON.stringify(this.subscriber))
       })
     }
   }

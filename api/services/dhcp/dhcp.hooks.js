@@ -33,19 +33,10 @@ const getRegistry = async(hook,query) => {
 
 module.exports = {
   before: {
-    all: [
-      async(hook) => {
-        // const connection = await dhcpConnection(hook)
-        // console.log('\n\n connection : ' + JSON.stringify(connection))
-        // return Promise.resolve(hook)
-    }
-      ],
+    all: [],
     find: [
       async (hook) => {
         const {params, id, data} = hook;
-        console.log('\n FIND DHCP HOOK PARAMS : ' + JSON.stringify(params))
-        console.log('\n FIND DHCP HOOK ID : ' + JSON.stringify(id))
-        console.log('\n FIND DHCP HOOK DATA : ' + JSON.stringify(data))
         return Promise.resolve(hook)
       }
     ],
@@ -59,7 +50,6 @@ module.exports = {
         const { dhcpUrl } = registry
         console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
         console.log('\n URL : ' + JSON.stringify(url))
-
 
         if(hook.id && params.subnetId) {
           console.log('\n hook.id : ' + JSON.stringify(hook.id))
@@ -80,6 +70,7 @@ module.exports = {
             // Get all devices in subnet
             if(params.subnetId && url == `/mm/v1/dhcp/subnets/${params.subnetId}/devices`)
             {
+              console.log('\n GET ALL devices ')
               const dhcpResponse = await axios ( {
                 ...apiInit ,
                 method : 'get' ,

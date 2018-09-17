@@ -5,7 +5,7 @@ import socketio from 'feathers-socketio/client';
 import io from 'socket.io-client';
 
 // Configure Feathers client
-const socket = io(process.env.FEATHERS_HOST || 'http://localhost:3030');
+const socket = io(process.env.FEATHERS_HOST || 'http://127.0.0.1:3030');
 const feathers = Feathers()
   .configure(socketio(socket))
   .configure(hooks())

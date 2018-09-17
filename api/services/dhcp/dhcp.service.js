@@ -21,8 +21,7 @@ module.exports = function (app) {
 
   app.use('/mm/v1/dhcp/subnets/:subnetId/devices/:deviceId', async(req , res , next) => {
     const { path , originalUrl , method, params, body } = req
-    console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path )
-      + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl )
+    console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path ) + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl )
       + '\t\t PARAMS : ' + JSON.stringify ( params )
       + '\t\t BODY : ' + JSON.stringify ( body )
       + '\t\t METHOD : ' + JSON.stringify ( method ) )
