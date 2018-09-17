@@ -19,11 +19,29 @@ module.exports = function (app) {
   const service = app.service('mm/v1/micronets/dhcp');
   service.hooks(hooks);
 
-  // app.use('/subnets', async(req , res , next) => {
-  //   const result =  service.create(params)
-  // });
+  app.use('/mm/v1/dhcp/subnets/:subnetId/devices/:deviceId', async(req , res , next) => {
+    const { path , originalUrl , method, params, body } = req
+    console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path )
+      + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl )
+      + '\t\t PARAMS : ' + JSON.stringify ( params )
+      + '\t\t BODY : ' + JSON.stringify ( body )
+      + '\t\t METHOD : ' + JSON.stringify ( method ) )
 
-  // app.use('/mm/v1/dhcp/subnets/:subnetId/devices', service);
+    if(method == 'PUT'){
+      const subnet = await service.get(params.subnetId,params)
+      console.log('\n Subnet to update device info : ' + JSON.stringify(subnet))
+      const result =  await service.update(null,{...req.body},{ query : { subnetId:params.subnetId, deviceId:params.deviceId ,url:originalUrl }, mongoose: { upsert: true}})
+      res.json(result)
+    }
+    if(method == 'GET') {
+      const result =  await service.get(params.subnetId,{subnetId:params.subnetId,deviceId:params.deviceId,url:originalUrl})
+      res.json(result)
+    }
+    if(method == 'DELETE') {
+      const result =  await service.remove(null,{subnetId:params.subnetId, deviceId:params.deviceId, url:originalUrl})
+      res.json(result)
+    }
+  });
 
   app.use('/mm/v1/dhcp/subnets/:subnetId/devices', async(req , res , next) => {
     const { path , originalUrl , method, params, body } = req
@@ -35,14 +53,19 @@ module.exports = function (app) {
 
     if(method == 'POST'){
       const subnet = await service.get(params.subnetId,params)
-      console.log('\n subnet to add device to : ' + JSON.stringify(subnet))
-      const result =  await service.update(subnet._id,{...req.body},{ query : { subnetId:params.subnetId, url:originalUrl }, mongoose: { upsert: true}})
+      console.log('\n Subnet to add device to : ' + JSON.stringify(subnet))
+      const result =  await service.update(null,{...req.body},{ query : { subnetId:params.subnetId, url:originalUrl }, mongoose: { upsert: true}})
       res.json(result)
     }
     if(method == 'GET') {
-      const result =  await service.get(params.subnetId,params)
+      const result =  await service.get(params.subnetId,{url:originalUrl,subnetId:params.subnetId})
       res.json(result)
     }
+    if(method == 'DELETE') {
+      const result =  await service.remove(null,{subnetId:params.subnetId,url:originalUrl})
+      res.json(result)
+    }
+
   });
 
   app.use('/mm/v1/dhcp/subnets/:subnetId', async(req , res , next) => {
@@ -54,11 +77,15 @@ module.exports = function (app) {
       + '\t\t METHOD : ' + JSON.stringify ( method ) )
 
     if(method == 'PUT'){
-      const result =  await service.update(params.subnetId,{...req.body},{ query : { subnetId : params.subnetId }, mongoose: { upsert: true}})
+      const result =  await service.update(null,{...req.body},{ query : { subnetId : params.subnetId }, mongoose: { upsert: true}})
       res.json(result)
     }
     if(method == 'GET') {
-      const result =  await service.get(params.subnetId,params)
+      const result =  await service.get(params.subnetId,{subnetId:params.subnetId,url:originalUrl})
+      res.json(result)
+    }
+    if(method == 'DELETE') {
+      const result =  await service.remove(null,{subnetId:params.subnetId,url:originalUrl})
       res.json(result)
     }
   });
@@ -81,13 +108,9 @@ module.exports = function (app) {
       const result =  await service.get(null,params)
       res.json(result)
     }
-    if(method == 'PUT'){
-      const result =  await service.update(params.subnetId,{...req.body})
+    if(method == 'DELETE') {
+      const result =  await service.remove(null,{url:originalUrl})
       res.json(result)
     }
   });
-
-
-
-
 };
