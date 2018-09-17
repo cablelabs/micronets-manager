@@ -58,6 +58,8 @@ module.exports = {
         const registry = await getRegistry(hook,{})
         const { dhcpUrl } = registry
         console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
+        console.log('\n URL : ' + JSON.stringify(url))
+
 
         if(hook.id && params.subnetId) {
           console.log('\n hook.id : ' + JSON.stringify(hook.id))
@@ -76,7 +78,7 @@ module.exports = {
               return Promise.resolve(hook)
             }
             // Get all devices in subnet
-            if(params.subnetId && url == `${getSubnetDevicesUrl}/${params.subnetId}/devices`)
+            if(params.subnetId && url == `/mm/v1/dhcp/subnets/${params.subnetId}/devices`)
             {
               const dhcpResponse = await axios ( {
                 ...apiInit ,
@@ -85,6 +87,7 @@ module.exports = {
               })
               console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
               hook.result =  dhcpResponse.data
+              return Promise.resolve(hook)
             }
            // Get specific subnet
             else {
@@ -216,6 +219,7 @@ module.exports = {
         const registry = await getRegistry(hook,{})
         const { dhcpUrl } = registry
         console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
+        console.log('\n URL : ' + JSON.stringify(url))
 
         // Remove specific subnet
         if(params.subnetId && url == `/mm/v1/micronets/dhcp/subnets/${params.subnetId}`) {
@@ -230,7 +234,7 @@ module.exports = {
         }
 
         // Remove all subnets
-        if(!params.subnetId && url == `/mm/v1/micronets/dhcp/subnets`) {
+        if( url == `/mm/v1/dhcp/subnets`) {
           console.log('\n Remove all subnets : ')
           const dhcpResponse = await axios ( {
             ...apiInit ,
