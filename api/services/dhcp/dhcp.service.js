@@ -33,7 +33,7 @@ module.exports = function (app) {
       res.json(result)
     }
     if(method == 'GET') {
-      const result =  await service.get(params.subnetId,{subnetId:params.subnetId,deviceId:params.deviceId,url:originalUrl})
+      const result =  await service.get(null,{subnetId:params.subnetId,deviceId:params.deviceId,url:originalUrl})
       res.json(result)
     }
     if(method == 'DELETE') {
@@ -57,7 +57,7 @@ module.exports = function (app) {
       res.json(result)
     }
     if(method == 'GET') {
-      const result =  await service.get(params.subnetId,{url:originalUrl,subnetId:params.subnetId})
+      const result =  await service.get(null,{url:originalUrl,subnetId:params.subnetId})
       res.json(result)
     }
     if(method == 'DELETE') {
@@ -80,7 +80,7 @@ module.exports = function (app) {
       res.json(result)
     }
     if(method == 'GET') {
-      const result =  await service.get(params.subnetId,{subnetId:params.subnetId,url:originalUrl})
+      const result =  await service.get(null,{subnetId:params.subnetId,url:originalUrl})
       res.json(result)
     }
     if(method == 'DELETE') {
@@ -98,13 +98,12 @@ module.exports = function (app) {
       + '\t\t BODY : ' + JSON.stringify ( body )
       + '\t\t METHOD : ' + JSON.stringify ( method ) )
 
-    // res.json({message:'DHCP Subnet created'})
     if(method == 'POST'){
      const result =  await service.create({...req})
       res.json(result)
     }
     if(method == 'GET') {
-      const result =  await service.get(null,params)
+      const result =  await service.get(null,{url:originalUrl})
       res.json(result)
     }
     if(method == 'DELETE') {

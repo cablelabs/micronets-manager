@@ -1,15 +1,10 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
 const omit = require ( 'ramda/src/omit' );
+const dw = require('../../hooks/dhcpWrapperPromise')
 const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application/json' } }
 const axios = require ( 'axios' );
-const omitMetaForSubnets = omit ( [ 'updatedAt' , 'createdAt'  , '__v' , 'devices' ] );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v' ] );
-const createSubnetUrl = "/mm/v1/dhcp/subnets"
-const getSubnetDevicesUrl = "/mm/v1/dhcp/subnets"
-const dhcpConnection = async(hook) => {
-  console.log('\n dhcpConnection ...')
-  return Promise.resolve(hook)
-}
+const dhcpUrlPrefix = "/mm/v1/dhcp/subnets"
+const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001"
 
 const getRegistryForSubscriber = async ( hook , subscriberId ) => {
   const query = Object.assign ( {} , { subscriberId : subscriberId } , hook.params.query );
@@ -33,7 +28,9 @@ const getRegistry = async(hook,query) => {
 
 module.exports = {
   before: {
-    all: [],
+    all: [
+      async(hook) => { const dhcpConnection = await dw.connect(dhcpConnectionUrl) }
+    ],
     find: [
       async (hook) => {
         const {params, id, data} = hook;
@@ -43,66 +40,42 @@ module.exports = {
     get: [
       async (hook) => {
        const {params, id, data} = hook;
-       const {url,subnetId} = params
-        console.log('\n GET DHCP HOOK PARAMS : ' + JSON.stringify(params))
-        console.log('\n GET DHCP HOOK ID : ' + JSON.stringify(id))
+       const {url,subnetId, deviceId} = params
         const registry = await getRegistry(hook,{})
         const { dhcpUrl } = registry
         console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
-        console.log('\n URL : ' + JSON.stringify(url))
 
-        if(hook.id && params.subnetId) {
-          console.log('\n hook.id : ' + JSON.stringify(hook.id))
-
+        if(params.subnetId) {
           // Get specific device in subnet
           if(params.subnetId && params.deviceId) {
+            const dhcpResponse = dw.send({}, "GET", "device",params.subnetId,params.deviceId)
               console.log('\n URL : ' + JSON.stringify(url))
-              const dhcpResponse = await axios ( {
-                ...apiInit ,
-                method : 'get' ,
-                url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${params.subnetId}/devices/${params.deviceId}`
-
-              })
-              console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-              hook.result =  dhcpResponse.data
+              console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+              hook.result =  dhcpResponse
               return Promise.resolve(hook)
             }
             // Get all devices in subnet
-            if(params.subnetId && url == `/mm/v1/dhcp/subnets/${params.subnetId}/devices`)
+            if(url == `${dhcpUrlPrefix}/${params.subnetId}/devices`)
             {
+              const dhcpResponse = dw.send({}, "GET", "device",params.subnetId)
               console.log('\n GET ALL devices ')
-              const dhcpResponse = await axios ( {
-                ...apiInit ,
-                method : 'get' ,
-                url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${params.subnetId}/devices`
-              })
-              console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-              hook.result =  dhcpResponse.data
+              console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+              hook.result =  dhcpResponse
               return Promise.resolve(hook)
             }
            // Get specific subnet
             else {
-              const dhcpResponse = await axios ( {
-                ...apiInit ,
-                method : 'get' ,
-                url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${params.subnetId}`
-
-              })
-              console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-              hook.result =  dhcpResponse.data
+              const dhcpResponse = dw.send({}, "GET", "subnet",params.subnetId)
+              console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+              hook.result =  dhcpResponse
               return Promise.resolve(hook)
             }
         }
        // Get all subnets
         else {
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'get' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets`
-
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-          hook.result =  dhcpResponse.data
+          const dhcpResponse = dw.send({}, "GET","subnet")
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result =  dhcpResponse
           return Promise.resolve(hook)
         }
       }
@@ -114,23 +87,11 @@ module.exports = {
         const registry = await getRegistry(hook,{})
         const { dhcpUrl } = registry
         console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
-        console.log('\n CREATE DHCP HOOK ID : ' + JSON.stringify(id))
-        console.log('\n CREATE DHCP HOOK PATH : ' + JSON.stringify(path))
-        console.log('\n CREATE DHCP HOOK ORIGINAL-URL : ' + JSON.stringify(originalUrl))
-        console.log('\n CREATE DHCP HOOK METHOD : ' + JSON.stringify(method))
-        console.log('\n CREATE DHCP HOOK BODY : ' + JSON.stringify(body))
-
-        if(originalUrl == createSubnetUrl) {
-          console.log('\n ORIGINAL URL : ' + JSON.stringify(originalUrl))
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'POST' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets` ,
-            data: body
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-        //  hook.data = Object.assign({},dhcpResponse.data.subnet)
-          hook.result = dhcpResponse.data
+        if(originalUrl == `${dhcpUrlPrefix}`) {
+          console.log('\n  URL : ' + JSON.stringify(originalUrl) + '\t\t HOOK BODY : ' + JSON.stringify(body))
+          const dhcpResponse =  await dw.send({...body}, 'POST')
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result = dhcpResponse
           return Promise.resolve(hook)
         }
       }
@@ -147,41 +108,29 @@ module.exports = {
         const { dhcpUrl } = registry
         console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
         console.log('\n UPDATE HOOK ID : ' + JSON.stringify(id) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t PARAMS : ' + JSON.stringify(params))
-        // TODO : Add Dan DHCP Wrapper here
-
-        // Add device to existing subnet
-        if( query.url = `/mm/v1/dhcp/subnets/${query.subnetId}/devices`) {
-          console.log('\n Add device to existing subnet for data : ' + JSON.stringify(hook.data))
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'POST' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${query.subnetId}/devices`,
-            data:hook.data
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-          hook.result = dhcpResponse.data
-          return Promise.resolve(hook)
-        }
 
         // Update existing subnet
-        if( query.url = `/mm/v1/dhcp/subnets/${query.subnetId}`) {
-          console.log('\n Update existing subnet passed data : ' + JSON.stringify(hook.data))
-          // TODO : Add Dan DHCP Wrapper here
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'PUT' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${query.subnetId}`,
-            data:hook.data
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-          hook.result = dhcpResponse.data
+        if(  query.url = `${dhcpUrlPrefix}/${query.subnetId}`) {
+          console.log('\n Update existing subnet passed data : ' + JSON.stringify(data) + '\t\t URL : ' + JSON.stringify(query.url))
+          const dhcpResponse =  await dw.send({...data}, 'PUT','subnet',query.subnetId)
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result = dhcpResponse
           return Promise.resolve(hook)
         }
 
+        // Add device to existing subnet
+        if( query.url = `${dhcpUrlPrefix}/${query.subnetId}/devices`) {
+          console.log('\n Add device to existing subnet for data : ' + JSON.stringify(data) + '\t\t URL : ' + JSON.stringify(query.url))
+          const dhcpResponse =  await dw.send({...data}, 'POST','device',query.subnetId)
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result = dhcpResponse
+          return Promise.resolve(hook)
+        }
+
+
         // Update existing device in subnet
-        if( query.url = `/mm/v1/dhcp/subnets/${query.subnetId}/devices/${query.deviceId}`) {
+        if( query.url = `${dhcpUrlPrefix}/${query.subnetId}/devices/${query.deviceId}`) {
           console.log('\n Update existing device present in a subnet passed data : ' + JSON.stringify(hook.data))
-          // TODO : Add Dan DHCP Wrapper here
           const dhcpResponse = await axios ( {
             ...apiInit ,
             method : 'PUT' ,
@@ -212,53 +161,42 @@ module.exports = {
         console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
         console.log('\n URL : ' + JSON.stringify(url))
 
+        // Remove specific device in subnet
+        if(params.subnetId && params.deviceId && url == `${dhcpUrlPrefix}/${params.subnetId}/devices/${params.deviceId}`) {
+          console.log('\n Delete specific device ' + JSON.stringify(params.deviceId) + ' in subnet : ' + JSON.stringify(params.subnetId))
+          const dhcpResponse =  await dw.send({}, 'DELETE','device',params.subnetId,params.deviceId)
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result = dhcpResponse
+          return Promise.resolve(hook)
+        }
+
         // Remove specific subnet
-        if(params.subnetId && url == `/mm/v1/micronets/dhcp/subnets/${params.subnetId}`) {
+        if(params.subnetId && url == `${dhcpUrlPrefix}/${params.subnetId}`) {
          console.log('\n Delete specific subnet : ' + JSON.stringify(params.subnetId))
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'delete' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${params.subnetId}`
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-          hook.result = dhcpResponse.data
+          const dhcpResponse =  await dw.send({}, 'DELETE','subnet',params.subnetId)
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result = dhcpResponse
         }
 
         // Remove all subnets
-        if( url == `/mm/v1/dhcp/subnets`) {
+        if( url == `${dhcpUrlPrefix}`) {
           console.log('\n Remove all subnets : ')
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'delete' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets`
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-          hook.result = dhcpResponse.data
+          const dhcpResponse =  await dw.send({}, 'DELETE','subnet')
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result = dhcpResponse
+          return Promise.resolve(hook)
         }
 
         // Remove all devices in subnet
-        if(params.subnetId && url == `/mm/v1/micronets/dhcp/subnets/${params.subnetId}/devices`) {
-          console.log('\n Remove all subnets : ')
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'delete' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${params.subnetId}/devices`
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-          hook.result = dhcpResponse.data
+        if(params.subnetId && url == `${dhcpUrlPrefix}/${params.subnetId}/devices`) {
+          console.log('\n Remove all devices in subnet : ')
+          const dhcpResponse =  await dw.send({}, 'DELETE','device',params.subnetId)
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result = dhcpResponse
+          return Promise.resolve(hook)
         }
 
-        // Remove specific device in subnet
-        if(params.subnetId && params.deviceId && url == `/mm/v1/micronets/dhcp/subnets/${params.subnetId}/devices/${params.deviceId}`) {
-          console.log('\n Delete specific device ' + JSON.stringify(params.deviceId) + ' in subnet : ' + JSON.stringify(params.subnetId))
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'delete' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${params.subnetId}/devices/${params.deviceId}`
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
-          hook.result = dhcpResponse.data
-        }
+
     }
     ]
   },
