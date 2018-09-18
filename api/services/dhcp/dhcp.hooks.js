@@ -48,7 +48,7 @@ module.exports = {
         if(params.subnetId) {
           // Get specific device in subnet
           if(params.subnetId && params.deviceId) {
-            const dhcpResponse = dw.send({}, "GET", "device",params.subnetId,params.deviceId)
+            const dhcpResponse = await dw.send({}, "GET", "device",params.subnetId,params.deviceId)
               console.log('\n URL : ' + JSON.stringify(url))
               console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
               hook.result =  dhcpResponse
@@ -57,7 +57,7 @@ module.exports = {
             // Get all devices in subnet
             if(url == `${dhcpUrlPrefix}/${params.subnetId}/devices`)
             {
-              const dhcpResponse = dw.send({}, "GET", "device",params.subnetId)
+              const dhcpResponse = await dw.send({}, "GET", "device",params.subnetId)
               console.log('\n GET ALL devices ')
               console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
               hook.result =  dhcpResponse
@@ -65,7 +65,7 @@ module.exports = {
             }
            // Get specific subnet
             else {
-              const dhcpResponse = dw.send({}, "GET", "subnet",params.subnetId)
+              const dhcpResponse = await dw.send({}, "GET", "subnet",params.subnetId)
               console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
               hook.result =  dhcpResponse
               return Promise.resolve(hook)
@@ -73,7 +73,7 @@ module.exports = {
         }
        // Get all subnets
         else {
-          const dhcpResponse = dw.send({}, "GET","subnet")
+          const dhcpResponse = await dw.send({}, "GET","subnet")
           console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
           hook.result =  dhcpResponse
           return Promise.resolve(hook)
