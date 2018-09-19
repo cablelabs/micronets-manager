@@ -905,7 +905,26 @@ module.exports = {
     remove : [
       async ( hook ) => {
         const { data , id , params } = hook;
-        console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) )
+        console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify(id) )
+        let postBodyForDelete = []
+        if(hook.id) {
+          console.log('\n Delete specific micronet ....')
+          const micronetFromDB = await getMicronet(hook,{})
+          const {  micronet } = micronetFromDB.micronets
+          const micronetToDeleteIndex = micronet.findIndex((micronet) => micronet["micronet-id"] == hook.id)
+          console.log('\n micronetToDeleteIndex : ' + JSON.stringify(micronetToDeleteIndex))
+
+          // Valid index. Micronet exists
+          if(micronetToDeleteIndex > -1) {
+             const updatedMicronet = micronet.splice(micronetToDeleteIndex,1)
+             console.log('\n\n ')
+             postBodyForDelete =  micronet.splice(micronetToDeleteIndex,1)
+            console.log('\n postBodyForDelete : ' + JSON.stringify(postBodyForDelete) + '\t\t for hook.id : ' + JSON.stringify(hook.id))
+          }
+        }
+        else {
+          console.log('\n No hook id present delete everything postBodyForDelete : ' + JSON.stringify(postBodyForDelete))
+        }
         const odlResponse = await odlOperationsForUpserts ( hook , data )
         console.log ( '\n DELETE HOOK ODL Response : ' + JSON.stringify ( odlResponse ) )
         const micronetFromDB = await getMicronet ( hook , {} )
@@ -916,7 +935,7 @@ module.exports = {
               id : micronetFromDB.id ,
               name : micronetFromDB.name ,
               ssid : micronetFromDB.ssid ,
-              micronets : { micronet : [] }
+              micronets : { micronet : postBodyForDelete }
             } , // TODO : Add actual response
             { query : {} , mongoose : { upsert : true } } );
           console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
