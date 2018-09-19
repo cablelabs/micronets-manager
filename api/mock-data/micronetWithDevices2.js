@@ -18,16 +18,14 @@ module.exports = {
             "device-ip" : "192.168.250.2" ,
             "device-openflow-port" : "2" ,
             "device-name" : "pia" ,
-            "device-id" : "Raspberry-Pi3-Model-B-v1.2",
-            "device-openflow-port" : "2"
+            "device-id" : "Raspberry-Pi3-Model-B-v1.2"
           },
           {
             "device-mac" : "b2:25:eb:8d:30:27" ,
             "device-ip" : "192.168.250.2" ,
             "device-openflow-port" : "2" ,
             "device-name" : "pia" ,
-            "device-id" : "Raspberry-Pi3-Model-B-v1.3",
-            "device-openflow-port" : "2"
+            "device-id" : "Raspberry-Pi3-Model-B-v1.3"
           }
         ],
         "micronet-subnet" : "192.168.12.0/24" ,
@@ -60,7 +58,6 @@ module.exports = {
         "micronet-gateway-ip" : "192.168.10.1" ,
         "ovs-bridge-name" : "brmn001" ,
         "trunk-gateway-ip" : "10.36.32.55"
-
       }
     ]
   }
