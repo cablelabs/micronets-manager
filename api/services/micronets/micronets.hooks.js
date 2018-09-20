@@ -654,13 +654,44 @@ const addDhcpDevices = async ( hook , requestBody, micronetId, subnetId ) => {
   }
 }
 
-const deleteDhcpSubnets = async ( hook , requestBody ) => {
-  console.log ( '\n\n deleteDhcpSubnets requestBody : ' + JSON.stringify ( requestBody ))
+const deleteDhcpSubnets = async ( hook , micronet, micronetId ) => {
+  console.log ( '\n\n deleteDhcpSubnets micronet : ' + JSON.stringify ( micronet ) + '\t\t micronetId : ' + JSON.stringify(micronetId))
+
+  // Single micronet was deleted
+  if(micronetId!=undefined && Object.keys(micronet).length > 0) {
+    // Get the associated subnetId and name of micronet
+    const micronetFromDB = await getMicronet(hook,{})
+    const subnetId  = micronet["micronet-subnet-id"]
+    // Delete DHCP Subnet
+    dw.connect(dhcpConnectionUrl).then(async() => {
+      console.log('\n Deleting dhcp subnet ' + JSON.stringify(subnetId))
+      let dhcpSubnet = await dw.send({}, "GET","subnet",subnetId)
+      console.log('\n\n DHCP Subnet : ' + JSON.stringify(dhcpSubnet))
+      // Dhcp Subnet Present check
+      if(dhcpSubnet.status == 200) {
+        let dhcpSubnetDelete = await dw.send({}, "DELETE","subnet",subnetId)
+        console.log('\n deleteDhcpSubnets single subnet : ' + JSON.stringify(dhcpSubnetDelete))
+        return dhcpSubnetDelete
+      }
+    })
+  }
+  // All micronets were deleted
+   if(Object.keys(micronet).length == 0 &&  micronetId == undefined){
+    dw.connect ( dhcpConnectionUrl ).then ( async () => {
+      console.log ( '\n Deleting all dhcp subnets ' )
+      let dhcpSubnets = await dw.send ( {} , "GET" , "subnet" )
+      console.log ( '\n\n All DHCP Subnets : ' + JSON.stringify ( dhcpSubnets ) )
+      // Dhcp Subnets Present check
+      if ( dhcpSubnets.status == 200 ) {
+        let dhcpSubnetsDelete = await dw.send ( {} , "DELETE" , "subnet" )
+        console.log ( '\n deleteDhcpSubnets all subnets : ' + JSON.stringify ( dhcpSubnetDelete ) )
+        return dhcpSubnetsDelete
+      }
+    } )
+  }
 }
 
-const deleteDhcpDevices = async ( hook , requestBody ) => {
-  console.log ( '\n\n deleteDhcpDevices requestBody : ' + JSON.stringify ( requestBody ))
-}
+const deleteDhcpDevices = async ( hook , requestBody ) => {}
 
 /* Adding subnets & devices to DHCP */
 
@@ -906,19 +937,18 @@ module.exports = {
       async ( hook ) => {
         const { data , id , params } = hook;
         console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify(id) )
-        let postBodyForDelete = []
+        let postBodyForDelete = [] , micronetToDelete = {}
         if(hook.id) {
           console.log('\n Delete specific micronet ....')
           const micronetFromDB = await getMicronet(hook,{})
           const {  micronet } = micronetFromDB.micronets
-          const micronetToDeleteIndex = micronet.findIndex((micronet) => micronet["micronet-id"] == hook.id)
+           const micronetToDeleteIndex = micronet.findIndex((micronet) => micronet["micronet-id"] == hook.id)
           console.log('\n micronetToDeleteIndex : ' + JSON.stringify(micronetToDeleteIndex))
 
           // Valid index. Micronet exists
           if(micronetToDeleteIndex > -1) {
-             const updatedMicronet = micronet.splice(micronetToDeleteIndex,1)
-             console.log('\n\n ')
-             postBodyForDelete =  micronet.splice(micronetToDeleteIndex,1)
+             micronetToDelete = micronet[micronetToDeleteIndex]
+             postBodyForDelete = micronet.filter((micronet,index) => index != micronetToDeleteIndex)
             console.log('\n postBodyForDelete : ' + JSON.stringify(postBodyForDelete) + '\t\t for hook.id : ' + JSON.stringify(hook.id))
           }
         }
@@ -939,6 +969,18 @@ module.exports = {
             } , // TODO : Add actual response
             { query : {} , mongoose : { upsert : true } } );
           console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
+          if(patchResult) {
+            console.log('\n Micronet deleted from MM DB.Deleting subnets and devices on dhcp ')
+            if(hook.id) {
+              const dhcpSubnetsDeletePromise = await deleteDhcpSubnets(hook,micronetToDelete, hook.id)
+              console.log('\n dhcpSubnetsDeletePromise : ' + JSON.stringify(dhcpSubnetsDeletePromise))
+            }
+            if(postBodyForDelete.length == 0 && !hook.id) {
+              const dhcpSubnetsDeletePromise = await deleteDhcpSubnets(hook,{}, undefined)
+              console.log('\n dhcpSubnetsDeletePromise : ' + JSON.stringify(dhcpSubnetsDeletePromise))
+            }
+
+          }
           hook.result = patchResult
           return Promise.resolve ( hook );
         }
