@@ -50,6 +50,29 @@ module.exports = function ( app ) {
 
   } );
 
+  app.use ( `/mm/v1/micronets/subnets/testdhcp` , async ( req , res , next ) => {
+    const { path , originalUrl , method , params } = req
+    console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path ) + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl ) + '\t\t METHOD : ' + JSON.stringify ( method ) + '\t\t PARAMS : ' + JSON.stringify ( params ) )
+    if ( method == 'POST' ) {
+
+      const result = await service.create (
+        { req : req } ,
+        { params : service.hooks.params }
+      )
+      // console.log ( '\n Micronets service add subnet result : ' + JSON.stringify ( result ) )
+      service.on ( 'created' , ( micronet ) => {
+        console.log ( '\n Micronets service add subnet created event : ' + JSON.stringify ( micronet ) )
+      } )
+      res.json ( result )
+    }
+
+    else if ( method == 'GET' ) {
+      const result = await service.get ( { ...params } )
+      res.json ( result )
+    }
+
+  } );
+
   app.use ( `/mm/v1/micronets/subnets` , async ( req , res , next ) => {
     const { path , originalUrl , method , params } = req
     console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path ) + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl ) + '\t\t METHOD : ' + JSON.stringify ( method ) + '\t\t PARAMS : ' + JSON.stringify ( params ) )
