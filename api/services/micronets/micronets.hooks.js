@@ -12,7 +12,7 @@ var options = { integer : true }
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require('../../hooks/dhcpWrapperPromise')
-const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001"
+const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001" // TODO : GET IT FROM REGISTRY
 const odlHost = "198.58.114.200"
 const odlSocket = "8181"
 const odlAuthHeader = {
@@ -40,8 +40,12 @@ const isODLAlive = async ( hook ) => {
     method : 'get' ,
     url : `http://${odlHost}:${odlSocket}/restconf/config/micronets-notifications:micronets-notifications` ,
   } )
-  console.log ( '\n isODLAlive ODL Notifications : ' + JSON.stringify ( odlNotifications ) )
-  return true
+
+  const {data, status } = odlNotifications
+  console.log ( '\n isODLAlive ODL MICRONET NOTIFICATIONS DATA : ' + JSON.stringify ( data ) )
+  console.log ( '\n isODLAlive ODL MICRONET NOTIFICATIONS STATUS : ' + JSON.stringify ( status ) )
+  return ( data && status == 200 ) ? true : false
+
 }
 /* BootStrap Sequence */
 
@@ -672,9 +676,11 @@ const deleteDhcpSubnets = async ( hook , micronet, micronetId ) => {
 
   // Single micronet was deleted
   if(micronetId!=undefined && Object.keys(micronet).length > 0) {
+
     // Get the associated subnetId and name of micronet
     const micronetFromDB = await getMicronet(hook,{})
     const subnetId  = micronet["micronet-subnet-id"]
+
     // Delete DHCP Subnet
     dw.connect(dhcpConnectionUrl).then(async() => {
       console.log('\n Deleting dhcp subnet ' + JSON.stringify(subnetId))
@@ -688,6 +694,7 @@ const deleteDhcpSubnets = async ( hook , micronet, micronetId ) => {
       }
     })
   }
+
   // All micronets were deleted
    if(Object.keys(micronet).length == 0 &&  micronetId == undefined){
     dw.connect ( dhcpConnectionUrl ).then ( async () => {
@@ -952,52 +959,61 @@ module.exports = {
         const { data , id , params } = hook;
         console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify(id) )
         let postBodyForDelete = [] , micronetToDelete = {}
-        if(hook.id) {
-          console.log('\n Delete specific micronet ....')
-          const micronetFromDB = await getMicronet(hook,{})
-          const {  micronet } = micronetFromDB.micronets
-           const micronetToDeleteIndex = micronet.findIndex((micronet) => micronet["micronet-id"] == hook.id)
-          console.log('\n micronetToDeleteIndex : ' + JSON.stringify(micronetToDeleteIndex))
+        // ODL and Gateway checks
+        const isGtwyAlive = await isGatewayAlive ( hook )
+        const isOdlAlive = await isODLAlive ( hook )
+        const isGatewayConnected = await connectToGateway ( hook )
+        if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
 
-          // Valid index. Micronet exists
-          if(micronetToDeleteIndex > -1) {
-             micronetToDelete = micronet[micronetToDeleteIndex]
-             postBodyForDelete = micronet.filter((micronet,index) => index != micronetToDeleteIndex)
-            console.log('\n postBodyForDelete : ' + JSON.stringify(postBodyForDelete) + '\t\t for hook.id : ' + JSON.stringify(hook.id))
-          }
-        }
-        else {
-          console.log('\n No hook id present delete everything postBodyForDelete : ' + JSON.stringify(postBodyForDelete))
-        }
-        const odlResponse = await odlOperationsForUpserts ( hook , data )
-        console.log ( '\n DELETE HOOK ODL Response : ' + JSON.stringify ( odlResponse ) )
-        const micronetFromDB = await getMicronet ( hook , {} )
-        // TODO : Check request body and construct new post for all delete cases
-        if ( odlResponse ) {
-          const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
-            {
-              id : micronetFromDB.id ,
-              name : micronetFromDB.name ,
-              ssid : micronetFromDB.ssid ,
-              micronets : { micronet : postBodyForDelete } // TODO : Add actual response
-            } ,
-            { query : {} , mongoose : { upsert : true } } );
-          console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
-          if(patchResult) {
-            console.log('\n Micronet deleted from MM DB.Deleting subnets and devices on dhcp ')
-            if(hook.id) {
-              const dhcpSubnetsDeletePromise = await deleteDhcpSubnets(hook,micronetToDelete, hook.id)
-              console.log('\n dhcpSubnetsDeletePromise : ' + JSON.stringify(dhcpSubnetsDeletePromise))
-            }
-            if(postBodyForDelete.length == 0 && !hook.id) {
-              const dhcpSubnetsDeletePromise = await deleteDhcpSubnets(hook,{}, undefined)
-              console.log('\n dhcpSubnetsDeletePromise : ' + JSON.stringify(dhcpSubnetsDeletePromise))
-            }
+          if(hook.id) {
+            console.log('\n DELETE MICRONET BY ID ' + JSON.stringify(hook.id))
+            const micronetFromDB = await getMicronet(hook,{})
+            const {  micronet } = micronetFromDB.micronets
+            const micronetToDeleteIndex = micronet.findIndex((micronet) => micronet["micronet-id"] == hook.id)
+            console.log('\n micronetToDeleteIndex : ' + JSON.stringify(micronetToDeleteIndex))
 
+            // Valid index. Micronet exists
+            if(micronetToDeleteIndex > -1) {
+              micronetToDelete = micronet[micronetToDeleteIndex]
+              postBodyForDelete = micronet.filter((micronet,index) => index != micronetToDeleteIndex)
+              console.log('\n POST BODY FOR DELETE : ' + JSON.stringify(postBodyForDelete) + '\t\t for hook.id : ' + JSON.stringify(hook.id))
+            }
           }
-          hook.result = patchResult
-          return Promise.resolve ( hook );
+          else {
+            console.log('\n No hook id present delete everything postBodyForDelete : ' + JSON.stringify(postBodyForDelete))
+          }
+          const odlResponse = await odlOperationsForUpserts ( hook , data )
+          console.log ( '\n DELETE HOOK ODL Response : ' + JSON.stringify ( odlResponse ) )
+          const micronetFromDB = await getMicronet ( hook , {} )
+          // TODO : Check request body and construct new post for all delete cases
+          if ( odlResponse ) {
+            const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
+              {
+                id : micronetFromDB.id ,
+                name : micronetFromDB.name ,
+                ssid : micronetFromDB.ssid ,
+                micronets : { micronet : postBodyForDelete } // TODO : Add actual response
+              } ,
+              { query : {} , mongoose : { upsert : true } } );
+            console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
+            if(patchResult) {
+              console.log('\n Micronet deleted from MM DB.Deleting subnets and devices on dhcp ')
+              if(hook.id) {
+                const dhcpSubnetsDeletePromise = await deleteDhcpSubnets(hook,micronetToDelete, hook.id)
+                console.log('\n dhcpSubnetsDeletePromise : ' + JSON.stringify(dhcpSubnetsDeletePromise))
+              }
+              if(postBodyForDelete.length == 0 && !hook.id) {
+                const dhcpSubnetsDeletePromise = await deleteDhcpSubnets(hook,{}, undefined)
+                console.log('\n dhcpSubnetsDeletePromise : ' + JSON.stringify(dhcpSubnetsDeletePromise))
+              }
+
+            }
+            hook.result = patchResult
+            return Promise.resolve ( hook );
+          }
+
         }
+
       }
     ]
   } ,
