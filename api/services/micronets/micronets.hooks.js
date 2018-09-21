@@ -16,8 +16,9 @@ const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
-  console.log ( '\n isGatewayAlive hook ...' )
-  return true
+  const dhcpConnection = await dw.connect(dhcpConnectionUrl).then(() => { return true })
+  console.log('\n DHCP Connection value : ' + JSON.stringify(dhcpConnection))
+  return dhcpConnection
 }
 
 const connectToGateway = async ( hook ) => {
