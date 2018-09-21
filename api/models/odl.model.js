@@ -7,6 +7,7 @@ module.exports = function (app) {
   const { Schema } = mongooseClient;
 
   const ports = new Schema({
+    _id:false,
     port: { type: Number, required: true },
     interface: { type: String, required: true },
     hwtype: { type: String, required: true },
@@ -17,8 +18,10 @@ module.exports = function (app) {
   });
 
   const odlConfig = new Schema({
+    _id:false,
     portTrunk: { type: String, required: false },
     ovsHost: { type: String, required: true },
+    ovsPort: { type: String, required: true },
     subnet: { type: String, required: true },
     vLanId: { type: String, required: true },
     portWired: { type: String, required: false },
