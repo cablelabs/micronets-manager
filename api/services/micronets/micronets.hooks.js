@@ -13,6 +13,12 @@ const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require('../../hooks/dhcpWrapperPromise')
 const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001"
+const odlHost = "198.58.114.200"
+const odlSocket = "8181"
+const odlAuthHeader = {
+    username: 'admin',
+    password: 'admin'
+  }
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
@@ -27,14 +33,14 @@ const connectToGateway = async ( hook ) => {
 }
 
 const isODLAlive = async ( hook ) => {
-  // Poll ODL mn notifications for OVS Manager connection
-  console.log ( '\n isODLAlive hook' )
+  console.log ( '\n Polling ODL micronet notifications for OVS Manager connection ... ' )
   const odlNotifications = await axios ( {
     ...apiInit ,
+    auth:odlAuthHeader,
     method : 'get' ,
-    url : `http://127.0.0.1:3030/mm/v1/mock/restconf/config/micronets-notifications:micronets-notifications` ,
+    url : `http://${odlHost}:${odlSocket}/restconf/config/micronets-notifications:micronets-notifications` ,
   } )
-  console.log ( '\n isODLAlive ODL Notifications : ' + JSON.stringify ( odlNotifications.data ) )
+  console.log ( '\n isODLAlive ODL Notifications : ' + JSON.stringify ( odlNotifications ) )
   return true
 }
 /* BootStrap Sequence */
@@ -321,29 +327,35 @@ const upsertOdLConfigState = async ( hook , postBody ) => {
   /* AXIOS ODL call.Check for Response Code 201 or 200
   const odlConfigResponse = await axios ( {
     ...apiInit ,
-    method : 'put' ,
-    url : `http://{{odlhost}}:{{odlsocket}}/restconf/config/micronets:micronets` ,
+    auth: odlAuthHeader,
+    method : 'PUT' ,
+    url : `http://${odlhost}:${odlsocket}/restconf/config/micronets:micronets` ,
     data: postBody
   })
   */
 
   const odlConfigResponse = Object.assign ( { response : { statusCode : 201 } } )
-  console.log ( '\n upsertOdLConfigState odLConfigResponse : ' + JSON.stringify ( odlConfigResponse ) )
+  console.log ( '\n PUT ODL CONFIG RESPONSE : ' + JSON.stringify ( odlConfigResponse ) )
   return odlConfigResponse
 }
 
 const fetchOdlOperationalState = async ( hook ) => {
-  /* Axios Call
+
   // URL : http://{{odlhost}}:{{odlsocket}}/restconf/operational/micronets:micronets
   const odlOperationalState = await axios ( {
     ...apiInit ,
+    auth: odlAuthHeader,
     method : 'get' ,
-    url : `http://{{odlhost}}:{{odlsocket}}/restconf/operational/micronets:micronets` ,
+    url : `http://${odlHost}:${odlSocket}/restconf/operational/micronets:micronets` ,
   } )
-  */
-  const odlOperationalState = Object.assign ( {} , micronetOperationalConfig )
-  console.log ( '\n fetchOdlOperationalState : ' + JSON.stringify ( odlOperationalState ) )
-  return odlOperationalState
+  const { micronets } = odlOperationalState
+  console.log('\n ODL OPERATIONAL STATE DATA : ' + JSON.stringify(odlOperationalState.data))
+  console.log('\n ODL OPERATIONAL STATE STATUS CODE : ' + JSON.stringify(odlOperationalState.status))
+  return odlOperationalState.data
+
+  // const odlOperationalState = Object.assign ( {} , micronetOperationalConfig )
+  // console.log ( '\n fetchOdlOperationalState : ' + JSON.stringify ( odlOperationalState ) )
+  // return odlOperationalState
 }
 
 const odlOperationsForUpserts = async ( hook , putBody ) => {
@@ -887,7 +899,8 @@ module.exports = {
             if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
               console.log ( '\n isGatewayAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) + '\t\t isODLAlive : ' + JSON.stringify ( isOdlAlive ) )
               const postBody = hook.data.req.body
-              console.log ( '\n POST BODY : ' + JSON.stringify ( postBody ) )
+              console.log ( '\n POST BODY ADD DEVICE TO MICRONET : ' + JSON.stringify ( postBody ) )
+              // Retreive all devices in micronet
               const devices = postBody.micronets.micronet[ 0 ][ 'connected-devices' ]
               console.log ( '\n Devices to add in Subnet : ' + JSON.stringify ( devices ) )
               const postBodyForODL = await addDevicesInSubnet ( hook , req.params.micronetId , req.params.subnetId , devices )
@@ -966,8 +979,8 @@ module.exports = {
               id : micronetFromDB.id ,
               name : micronetFromDB.name ,
               ssid : micronetFromDB.ssid ,
-              micronets : { micronet : postBodyForDelete }
-            } , // TODO : Add actual response
+              micronets : { micronet : postBodyForDelete } // TODO : Add actual response
+            } ,
             { query : {} , mongoose : { upsert : true } } );
           console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
           if(patchResult) {
