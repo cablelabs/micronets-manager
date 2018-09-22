@@ -1,49 +1,35 @@
 const WebSocket = require('websocket').w3cwebsocket
 const fs = require('fs')
 const WebSocketAsPromised = require('websocket-as-promised');
+var messageId = 0;
+var wsp;
 
-
+/**
+ * TLS options to use WSS to connect to the Proxy Server
+ *
+ * @type {{ca: *[], key, cert, rejectUnauthorized: boolean, cipherSuites: string[]}}
+ */
 const wsOptions = {
-  // Chain of certificate autorities
-  // Client and server have these to authenticate keys
   ca: [
-
-    // Use these for localhost server
     fs.readFileSync('certs/micronets-ws-root.cert.pem'),
     fs.readFileSync('certs/micronets-ws-proxy.pkeycert.pem'),
-
-    // fs.readFileSync('ssl/ca1-cert.pem')
-
   ],
 
-  // ### Use this to test aginst localhost server #######
-  // // Private key of the client
   key: fs.readFileSync('certs/micronets-manager.key.pem'),
-  // key: fs.readFileSync('ssl/ca1-key.pem'),
-
-  // // Public key of the client (certificate key)
   cert: fs.readFileSync('certs/micronets-manager.cert.pem'),
-  // cert: fs.readFileSync('ssl/ca1-cert.pem'),
-
-  // ####################################################
-
-  // Automatically reject clients with invalid certificates.
   rejectUnauthorized: false, // Set false to see what happens.
   cipherSuites: [
     'TLS_RSA_WITH_AES_128_CBC_SHA',
     'TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA',
     'TLS_RSA_WITH_AES_256_CBC_SHA'
   ]
-}
-
-module.exports = {
-  state: 'DISCONNECTED',
-  requests: [],
 };
 
-var messageId = 0;
-var wsp;
-
+/**
+ * Basic Hello message for the Handshake with the Proxy
+ *
+ * @type {{message: {messageId: number, messageType: string, requiresResponse: boolean, peerClass: string, peerId: string}}}
+ */
 const hello = {
   message: {
     messageId: 0,
@@ -54,18 +40,13 @@ const hello = {
   }
 };
 
-module.exports.isOpen = function() {
-  if (wsp && wsp.isOpened) {
-    return true
-  }
-  else {
-    return false
-  }
+module.exports.isOpen = function () {
+  return wsp.isOpened
 }
 
 module.exports.connect = (address) => {
   return new Promise(async function (resolve, reject) {
-    if (wsp && wsp.isOpened) {
+    if (wsp.isOpened) {
       resolve()
     }
     else {
@@ -81,9 +62,11 @@ module.exports.connect = (address) => {
         extractRequestId: data => data && data.id,                                  // read requestId from message `id` field
       });
       wsp.open()
-        .then(() => wsp.sendPacked(hello));
-      wsp.onSend.addListener(data => console.log(data));
-      // wsp.onMessage.addListener(message => console.log(message));
+        .then(() => wsp.sendPacked(hello))
+        .catch(err => {
+          console.log(err)
+          reject(err)
+        });
 
       wsp.onUnpackedMessage.addListener(message => {
         if (message.message.messageType === 'CONN:HELLO') {
@@ -115,9 +98,7 @@ module.exports.send = function (json, method, type, subnetId, deviceId) {
 };
 
 
-
-
-module.exports.close = function() {
+module.exports.close = function () {
   wsp.close()
     .then(event => {
       console.log(event.reason)
