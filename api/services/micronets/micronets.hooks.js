@@ -104,7 +104,15 @@ const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
       "ovs-manager-ip" : ovsHost
     }
   } )
-  return { reqBodyWithOdlConfig , portWireless , portWired, trunkIndex, wirelessPortIndex, wiredPortIndex, switchConfig }
+  return {
+    reqBodyWithOdlConfig ,
+    portWireless ,
+    portWired ,
+    trunkIndex ,
+    wirelessPortIndex ,
+    wiredPortIndex ,
+    switchConfig
+  }
 }
 
 const getSubnet = ( hook , index ) => {
@@ -127,24 +135,24 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   const { switchConfig } = odlStaticConfig
   /* Get SwitchConfig */
 
-  console.log('\n\n GET STATIC SUBNET IPs SWITCH CONFIG : ' + JSON.stringify(switchConfig))
+  console.log ( '\n\n GET STATIC SUBNET IPs SWITCH CONFIG : ' + JSON.stringify ( switchConfig ) )
 
-  let wiredSwitchConfigSubnets = switchConfig.bridges.map((swConfig) => {
-    if(swConfig.portWired == "wired") return swConfig.subnet
-  })
-  wiredSwitchConfigSubnets = wiredSwitchConfigSubnets.filter(Boolean)
+  let wiredSwitchConfigSubnets = switchConfig.bridges.map ( ( swConfig ) => {
+    if ( swConfig.portWired == "wired" ) return swConfig.subnet
+  } )
+  wiredSwitchConfigSubnets = wiredSwitchConfigSubnets.filter ( Boolean )
 
-  let wirelessSwitchConfigSubnets = switchConfig.bridges.map((swConfig) => {
-    if(swConfig.portWired == "wireless") return swConfig.subnet
-  })
-  wirelessSwitchConfigSubnets = wirelessSwitchConfigSubnets.filter(Boolean)
+  let wirelessSwitchConfigSubnets = switchConfig.bridges.map ( ( swConfig ) => {
+    if ( swConfig.portWired == "wireless" ) return swConfig.subnet
+  } )
+  wirelessSwitchConfigSubnets = wirelessSwitchConfigSubnets.filter ( Boolean )
 
-  console.log('\n wiredSwitchConfigSubnets : ' + JSON.stringify(wiredSwitchConfigSubnets) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify(wirelessSwitchConfigSubnets))
+  console.log ( '\n wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
 
   const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
-    const subnetNo = wiredSwitchConfigSubnets[index].split('.')[2]
-    console.log('\n Calling IP Allocator to create subnet ' + JSON.stringify(subnetNo))
-    const subnets = await subnetAllocation.getNewSubnet ( index, subnetNo)
+    const subnetNo = wiredSwitchConfigSubnets[ index ].split ( '.' )[ 2 ]
+    console.log ( '\n Calling IP Allocator to create subnet ' + JSON.stringify ( subnetNo ) )
+    const subnets = await subnetAllocation.getNewSubnet ( index , subnetNo )
     // console.log ( '\n GET SUBNET IPs Subnets from IPAllocator : ' + JSON.stringify ( subnets ) )
     return Object.assign ( {} , subnets )
   } ) )
@@ -155,7 +163,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
 const getSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   console.log ( '\n getSubnetIps requestBody : ' + JSON.stringify ( requestBody ) + '\t\t subnetDetails : ' + JSON.stringify ( subnetDetails ) )
   const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
-    const subnets = await subnetAllocation.getNewSubnet ( index)
+    const subnets = await subnetAllocation.getNewSubnet ( index )
     // console.log ( '\n GET SUBNET IPs Subnets from IPAllocator : ' + JSON.stringify ( subnets ) )
     return Object.assign ( {} , subnets )
   } ) )
@@ -199,9 +207,10 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
   } )
   console.log ( '\n getSubnetAndDeviceIps Subnet Details : ' + JSON.stringify ( subnetDetails ) )
 
-  // TODO: Pass the subnetNo from odlConfig and request that subnet from IP Allocator
+  // Gets random subnets
   const subnets = await getSubnetIps ( hook , subnetDetails , requestBody )
- // const subnets = await getStaticSubnetIps ( hook , subnetDetails , requestBody )
+  // Gets specific subnets
+  // const subnets = await getStaticSubnetIps ( hook , subnetDetails , requestBody )
   console.log ( '\n getSubnetAndDeviceIps Obtained subnets : ' + JSON.stringify ( subnets ) )
 
   /* Add check for devices length in subnetDetails array */
@@ -355,6 +364,7 @@ const initializeMicronets = async ( hook , postBody ) => {
   const removeAllMicronetsResponse = await hook.app.service ( '/mm/v1/micronets' ).remove ( null )
   console.log ( '\n removeAllMicronetsResponse : ' + JSON.stringify ( removeAllMicronetsResponse ) )
   if ( removeAllMicronetsResponse ) {
+
     /* ACTUAL ODL CALL
     // const odlResponse = await odlOperationsForUpserts ( hook , postBody )
     // return odlResponse
@@ -362,7 +372,10 @@ const initializeMicronets = async ( hook , postBody ) => {
 
     // FAKE RESPONSE
     const micronetFromDB = await getMicronet ( hook , {} )
-    const odlResponse = Object.assign({},{ data : Object.assign ( {} , { micronets : { micronet : micronetWithDevices2.micronets.micronet } } ), status:200 })
+    const odlResponse = Object.assign ( {} , {
+      data : Object.assign ( {} , { micronets : { micronet : micronetWithDevices2.micronets.micronet } } ) ,
+      status : 200
+    } )
     return odlResponse
   }
 
@@ -465,7 +478,7 @@ const subnetPresentCheck = async ( hook , body , micronetFromDb ) => {
   console.log ( '\n SubnetPresentCheck Subnet Status : ' + JSON.stringify ( subnetsStatus ) )
   return subnetsStatus
 }
-
+// Add subnet to micronet
 const createSubnetInMicronet = async ( hook , postBody , subnetsToAdd ) => {
   console.log ( '\n CreateSubnetInMicronet  postBody : ' + JSON.stringify ( postBody ) + '\t\t subnetsToAdd : ' + JSON.stringify ( subnetsToAdd ) )
   const finalPostBody = await populatePostObj ( hook , postBody )
@@ -490,14 +503,16 @@ const upsertSubnetsToMicronet = async ( hook , body ) => {
     console.log ( '\n UpsertSubnetsToMicronet subnetsToAdd : ' + JSON.stringify ( subnetsToAdd ) )
     postBodyForODL = micronetFromDb.micronets.micronet.concat ( subnetsToAdd )
     console.log ( '\n UpsertSubnetsToMicronet PostBodyForODL with added subnets : ' + JSON.stringify ( postBodyForODL ) )
-
+    return { postBodyForODL, addSubnet:true }
   }
   if ( subnetsStatus.notFound.length == 0 ) {
-    console.log ( '\n Subnet already present . Do nothing ' )
+    console.log ( '\n Subnet already present . Do nothing ' ) //TODO: Send a flag indicating that just a get is required
     postBodyForODL = Object.assign ( {} , { micronets : { micronet : micronetFromDb.micronets.micronet } } )
     console.log ( '\n PostBodyForODL from DB : ' + JSON.stringify ( postBodyForODL ) )
+    return { postBodyForODL , addSubnet:false }
   }
-  return postBodyForODL
+
+   // return postBodyForODL
 }
 
 const updateMicronetModel = async ( hook , response ) => {
@@ -544,8 +559,8 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
       }
     } )
     console.log ( '\n PostBodyForSubnet to create subnet : ' + JSON.stringify ( postBodyForSubnet ) )
-    const postBodyForODL = await upsertSubnetsToMicronet ( hook , postBodyForSubnet )
-    console.log ( '\n UpsertRegisteredDeviceToMicronet postBodyForODL : ' + JSON.stringify ( postBodyForODL ) )
+    const { postBodyForODL, addSubnet } = await upsertSubnetsToMicronet ( hook , postBodyForSubnet )
+    console.log ( '\n UpsertRegisteredDeviceToMicronet postBodyForODL : ' + JSON.stringify ( postBodyForODL ) + '\t\t addSubnet Flag : ' + JSON.stringify(addSubnet) )
 
     /* ODL API's */
     const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
@@ -636,22 +651,22 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   const { micronet } = micronetFromDB.micronets
 
   // Checks if micronet is added to d/b which indicates successful ODL call.
-  let dhcpSubnetsPostBody = dhcpSubnetsToAdd.map((dhcpSubnet, index) => {
-    console.log('\n DHCP SUBNET TO ADD : ' + JSON.stringify(dhcpSubnet) + '\t\t INDEX : ' + JSON.stringify(index))
-    const matchedMicronetIndex = micronet.findIndex((micronet, index) =>  (micronet.name == dhcpSubnet.name || micronet[ "micronet-subnet-id" ] == dhcpSubnet.subnetId) )
-    console.log('\n matchedMicronetIndex : ' + JSON.stringify(matchedMicronetIndex))
-    if(matchedMicronetIndex > -1 ) {
+  let dhcpSubnetsPostBody = dhcpSubnetsToAdd.map ( ( dhcpSubnet , index ) => {
+    console.log ( '\n DHCP SUBNET TO ADD : ' + JSON.stringify ( dhcpSubnet ) + '\t\t INDEX : ' + JSON.stringify ( index ) )
+    const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.name == dhcpSubnet.name || micronet[ "micronet-subnet-id" ] == dhcpSubnet.subnetId) )
+    console.log ( '\n matchedMicronetIndex : ' + JSON.stringify ( matchedMicronetIndex ) )
+    if ( matchedMicronetIndex > -1 ) {
       return {
-               subnetId : dhcpSubnet.subnetId ,
-               ipv4Network : {
-               network : micronet[matchedMicronetIndex][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
-               mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
-               gateway : micronet[matchedMicronetIndex][ "micronet-gateway-ip" ]
+        subnetId : dhcpSubnet.subnetId ,
+        ipv4Network : {
+          network : micronet[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
+          mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
+          gateway : micronet[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
+        }
       }
     }
-  }
-  })
-  dhcpSubnetsPostBody = dhcpSubnetsPostBody.filter(Boolean)
+  } )
+  dhcpSubnetsPostBody = dhcpSubnetsPostBody.filter ( Boolean )
   console.log ( '\n dhcpSubnetsPostBody : ' + JSON.stringify ( dhcpSubnetsPostBody ) )
 
   // TODO : Replace with DHCP API's
@@ -917,7 +932,7 @@ module.exports = {
             const micronetFromDB = await getMicronet ( hook , {} )
             // console.log ( '\n CREATE micronetFromDB : ' + JSON.stringify ( micronetFromDB ) )
             hook.id = micronetFromDB._id
-            console.log ( '\n HOOK.ID  : ' + JSON.stringify ( hook.id ) )
+            console.log ( '\n HOOK.ID FOR DB UPSERTS : ' + JSON.stringify ( hook.id ) )
             const { body , originalUrl , method , path , params } = req
 
             console.log ( '\n CREATE HOOK REQ POST BODY : ' + JSON.stringify ( body ) + '\t\t REQ-URL : ' + JSON.stringify ( originalUrl ) + '\t  METHOD : ' + JSON.stringify ( method ) + '\t PATH : ' + JSON.stringify ( path ) + '\t PARAMS : ' + JSON.stringify ( params ) )
@@ -931,33 +946,41 @@ module.exports = {
             const isOdlAlive = await isODLAlive ( hook )
             const isGatewayConnected = await connectToGateway ( hook )
             if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
+
               console.log ( '\n isGatewayAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) + '\t\t isODLAlive : ' + JSON.stringify ( isOdlAlive ) )
-              const postBodyForODL = await upsertSubnetsToMicronet ( hook , body )
+              const { postBodyForODL, addSubnet } = await upsertSubnetsToMicronet ( hook , body )
+              console.log ( '\n ADD SUBNET TO MICRO-NET PostBodyForODL : ' + JSON.stringify ( postBodyForODL )  + '\t\t addSubnet Flag : ' + JSON.stringify(addSubnet))
+              // Call ODL and DHCP to add subnets
+              if(addSubnet) {
+                const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
+                /* Update DB with ODL Response */
+                if ( odlResponse.data && odlResponse.status == 200 ) {
+                  console.log ( '\n ODL Response : ' + JSON.stringify ( odlResponse ) )
+                  const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
+                  console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
+                  const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
+                    {
+                      id : micronetFromDB.id ,
+                      name : micronetFromDB.name ,
+                      ssid : micronetFromDB.ssid ,
+                      micronets : { micronet : dbUpdateResult }
+                    } ,
+                    { query : {} , mongoose : { upsert : true } } );
+                  console.log ( '\n CREATE HOOK ADD SUBNET PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
 
-              console.log ( '\n ADD SUBNET TO MICRO-NET PostBodyForODL : ' + JSON.stringify ( postBodyForODL ) )
-              const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-              /* Update DB with ODL Response */
-              if ( odlResponse.data && odlResponse.status == 200 ) {
-                console.log ( '\n ODL Response : ' + JSON.stringify ( odlResponse ) )
-                const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
-                console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
-                const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
-                  {
-                    id : micronetFromDB.id ,
-                    name : micronetFromDB.name ,
-                    ssid : micronetFromDB.ssid ,
-                    micronets : { micronet : dbUpdateResult }
-                  } ,
-                  { query : {} , mongoose : { upsert : true } } );
-                console.log ( '\n CREATE HOOK ADD SUBNET PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
-
-                if ( patchResult ) {
-                  console.log ( '\n MICRONET ADDED.ADDING SUBNETS TO DHCP GATEWAY ... ' )
-                  const dhcpSubnets = await addDhcpSubnets ( hook , body )
-                  console.log ( '\n OBTAINED DHCP SUBNETS IN CREATE HOOK : ' + JSON.stringify ( dhcpSubnets ) )
-                  hook.result = patchResult
-                  return Promise.resolve ( hook )
+                  if ( patchResult ) {
+                    console.log ( '\n MICRONET ADDED.ADDING SUBNETS TO DHCP GATEWAY ... ' )
+                    const dhcpSubnets = await addDhcpSubnets ( hook , body )
+                    console.log ( '\n OBTAINED DHCP SUBNETS IN CREATE HOOK : ' + JSON.stringify ( dhcpSubnets ) )
+                    hook.result = patchResult
+                    return Promise.resolve ( hook )
+                  }
                 }
+              }
+              else {
+               console.log('\n Subnets already Present.Get data from database ... ')
+                hook.result = await  hook.app.service('/mm/v1/micronets').get(null)
+                return Promise.resolve ( hook )
               }
             }
           }
