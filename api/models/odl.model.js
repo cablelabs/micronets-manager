@@ -27,7 +27,7 @@ module.exports = function (app) {
     portWired: { type: String, required: false },
     portWireless:{ type: String, required: false },
     bridge: { type: String, required: true  },
-    portBridge: { type:String, required: true  }
+    portBridge: { type:String, required: false  }
   });
 
   const bridge = new Schema({
