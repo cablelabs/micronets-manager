@@ -78,6 +78,7 @@ const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
   const { micronet } = requestBody.micronets;
   const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
   const { switchConfig } = odlStaticConfig
+  // Get Port Trunk Index
   const trunkIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty ( "portTrunk" ) )
   const trunkGatewayPort = switchConfig.bridges[ trunkIndex ]
   const ovsHost = switchConfig.bridges[ trunkIndex ].ovsHost
@@ -641,11 +642,11 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
     console.log('\n matchedMicronetIndex : ' + JSON.stringify(matchedMicronetIndex))
     if(matchedMicronetIndex > -1 ) {
       return {
-        subnetId : dhcpSubnet.subnetId ,
+               subnetId : dhcpSubnet.subnetId ,
                ipv4Network : {
                network : micronet[matchedMicronetIndex][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
                mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
-              gateway : micronet[[ index ]][ "micronet-gateway-ip" ]
+               gateway : micronet[matchedMicronetIndex][ "micronet-gateway-ip" ]
       }
     }
   }
