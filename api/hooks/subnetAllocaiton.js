@@ -150,23 +150,30 @@ module.exports.getNewIps = function (subnet, devices) {
     if (!subnet) {
       reject(new Error("Subnet cannot be undefined"))
     }
-    me.currentSubnet = await getSubnet(subnet, me);
-    for (let i = 0; i < devices.length; i++) {
-      me.nextAvailableHost = getNextAvailableIp(me);
-      let tempHost = allocateHost(devices[i], me);
-      if (tempHost.message) {
-        reject(tempHost);
-      }
-      me.currentSubnet.connectedDevices.push(tempHost)
-      me.nextAvailableHost++
-    }
-    saveSubnet(me)
-      .then((newSubnet) => {
-        resolve(newSubnet);
+    getSubnet(subnet, me)
+      .then(subnet => {
+        me.currentSubnet = subnet
+        for (let i = 0; i < devices.length; i++) {
+          me.nextAvailableHost = getNextAvailableIp(me);
+          let tempHost = allocateHost(devices[i], me);
+          if (tempHost.message) {
+            reject(tempHost);
+          }
+          me.currentSubnet.connectedDevices.push(tempHost)
+          me.nextAvailableHost++
+        }
+        saveSubnet(me)
+          .then((newSubnet) => {
+            resolve(newSubnet);
+          })
+          .catch((err) => {
+            console.log(err);
+            reject(err);
+          })
       })
-      .catch((err) => {
-        console.log(err);
-        reject(err);
+      .catch(err => {
+        console.log(err)
+        reject(new Error('Subnet '  + subnet + ' does not exist'))
       })
   })
 };
