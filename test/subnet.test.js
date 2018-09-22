@@ -7,7 +7,7 @@ var app = require('../api/app')
 const port = app.get('port');
 var server
 
-describe.skip('Test Subnet Allocation', function() {
+describe.only('Test Subnet Allocation', function() {
   before(function(done) {
     app.get('subnet')
       .then((subnetObj) => {
@@ -153,5 +153,45 @@ describe.skip('Test Subnet Allocation', function() {
       .catch((err) =>{
         done();
       })
+  })
+  it('Get a Specific Subnet', (done) => {
+    subnet.getNewSubnet(0, 100)
+      .then((sn) => {
+        newSubnet = sn
+        newSubnet.subnet.should.equal(100)
+        newSubnet.micronetSubnet.should.equal('192.168.100.0/24')
+        newSubnet.mask.should.equal('255.255.255.0')
+        newSubnet.micronetGatewayIp.should.equal('192.168.100.1')
+        newSubnet.vlan.should.equal(0)
+      }).then(done, done)
+  })
+  it('Get an Allocated Subnet', (done) => {
+    subnet.getNewSubnet(0, 100)
+      .then(() => {
+        fail()
+      })
+      .catch(err => {
+        done()
+      })
+  })
+  it('Remove a Allocated Subnet', (done) => {
+    subnet.deallocateSubnet(0, 100)
+      .then(() => {
+
+      }).then(done, done)
+  })
+  it('Get Array of Specific Subnet Objects', (done) => {
+    let promiseList = []
+    for (let i = 0;i < 10; i ++) {
+      promiseList.push(subnet.getNewSubnet(0, 34+i))
+    }
+    Promise.all(promiseList)
+      .then((snArray) => {
+        console.log(snArray)
+        snArray.length.should.equal(10)
+        for (let subnet = 0; subnet < 10; subnet++) {
+          snArray[subnet].subnet.should.equal(34 + subnet)
+        }
+      }).then(done, done)
   })
 })
