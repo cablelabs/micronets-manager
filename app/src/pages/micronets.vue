@@ -1,12 +1,11 @@
 <template>
   <Layout>
     <template v-for="(micronet, index) in subscriber.micronets.micronet">
-      <!--<p>{{micronet}}</p>-->
-      <!--<template v-if="micronets.id==$route.params.subscriberId">-->
+      <template v-if="micronet['micronet-id']==$route.params.micronetId">
       <!--<template v-for="subnet in micronet.subnets">-->
         <!--<p>Device Leases from State : {{deviceLeases || []}}</p>-->
-        <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :micronetId="subscriber._id" ></SubnetCard>
-      <!--</template>-->
+        <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber._id" ></SubnetCard>
+      </template>
       <!--</template>-->
     </template>
     <template v-if="!subscriber.micronets.micronet.length">

@@ -13,7 +13,7 @@ export default new Router({
       component: Home
     },
     {
-      path: '/:subscriberId/micronets',
+      path: '/:subscriberId/micronets/:micronetId',
       name: 'Micronets',
       component: Micronets
     }
