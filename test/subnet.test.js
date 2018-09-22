@@ -7,7 +7,7 @@ var app = require('../api/app')
 const port = app.get('port');
 var server
 
-describe.only('Test Subnet Allocation', function() {
+describe('Test Subnet Allocation', function() {
   before(function(done) {
     app.get('subnet')
       .then((subnetObj) => {
@@ -193,5 +193,22 @@ describe.only('Test Subnet Allocation', function() {
           snArray[subnet].subnet.should.equal(34 + subnet)
         }
       }).then(done, done)
+  })
+  it('Ashiwinis Problem', (done) => {
+
+    let devices = [{deviceMac: 'b8:27:eb:8d:30:27', deviceName: 'pia', deviceId: 'Raspberry-Pi3-Model-B-v1.2'}]
+    subnet.getNewSubnet(0, 251)
+      .then(mysubnet => {
+        subnet.getNewIps(250, devices)
+          .then((sn) => {
+            console.log(sn)
+            fail('Should not create IPs for non-existant subnet')
+          })
+          .catch(err => {
+            console.log(err)
+            done()
+          })
+      })
+
   })
 })
