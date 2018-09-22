@@ -7,6 +7,7 @@ module.exports = function (app) {
   const { Schema } = mongooseClient;
 
   const connectedDevices = new Schema({
+    _id:false,
     'device-name': { type: String, required: true },
      class: { type: String, required: false },
     'device-mac': { type: String, required: true },
