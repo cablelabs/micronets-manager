@@ -76,11 +76,13 @@ const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
   const { micronet } = requestBody.micronets;
   const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
   const { switchConfig } = odlStaticConfig
-  const trunkIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.portTrunk == 'trunk' )
+  const trunkIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty("portTrunk"))
   const trunkGatewayPort = switchConfig.bridges[ trunkIndex ]
   const ovsHost = switchConfig.bridges[ trunkIndex ].ovsHost
-  const wirelessPortIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.portWireless == 'wireless' )
-  const wiredPortIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.portWired == 'wired' )
+  const wirelessPortIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty("portWireless"))
+  const wiredPortIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty("portWired"))
+
+  console.log('\n\n\n Trunk Index : ' + JSON.stringify(trunkIndex) + '\t\t WiredPortIndex : ' + JSON.stringify(wiredPortIndex) + '\t\t\t WirelessPortIndex : ' + JSON.stringify(wirelessPortIndex))
   const portWired = wiredPortIndex > -1 ? switchConfig.bridges[ wiredPortIndex ].portBridge : -1
   const portWireless = wirelessPortIndex > -1 ? switchConfig.bridges[ wirelessPortIndex ].portBridge : -1
   console.log ( '\n TrunkGatewayPort : ' + JSON.stringify ( trunkGatewayPort ) + '\t\t OVS Host : ' + JSON.stringify ( ovsHost ) )
@@ -93,7 +95,7 @@ const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
       ...micronet ,
       "trunk-gateway-port" : trunkGatewayPort.portTrunk ,
       "trunk-gateway-ip" : ovsHost ,
-      "dhcp-server-port" : "" ,
+      "dhcp-server-port" : "LOCAL" ,
       "dhcp-zone" : switchConfig.bridges[ trunkIndex ].subnet ,  // Maybe this shd be trunkIndex or index
       "ovs-bridge-name" : switchConfig.bridges[ trunkIndex ].bridge ,  //Maybe this shd be trunkIndex or index
       "ovs-manager-ip" : ovsHost
@@ -306,13 +308,22 @@ const populateMMWithOdlResponse = async hook => {
 
 const initializeMicronets = async ( hook , postBody ) => {
   console.log ( '\n InitializeMicronets postBody: ' + JSON.stringify ( postBody ) )
+  // Delete all Micronets
+  const removeAllMicronetsResponse = await hook.app.service ( '/mm/v1/micronets' ).remove(null)
+  console.log('\n removeAllMicronetsResponse : ' + JSON.stringify(removeAllMicronetsResponse))
+  if(removeAllMicronetsResponse) {
+    const odlResponse = await odlOperationsForUpserts ( hook , postBody )
+    return odlResponse
+  }
+  /* FAKE RESPONSE
   const micronetFromDB = await getMicronet ( hook , {} )
   hook.data = Object.assign ( {} , {
     id : micronetFromDB.id ,
     name : micronetFromDB.name ,
     ssid : micronetFromDB.ssid , micronets : { micronet : micronetWithDevices2.micronets.micronet }
   } )
-  return hook.data
+*/
+
 }
 
 const getMicronet = async ( hook , query ) => {
@@ -326,50 +337,58 @@ const getMicronet = async ( hook , query ) => {
 
 const upsertOdLConfigState = async ( hook , postBody ) => {
 
-  console.log ( '\n upsertOdLConfigState hook postBody : ' + JSON.stringify ( postBody ) )
+  // console.log ( '\n upsertOdLConfigState hook postBody : ' + JSON.stringify ( postBody ) )
+  // // AXIOS ODL call.Check for Response Code 201 or 200
+  // const odlConfigResponse = await axios ( {
+  //   ...apiInit ,
+  //   auth: odlAuthHeader,
+  //   method : 'PUT' ,
+  //   url : `http://${odlHost}:${odlSocket}/restconf/config/micronets:micronets` ,
+  //   data: postBody
+  // })
+  //  const {status, data} = odlConfigResponse
+  // console.log ( '\n PUT ODL CONFIG RESPONSE STATUS : ' + JSON.stringify ( status ) + '\t\t DATA : ' + JSON.stringify(data) )
+  //
 
-  /* AXIOS ODL call.Check for Response Code 201 or 200
-  const odlConfigResponse = await axios ( {
-    ...apiInit ,
-    auth: odlAuthHeader,
-    method : 'PUT' ,
-    url : `http://${odlhost}:${odlsocket}/restconf/config/micronets:micronets` ,
-    data: postBody
-  })
-  */
-
-  const odlConfigResponse = Object.assign ( { response : { statusCode : 201 } } )
-  console.log ( '\n PUT ODL CONFIG RESPONSE : ' + JSON.stringify ( odlConfigResponse ) )
+  // Uncomment for Fake response
+  const odlConfigResponse = Object.assign ( {},{ status : 200, data: "" } )
   return odlConfigResponse
 }
 
 const fetchOdlOperationalState = async ( hook ) => {
 
   // URL : http://{{odlhost}}:{{odlsocket}}/restconf/operational/micronets:micronets
-  const odlOperationalState = await axios ( {
-    ...apiInit ,
-    auth: odlAuthHeader,
-    method : 'get' ,
-    url : `http://${odlHost}:${odlSocket}/restconf/operational/micronets:micronets` ,
-  } )
-  const { micronets } = odlOperationalState
-  console.log('\n ODL OPERATIONAL STATE DATA : ' + JSON.stringify(odlOperationalState.data))
-  console.log('\n ODL OPERATIONAL STATE STATUS CODE : ' + JSON.stringify(odlOperationalState.status))
-  return odlOperationalState.data
-
-  // const odlOperationalState = Object.assign ( {} , micronetOperationalConfig )
-  // console.log ( '\n fetchOdlOperationalState : ' + JSON.stringify ( odlOperationalState ) )
+  // const odlOperationalState = await axios ( {
+  //   ...apiInit ,
+  //   auth: odlAuthHeader,
+  //   method : 'GET' ,
+  //   url : `http://${odlHost}:${odlSocket}/restconf/operational/micronets:micronets` ,
+  // } )
+  // const { status, data } = odlOperationalState
+  // console.log('\n ODL OPERATIONAL STATE DATA : ' + JSON.stringify(data))
+  // console.log('\n ODL OPERATIONAL STATE STATUS CODE : ' + JSON.stringify(status))
   // return odlOperationalState
+
+  // Uncomment for Fake response
+   const odlOperationalState = Object.assign ( {} , { data:micronetOperationalConfig, status:200} )
+  console.log('\n FAKE OPERATIONAL STATE : ' + JSON.stringify(odlOperationalState))
+   console.log ( '\n fetchOdlOperationalState DATA : ' + JSON.stringify ( odlOperationalState.data ) + '\t\t STATUS : ' + JSON.stringify(odlOperationalState.status))
+   return odlOperationalState
 }
 
 const odlOperationsForUpserts = async ( hook , putBody ) => {
   console.log ( '\n odlOperationsForUpserts hook putBody : ' + JSON.stringify ( putBody ) )
   const odlConfigStateResponse = await upsertOdLConfigState ( hook , putBody )
-  console.log ( '\n Obtained odlConfigStateResponse : ' + JSON.stringify ( odlConfigStateResponse ) )
+  console.log ( '\n odlOperationsForUpserts odlConfigStateResponse DATA : ' + JSON.stringify ( odlConfigStateResponse.data  )  + '\t\t STATUS : ' + JSON.stringify(odlConfigStateResponse.status))
   // Check if status code is 200 / 201 OK
-  if ( odlConfigStateResponse ) {
+  if ( odlConfigStateResponse.status == 200 &&  odlConfigStateResponse.data == "") {
+    console.log('\n Check odlConfigStateResponse.status == 200 &&  odlConfigStateResponse.data == "" suceeded')
     const odlOperationalState = await fetchOdlOperationalState ( hook )
     return odlOperationalState
+  }
+  else {
+    console.log('\n ODL PUT CONFIG FAILED STATUS : ' + JSON.stringify( odlConfigStateResponse.status) + '\t\t ERRORS : ' + JSON.stringify(odlConfigStateResponse.errors))
+
   }
 }
 
@@ -813,13 +832,13 @@ module.exports = {
               console.log ( '\n isGatewayAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) + '\t\t isODLAlive : ' + JSON.stringify ( isOdlAlive ) )
               const postBodyForODL = await populatePostObj ( hook , body )
               console.log ( '\n CREATE HOOK INIT OBTAINED POST BODY : ' + JSON.stringify ( postBodyForODL ) )
-              const result = await initializeMicronets ( hook , postBodyForODL )
+              const odlResponse = await initializeMicronets ( hook , postBodyForODL )
               console.log ( '\n CREATE MICRO-NET INIT HOOK RESULT : ' + JSON.stringify ( result ) )
 
               /* ODL CALLS */
-              const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-              if ( odlResponse ) {
-                // console.log ( '\n odlResponse : ' + JSON.stringify ( odlResponse ) )
+              const {status,data} = odlResponse
+              if ( data && status == 200 ) {
+                 console.log ( '\n CREATE HOOK ODL OPERATIONAL RESPONSE DATA : ' + JSON.stringify ( data ) )
                 // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse )
                 // console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
                 const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
@@ -827,7 +846,7 @@ module.exports = {
                     id : micronetFromDB.id ,
                     name : micronetFromDB.name ,
                     ssid : micronetFromDB.ssid ,
-                    micronets : { micronet : result.micronets.micronet }
+                    micronets : data.micronets
                   } ,
                   { query : {} , mongoose : { upsert : true } } );
                 console.log ( '\n CREATE HOOK INIT PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
@@ -960,11 +979,11 @@ module.exports = {
         console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify(id) )
         let postBodyForDelete = [] , micronetToDelete = {}
         // ODL and Gateway checks
-        const isGtwyAlive = await isGatewayAlive ( hook )
-        const isOdlAlive = await isODLAlive ( hook )
-        const isGatewayConnected = await connectToGateway ( hook )
-        if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
-
+        // const isGtwyAlive = await isGatewayAlive ( hook )
+        //const isOdlAlive = await isODLAlive ( hook )
+       // const isGatewayConnected = await connectToGateway ( hook )
+       // console.log('\n\n DELETE HOOK isGtwyAlive : ' + JSON.stringify(isGtwyAlive) + '\t\t\t isOdlAlive : ' + JSON.stringify(isOdlAlive) + '\t\t\t isGatewayConnected : ' + JSON.stringify(isGatewayConnected))
+       // if (  isGtwyAlive ) {
           if(hook.id) {
             console.log('\n DELETE MICRONET BY ID ' + JSON.stringify(hook.id))
             const micronetFromDB = await getMicronet(hook,{})
@@ -982,17 +1001,26 @@ module.exports = {
           else {
             console.log('\n No hook id present delete everything postBodyForDelete : ' + JSON.stringify(postBodyForDelete))
           }
-          const odlResponse = await odlOperationsForUpserts ( hook , data )
-          console.log ( '\n DELETE HOOK ODL Response : ' + JSON.stringify ( odlResponse ) )
+          /* Uncomment later for real api call
+          if(postBodyForDelete.length == 0) {
+            postBodyForDelete = Object.assign({},{
+              micronets:{
+                micronet:postBodyForDelete
+              }
+            })
+          } */
+          // console.log('\n\n Updated EMPTY POST BODY FOR DELETE : ' + JSON.stringify(postBodyForDelete))
+          const odlResponse = await odlOperationsForUpserts ( hook , postBodyForDelete )
+          console.log ( '\n DELETE HOOK ODL OPERATIONAL STATE DATA  : ' + JSON.stringify ( odlResponse.data )  + '\t\t STATUS : ' + JSON.stringify(odlResponse.status))
           const micronetFromDB = await getMicronet ( hook , {} )
           // TODO : Check request body and construct new post for all delete cases
-          if ( odlResponse ) {
+          if ( odlResponse.status == 200 ) {
             const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
               {
                 id : micronetFromDB.id ,
                 name : micronetFromDB.name ,
                 ssid : micronetFromDB.ssid ,
-                micronets : { micronet : postBodyForDelete } // TODO : Add actual response
+                micronets :  { micronet: postBodyForDelete }  // TODO : Add actual response odlResponse.data
               } ,
               { query : {} , mongoose : { upsert : true } } );
             console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
@@ -1012,7 +1040,7 @@ module.exports = {
             return Promise.resolve ( hook );
           }
 
-        }
+      //  }
 
       }
     ]
