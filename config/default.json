@@ -30,7 +30,7 @@
       "expiresIn": "1d"
     }
   },
-  "mongodb": "mongodb://localhost:27017/micronets",
+  "mongodb": "mongodb://mongo:27017/micronets",
   "subnets": {
     "subnetMin": 10,
     "subnetMax": 254,
