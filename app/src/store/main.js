@@ -22,8 +22,9 @@ const localDhcpUri = `${process.env.BASE_URL}`
 // const omitStateMeta = omit(['_id', '__v'])
 
 export const initialState = {
-  authToken: '',
   subscriber: {},
+  users: {},
+  accessToken: '',
   dhcpSubnets: [],
   dhcpSubnetDevices: [],
   editTargetIds: {},
@@ -47,6 +48,8 @@ export const getters = {
 
 export const mutations = {
   setSubscriber: setState('subscriber'),
+  setUsers: setState('users'),
+  setAccessToken: setState('accessToken'),
   setDhcpSubnets: setState('dhcpSubnets'),
   setDhcpSubnetDevices: setState('dhcpSubnetDevices'),
   setLeases: setState('leases'),
@@ -94,28 +97,51 @@ export const actions = {
       url: authTokenUri,
       data: msoPortalAuthPostConfig
     }).then(({data}) => {
-      return dispatch('initializeMicronets', {token: data.accessToken}).then(() => {
-      })
+      commit('setAccessToken', data.accessToken)
+      return data.accessToken
     })
   },
 
-  fetchUsers ({state, commit, dispatch}, {token}) {
-    return axios({
-      ...{
-        crossDomain: true,
-        headers: {
-          'Content-type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      },
-      method: 'get',
-      url: usersUri
+  fetchDevicesLeases ({state, commit, dispatch}, data) {
+    console.log('\n fetchDevicesLeases data : ' + JSON.stringify(data))
+    let deviceLeasesForState = {}
+    let deviceLeases = data.devices.map((device, index) => {
+      console.log('\n Current device : ' + JSON.stringify(device) + '\t\t Index : ' + JSON.stringify(index))
+     // const findDeviceIdIndex = state.deviceLeases.findIndex((stateDevice) => stateDevice === device.deviceId)
+     // console.log('\n findDeviceIdIndex : ' + JSON.stringify(findDeviceIdIndex))
+      deviceLeasesForState[device.deviceId] = Object.assign({}, {status: device.deviceLeaseStatus})
+      return deviceLeasesForState
     })
-      .then(({data}) => {
-        console.log('\n Users from MM APIs : ' + JSON.stringify(data))
-        commit('setUsers', data)
-        return data
+    console.log('\n This.deviceLeases : ' + JSON.stringify(state.deviceLeases))
+    console.log('\n deviceLeases : ' + JSON.stringify(deviceLeases))
+    console.log('\n deviceLeasesForState : ' + JSON.stringify(deviceLeasesForState))
+    deviceLeases = [].concat(...deviceLeases)
+    // deviceLeases = deviceLeases.filter(Boolean)
+    console.log('\n Constructed Device Lease status : ' + JSON.stringify(deviceLeasesForState))
+    commit('setDeviceLeases', deviceLeasesForState)
+  },
+
+  fetchUsers ({state, commit, dispatch}) {
+    dispatch('fetchAuthToken').then((accessToken) => {
+      console.log('\n Inside then of dispatch accessToken : ' + JSON.stringify(accessToken))
+      return axios({
+        ...{
+          crossDomain: true,
+          headers: {
+            'Content-type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          }
+        },
+        method: 'get',
+        url: usersUri
       })
+        .then(({data}) => {
+          console.log('\n Users from MM APIs : ' + JSON.stringify(data.data[0]))
+          commit('setUsers', data.data[0])
+          dispatch('fetchDevicesLeases', data.data[0])
+          return data.data[0]
+        })
+    })
   },
 
   fetchMicronets ({commit, dispatch}, id) {

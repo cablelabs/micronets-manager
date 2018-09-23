@@ -25,7 +25,7 @@
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
     name: 'home',
     computed: {
-      ...mapState(['subscriber', 'deviceLeases']),
+      ...mapState(['subscriber', 'deviceLeases', 'users']),
       ...mapGetters(['editTarget'])
     },
     data: () => ({
@@ -49,7 +49,7 @@
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'upsertDeviceLeases']),
+      ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -65,10 +65,16 @@
         console.log('\n\n Mounted state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
         // this.upsertDeviceLeases({event: 'init'})
       })
+      this.fetchUsers().then(() => {
+        console.log('\n Mounted state obj users : ' + JSON.stringify(this.users))
+      })
     },
     created () {
       this.fetchMicronets().then(() => {
         console.log('\n Created state obj Subscriber : ' + JSON.stringify(this.subscriber))
+      })
+      this.fetchUsers().then(() => {
+        console.log('\n Created state obj users : ' + JSON.stringify(this.users))
       })
     }
   }
