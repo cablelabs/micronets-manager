@@ -46,7 +46,8 @@ export default {
   },
   props: {
     subnet: Object,
-    micronetId: String
+    micronetId: String,
+    subscriberId: String
   },
   methods: {
     ...mapMutations(['setEditTargetIds']),

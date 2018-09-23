@@ -74,7 +74,7 @@ app.service ( '/mm/v1/micronets' ).on ( 'micronetUpdated' , ( data ) => {
   } );
 } );
 
-app.service ( '/mm/v1/micronets/dhcp' ).on ( 'dhcpSubnetCreated' , ( data ) => {
+app.service ( '/mm/v1/dhcp' ).on ( 'dhcpSubnetCreated' , ( data ) => {
   console.log ( '\n FeatherJS event dhcpSubnetCreated fired with data : ' + JSON.stringify ( data ) )
   // io.on ( 'connection' , ( socket ) => {
   //   logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )

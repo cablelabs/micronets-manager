@@ -565,9 +565,9 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
 
     /* ODL API's */
     const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-    if ( odlResponse ) {
+    if ( odlResponse.data && odlResponse.status == 200 ) {
       console.log ( '\n UpsertRegisteredDeviceToMicronet odlResponse : ' + JSON.stringify ( odlResponse ) )
-      const dbUpdateResult = await updateMicronetModel ( hook , odlResponse )
+      const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
       console.log ( '\n UpsertRegisteredDeviceToMicronet dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
       const addSubnetPatchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
         { micronets : { micronet : dbUpdateResult } } ,

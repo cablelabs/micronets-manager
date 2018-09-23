@@ -14,6 +14,7 @@
     "docker-publish": "docker login code.cablelabs.com:4567; docker push code.cablelabs.com:4567/micronets/micronets-manager"
   },
   "dependencies": {
+    "@feathersjs/socketio-client": "^1.1.4",
     "ajv": "^6.1.1",
     "axios": "^0.17.1",
     "babel-polyfill": "^6.26.0",

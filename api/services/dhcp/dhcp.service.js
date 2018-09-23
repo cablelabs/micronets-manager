@@ -13,10 +13,10 @@ module.exports = function (app) {
   };
 
   // Initialize our service with any options it requires
-  app.use('/mm/v1/micronets/dhcp', createService(options));
+  app.use('/mm/v1/dhcp', createService(options));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('mm/v1/micronets/dhcp');
+  const service = app.service('mm/v1/dhcp');
   service.hooks(hooks);
 
   app.use('/mm/v1/dhcp/subnets/:subnetId/devices/:deviceId', async(req , res , next) => {
