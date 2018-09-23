@@ -57,7 +57,7 @@ module.exports = {
                   }
 
                   if((data.isRegistered != originalUser.devices[foundDeviceIndex].isRegistered) || (data.isRegistered == !originalUser.devices[foundDeviceIndex].isRegistered)) {
-                    let updatedDevice = Object.assign(originalUser.devices[foundDeviceIndex], {isRegistered: true})
+                    let updatedDevice = Object.assign(originalUser.devices[foundDeviceIndex], {isRegistered: true, deviceLeaseStatus:"intermediary"})
                     let updatedUser = Object.assign ( {} , originalUser , updatedDevice);
                     hook.data =  Object.assign ( {} , updatedUser );
                     hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceRegistered' , {

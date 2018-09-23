@@ -23,7 +23,8 @@ module.exports = {
                deviceId : params.payload.deviceID ,
                macAddress : params.payload.macAddress ,
                class : params.payload.class,
-               isRegistered : true
+               isRegistered : true,
+               deviceLeaseStatus: 'intermediary'
              }, { query : { id : data[0].id }, mongoose: { upsert: true}});
            })
 
