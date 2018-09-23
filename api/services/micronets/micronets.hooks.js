@@ -604,11 +604,23 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   devices = [].concat ( devices )
   console.log ( '\n addDevicesInSubnet devices : ' + JSON.stringify ( devices ) )
   let formattedDevices = devices.map ( ( device , index ) => {
-    return {
-      "device-mac" : device["device-mac"] ,
-      "device-name" : device["device-name"]|| `Test Device ${index}` ,  // deviceName not present in Token
-      "device-id" : device["device-id"],
-      "device-openflow-port": device["device-openflow-port"]
+    console.log('\n Current Device : ' + JSON.stringify(device))
+    if(device.hasOwnProperty("isRegistered")) {
+      console.log('\n Device is from registration process ... ')
+      return {
+        "device-mac" : device.macAddress ,
+        "device-name" :`Test Device ${index}` ,  // deviceName not present in Token
+        "device-id" : device.deviceId,
+        "device-openflow-port":  2 // TODO: Add device-openflow-port value from switch config
+      }
+    }
+    else {
+      return {
+        "device-mac" : device["device-mac"] ,
+        "device-name" : device["device-name"]|| `Test Device ${index}` ,  // deviceName not present in Token
+        "device-id" : device["device-id"],
+        "device-openflow-port": device["device-openflow-port"]
+      }
     }
   } )
   console.log ( '\n FormattedDevices : ' + JSON.stringify ( formattedDevices ) )
