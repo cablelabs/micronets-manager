@@ -1,18 +1,15 @@
 FROM node:latest
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/micronets-manager
 
-# Install app dependencies
-COPY app/package.json .
-COPY app/package.json app/package-lock.json ./
+# Bundle api source
+COPY . .
 
 ENV MONGO_URL=
+WORKDIR /usr/src/micronets-manager/app
 
 RUN npm install
 
-# Bundle app source
-COPY app .
-
 EXPOSE 8080
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "client"]

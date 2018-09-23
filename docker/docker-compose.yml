@@ -1,11 +1,5 @@
 version: '3'
 services:
-  redis:
-      image: redis
-      expose:
-        - 6379
-      ports:
-        - '6379:6379'
   api:
     build:
       context: ./../..
@@ -22,24 +16,6 @@ services:
     ports:
       - '3030:3030'
 
-  services:
-    build:
-      context: ./../..
-      dockerfile: docker/dev/Dockerfile.services
-    image: micronets-manager-services-dev
-    links:
-          - redis
-          - mongo
-    environment:
-          - NODE_ENV=production
-          - PORT=3000
-          - REDIS_URL=redis
-          - MONGO_URL=mongodb://mongo:27017/micronets
-    volumes:
-      - ./../../app:/usr/src/app
-    ports:
-      - '3000:3000'
-
   app:
     build:
       context: ./../..
@@ -52,7 +28,6 @@ services:
     links:
       - mongo
       - api
-      - services
     volumes:
       - ./../../app:/usr/src/app
     ports:
