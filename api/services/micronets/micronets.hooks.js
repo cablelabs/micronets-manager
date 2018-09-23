@@ -355,10 +355,6 @@ const sanityCheckForMM = async hook => {
   return true
 }
 
-const populateMMWithOdlResponse = async hook => {
-  return true
-}
-
 const initializeMicronets = async ( hook , postBody ) => {
   console.log ( '\n InitializeMicronets postBody: ' + JSON.stringify ( postBody ) )
   // Delete all Micronets
@@ -379,7 +375,6 @@ const initializeMicronets = async ( hook , postBody ) => {
     } )
     return odlResponse
   }
-
 }
 
 const getMicronet = async ( hook , query ) => {
