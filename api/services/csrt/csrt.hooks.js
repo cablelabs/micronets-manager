@@ -48,7 +48,8 @@ module.exports = {
                 deviceId : params.payload.deviceID ,
                 macAddress : params.payload.macAddress,
                 class: params.payload.class,
-                isRegistered : false
+                isRegistered : false,
+                deviceLeaseStatus: "intermediary"
               } )
             } )
             const user = await hook.app.service ( '/mm/v1/micronets/users' ).find ( { query : { id : subscriber.data.id } } )
