@@ -12,7 +12,8 @@ var options = { integer : true }
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require ( '../../hooks/dhcpWrapperPromise' )
-const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001" // TODO : GET IT FROM REGISTRY
+//const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001" // TODO : GET IT FROM REGISTRY
+const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z"
 const odlHost = "198.58.114.200"
 const odlSocket = "8181"
 const odlAuthHeader = {
@@ -688,9 +689,11 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   } )
   dhcpSubnetsPostBody = dhcpSubnetsPostBody.filter ( Boolean )
   console.log ( '\n dhcpSubnetsPostBody : ' + JSON.stringify ( dhcpSubnetsPostBody ) )
-
+  const registry = await getRegistry(hook,{})
+  const { websocketUrl } = registry
+  console.log('\n WebsocketUrl : ' + JSON.stringify(websocketUrl))
   // TODO : Replace with DHCP API's
-  dw.connect ( dhcpConnectionUrl ).then ( async () => {
+  dw.connect ( websocketUrl ).then ( async () => {
     console.log ( '\n Inside then of DHCP Connection' )
     let dhcpSubnets = await dw.send ( {} , "GET" , "subnet" )
     const { subnets } = dhcpSubnets.body
@@ -713,6 +716,10 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
 
 const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
   console.log ( '\n\n addDhcpDevices requestBody : ' + JSON.stringify ( requestBody ) + '\t\t micronetId : ' + JSON.stringify ( micronetId ) + '\t\t subnetId : ' + JSON.stringify ( subnetId ) )
+
+  const registry = await getRegistry(hook,{})
+  const { websocketUrl } = registry
+  console.log('\n WebsocketUrl : ' + JSON.stringify(websocketUrl))
 
   // Check if micronet exists in DB
   const micronetFromDB = await getMicronet ( hook , {} )
@@ -746,7 +753,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
 
   if ( micronetIndex > -1 ) {
     // Check if subnet exists in DHCP Gateway
-    dw.connect ( dhcpConnectionUrl ).then ( async () => {
+    dw.connect ( websocketUrl ).then ( async () => {
       let dhcpSubnet = await dw.send ( {} , "GET" , "subnet" , subnetId )
       const { subnet } = dhcpSubnet.body
       if ( subnet.subnetId == subnetId ) {
@@ -771,6 +778,11 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
 const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
   console.log ( '\n\n deleteDhcpSubnets micronet : ' + JSON.stringify ( micronet ) + '\t\t micronetId : ' + JSON.stringify ( micronetId ) )
 
+  const registry = await getRegistry(hook,{})
+  const { websocketUrl } = registry
+  console.log('\n WebsocketUrl : ' + JSON.stringify(websocketUrl))
+
+
   // Single micronet was deleted
   if ( micronetId != undefined && Object.keys ( micronet ).length > 0 ) {
 
@@ -779,7 +791,7 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
     const subnetId = micronet[ "micronet-subnet-id" ]
 
     // Delete DHCP Subnet
-    dw.connect ( dhcpConnectionUrl ).then ( async () => {
+    dw.connect ( websocketUrl ).then ( async () => {
       console.log ( '\n Deleting dhcp subnet ' + JSON.stringify ( subnetId ) )
       let dhcpSubnet = await dw.send ( {} , "GET" , "subnet" , subnetId )
       console.log ( '\n\n DHCP Subnet : ' + JSON.stringify ( dhcpSubnet ) )
@@ -809,6 +821,9 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
 }
 
 const deleteDhcpDevices = async ( hook , requestBody ) => {
+  const registry = await getRegistry(hook,{})
+  const { websocketUrl } = registry
+  console.log('\n WebsocketUrl : ' + JSON.stringify(websocketUrl))
 }
 
 /* Adding subnets & devices to DHCP */
