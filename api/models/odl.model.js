@@ -84,6 +84,28 @@ module.exports = function (app) {
    ]
  }
 
+ {
+   gatewayId: '123',
+   hw_model_id: '123456-789',
+   'ovs-version': '2.9.2',
+   bridges: [
+     {
+       bridge: 'brmn001',
+       mac: 'bridge-mac', // One of port mac matches bridge mac
+       trunkIp: '10.36.32.0/24',
+       trunkPort: 2,
+       ports: [
+         { portNumber : 2, interface: 'enp4s0',        hwtype: 'wired', subnet: '192.168.250.0/24', vlanid: 0, portMac: '' },
+         { portNumber: 3, interface: 'enp5s0',        hwtype: 'wired', subnet: '192.168.251.0/24', vlanid: 0, portMac: '' },
+         { portNumber: 4, interface: 'veth00001.128', hwtype: 'wifi',  subnet: '192.168.252.0/24', vlanid: 128, portMac: '' },
+         { portNumber: 4, interface: 'veth00001.129', hwtype: 'wifi',  subnet: '192.168.253.0/24', vlanid: 129 , portMac: ''},
+         { portNumber: 4, interface: 'veth00001.130', hwtype: 'wifi',  subnet: '192.168.254.0/24', vlanid: 130, portMac: '' },
+         { portNumber: 4, interface: 'veth00001.131', hwtype: 'wifi',  subnet: '192.168.255.0/24', vlanid: 131, portMac: '' }
+       ]
+     }
+   ]
+ }
+
 */
 
 /* POST Body
