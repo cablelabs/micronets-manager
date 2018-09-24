@@ -189,6 +189,15 @@ module.exports = {
           return Promise.resolve(hook)
         }
 
+        // Remove all subnets
+        if( hook.id == `subnets`) {
+          console.log('\n Remove all subnets : ')
+          const dhcpResponse =  await dw.send({}, 'DELETE','subnet')
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+          hook.result = dhcpResponse
+          return Promise.resolve(hook)
+        }
+
         // Remove all devices in subnet
         if(params.subnetId && url == `${dhcpUrlPrefix}/${params.subnetId}/devices`) {
           console.log('\n Remove all devices in subnet : ')
@@ -211,9 +220,9 @@ module.exports = {
       async (hook) => {
       const { data, id, params } = hook;
         console.log('\n CREATE AFTER DHCP HOOK RESULT : ' + JSON.stringify(hook.result))
-        hook.app.service ( '/mm/v1/micronets/dhcp' ).emit ( 'dhcpSubnetCreated' , {
+        hook.app.service ( '/mm/v1/dhcp' ).emit ( 'dhcpSubnetCreated' , {
           type : 'dhcpSubnetCreated' ,
-          data : Object.assign({},{subnetId:hook.result.subnetId})
+          data : Object.assign({},{subnetId:hook.result.body.subnet.subnetId})
         } );
         return hook
       }

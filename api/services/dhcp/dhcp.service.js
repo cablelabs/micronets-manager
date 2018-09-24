@@ -107,7 +107,7 @@ module.exports = function (app) {
       res.json(result)
     }
     if(method == 'DELETE') {
-      const result =  await service.remove(null,{subnetId:params.subnetId, url:originalUrl})
+      const result =  await service.remove(null,{url:originalUrl})
       res.json(result)
     }
   });
