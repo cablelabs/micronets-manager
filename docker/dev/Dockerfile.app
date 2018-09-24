@@ -1,12 +1,12 @@
 FROM node:latest
 
-WORKDIR /usr/src/micronets-manager
+WORKDIR /usr/src/app
 
 # Bundle api source
-COPY . .
+COPY app .
+RUN ls -a
 
 ENV MONGO_URL=
-WORKDIR /usr/src/micronets-manager/app
 
 RUN npm install
 
