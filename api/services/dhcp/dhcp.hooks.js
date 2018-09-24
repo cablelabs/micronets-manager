@@ -4,7 +4,8 @@ const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application
 const axios = require ( 'axios' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v' ] );
 const dhcpUrlPrefix = "/mm/v1/dhcp/subnets"
-const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001"
+// const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001"
+// const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z"
 
 const getRegistryForSubscriber = async ( hook , subscriberId ) => {
   const query = Object.assign ( {} , { subscriberId : subscriberId } , hook.params.query );
@@ -29,7 +30,12 @@ const getRegistry = async(hook,query) => {
 module.exports = {
   before: {
     all: [
-      async(hook) => { const dhcpConnection = await dw.connect(dhcpConnectionUrl) }
+       async(hook) => {
+         const registry = await getRegistry(hook,{})
+         const { websocketUrl } = registry
+         const dhcpConnection = await dw.connect(websocketUrl).then(()=> { return true })
+         console.log('\n ALL HOOK DHCP CONNECTION : ' + JSON.stringify(dhcpConnection) + '\t\t FOR URL : ' + JSON.stringify(websocketUrl))
+    }
     ],
     find: [
       async (hook) => {
@@ -41,14 +47,10 @@ module.exports = {
       async (hook) => {
        const {params, id, data} = hook;
        const {url,subnetId, deviceId} = params
-        const registry = await getRegistry(hook,{})
-        const { dhcpUrl } = registry
-        console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
-
-        if(params.subnetId) {
-          // Get specific device in subnet
-          if(params.subnetId && params.deviceId) {
-            const dhcpResponse = await dw.send({}, "GET", "device",params.subnetId,params.deviceId)
+          if(params.subnetId) {
+            // Get specific device in subnet
+            if(params.subnetId && params.deviceId) {
+              const dhcpResponse = await dw.send({}, "GET", "device",params.subnetId,params.deviceId)
               console.log('\n URL : ' + JSON.stringify(url))
               console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
               hook.result =  dhcpResponse
@@ -63,30 +65,27 @@ module.exports = {
               hook.result =  dhcpResponse
               return Promise.resolve(hook)
             }
-           // Get specific subnet
+            // Get specific subnet
             else {
               const dhcpResponse = await dw.send({}, "GET", "subnet",params.subnetId)
               console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
               hook.result =  dhcpResponse
               return Promise.resolve(hook)
             }
-        }
-       // Get all subnets
-        else {
-          const dhcpResponse = await dw.send({}, "GET","subnet")
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
-          hook.result =  dhcpResponse
-          return Promise.resolve(hook)
-        }
+          }
+          // Get all subnets
+          else {
+            const dhcpResponse = await dw.send({}, "GET","subnet")
+            console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
+            hook.result =  dhcpResponse
+            return Promise.resolve(hook)
+          }
       }
     ],
     create: [
       async (hook) => {
         const {params, id, data} = hook;
         const { path , originalUrl , method, body } = data
-        const registry = await getRegistry(hook,{})
-        const { dhcpUrl } = registry
-        console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
         if(originalUrl == `${dhcpUrlPrefix}`) {
           console.log('\n  URL : ' + JSON.stringify(originalUrl) + '\t\t HOOK BODY : ' + JSON.stringify(body))
           const dhcpResponse =  await dw.send({...body}, 'POST')
@@ -104,9 +103,6 @@ module.exports = {
           runValidators: true,
           setDefaultsOnInsert: true
         }
-        const registry = await getRegistry(hook,{})
-        const { dhcpUrl } = registry
-        console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
         console.log('\n UPDATE HOOK ID : ' + JSON.stringify(id) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t PARAMS : ' + JSON.stringify(params))
 
         // Add device to existing subnet
@@ -126,9 +122,6 @@ module.exports = {
           hook.result = dhcpResponse
           return Promise.resolve(hook)
         }
-
-
-
 
         // Update existing device in subnet
         if( query.url = `${dhcpUrlPrefix}/${query.subnetId}/devices/${query.deviceId}`) {
@@ -158,9 +151,6 @@ module.exports = {
         const { data,id,params } = hook;
         const {url} = params
         console.log('\n DELETE HOOK ID : ' + JSON.stringify(id) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t PARAMS : ' + JSON.stringify(params))
-        const registry = await getRegistry(hook,{})
-        const { dhcpUrl } = registry
-        console.log('\n DHCP URL : ' + JSON.stringify(dhcpUrl))
         console.log('\n URL : ' + JSON.stringify(url))
 
         // Remove specific device in subnet
