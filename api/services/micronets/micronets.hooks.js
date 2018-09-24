@@ -744,12 +744,12 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
       const dhcpDeviceIp = deviceFromDb[ 'device-ip' ]
       console.log ( '\n dhcpDeviceIp : ' + JSON.stringify ( dhcpDeviceIp ) )
       return {
-        deviceId : device["device-id"] ,  //device["device-id"], Device ID has to be alphanumeric
+        deviceId : device["device-id"] ,
         macAddress : {
           eui48 : device[ "device-mac" ]
         } ,
         networkAddress : {
-          ipv4 : "192.168.12.2" //dhcpDeviceIp
+          ipv4 : "192.168.12.2" //TODO: Change to dhcpDeviceIp
         }
       }
     } )
