@@ -12,8 +12,8 @@ var options = { integer : true }
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require ( '../../hooks/dhcpWrapperPromise' )
-//const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001" // TODO : GET IT FROM REGISTRY
-const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z"
+//const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001"
+//const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z"
 const odlHost = "198.58.114.200"
 const odlSocket = "8181"
 const odlAuthHeader = {
@@ -23,7 +23,9 @@ const odlAuthHeader = {
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
-  const dhcpConnection = await dw.connect ( dhcpConnectionUrl ).then ( () => {
+  const registry = await getRegistry(hook,{})
+  const { websocketUrl } = registry
+  const dhcpConnection = await dw.connect (websocketUrl ).then ( () => {
     return true
   } )
   console.log ( '\n DHCP Connection value : ' + JSON.stringify ( dhcpConnection ) )
@@ -812,7 +814,7 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
 
   // All micronets were deleted
   if ( Object.keys ( micronet ).length == 0 && micronetId == undefined ) {
-    dw.connect ( dhcpConnectionUrl ).then ( async () => {
+    dw.connect ( websocketUrl ).then ( async () => {
       console.log ( '\n Deleting all dhcp subnets ' )
       let dhcpSubnets = await dw.send ( {} , "GET" , "subnet" )
       console.log ( '\n\n All DHCP Subnets : ' + JSON.stringify ( dhcpSubnets ) )
