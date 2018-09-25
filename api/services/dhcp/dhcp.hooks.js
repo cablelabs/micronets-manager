@@ -105,19 +105,19 @@ module.exports = {
         }
         console.log('\n UPDATE HOOK ID : ' + JSON.stringify(id) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t PARAMS : ' + JSON.stringify(params))
 
-        // Add device to existing subnet
-        if( query.url = `${dhcpUrlPrefix}/${query.subnetId}/devices`) {
-          console.log('\n Add device to existing subnet for data : ' + JSON.stringify(data) + '\t\t URL : ' + JSON.stringify(query.url))
-          const dhcpResponse =  await dw.send({device:data}, 'POST','device',query.subnetId)
+        // Update existing subnet
+        if(  query.url = `${dhcpUrlPrefix}/${query.subnetId}`) {
+          console.log('\n Update existing subnet passed data : ' + JSON.stringify(data) + '\t\t URL : ' + JSON.stringify(query.url))
+          const dhcpResponse =  await dw.send({subnet:data}, 'PUT','subnet',query.subnetId)
           console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
           hook.result = dhcpResponse
           return Promise.resolve(hook)
         }
 
-        // Update existing subnet
-        if(  query.url = `${dhcpUrlPrefix}/${query.subnetId}`) {
-          console.log('\n Update existing subnet passed data : ' + JSON.stringify(data) + '\t\t URL : ' + JSON.stringify(query.url))
-          const dhcpResponse =  await dw.send({subnet:data}, 'PUT','subnet',query.subnetId)
+        // Add device to existing subnet
+        if( query.url = `${dhcpUrlPrefix}/${query.subnetId}/devices`) {
+          console.log('\n Add device to existing subnet for data : ' + JSON.stringify(data) + '\t\t URL : ' + JSON.stringify(query.url))
+          const dhcpResponse =  await dw.send({device:data}, 'POST','device',query.subnetId)
           console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
           hook.result = dhcpResponse
           return Promise.resolve(hook)

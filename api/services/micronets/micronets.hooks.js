@@ -25,9 +25,7 @@ const odlAuthHeader = {
 const isGatewayAlive = async ( hook ) => {
   const registry = await getRegistry(hook,{})
   const { websocketUrl } = registry
-  const dhcpConnection = await dw.connect (websocketUrl ).then ( () => {
-    return true
-  } )
+  const dhcpConnection = await dw.connect (websocketUrl ).then ( () => { return true } )
   console.log ( '\n DHCP Connection value : ' + JSON.stringify ( dhcpConnection ) )
   return dhcpConnection
 }
