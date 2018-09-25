@@ -88,7 +88,7 @@ module.exports = {
         const { path , originalUrl , method, body } = data
         if(originalUrl == `${dhcpUrlPrefix}`) {
           console.log('\n  URL : ' + JSON.stringify(originalUrl) + '\t\t HOOK BODY : ' + JSON.stringify(body))
-          const dhcpResponse =  await dw.send({...body}, 'POST')
+          const dhcpResponse =  await dw.send({subnet:body}, 'POST')
           console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
           hook.result = dhcpResponse
           return Promise.resolve(hook)
@@ -108,7 +108,7 @@ module.exports = {
         // Add device to existing subnet
         if( query.url = `${dhcpUrlPrefix}/${query.subnetId}/devices`) {
           console.log('\n Add device to existing subnet for data : ' + JSON.stringify(data) + '\t\t URL : ' + JSON.stringify(query.url))
-          const dhcpResponse =  await dw.send({...data}, 'POST','device',query.subnetId)
+          const dhcpResponse =  await dw.send({device:data}, 'POST','device',query.subnetId)
           console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
           hook.result = dhcpResponse
           return Promise.resolve(hook)
@@ -117,7 +117,7 @@ module.exports = {
         // Update existing subnet
         if(  query.url = `${dhcpUrlPrefix}/${query.subnetId}`) {
           console.log('\n Update existing subnet passed data : ' + JSON.stringify(data) + '\t\t URL : ' + JSON.stringify(query.url))
-          const dhcpResponse =  await dw.send({...data}, 'PUT','subnet',query.subnetId)
+          const dhcpResponse =  await dw.send({subnet:data}, 'PUT','subnet',query.subnetId)
           console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
           hook.result = dhcpResponse
           return Promise.resolve(hook)
@@ -126,13 +126,8 @@ module.exports = {
         // Update existing device in subnet
         if( query.url = `${dhcpUrlPrefix}/${query.subnetId}/devices/${query.deviceId}`) {
           console.log('\n Update existing device present in a subnet passed data : ' + JSON.stringify(hook.data))
-          const dhcpResponse = await axios ( {
-            ...apiInit ,
-            method : 'PUT' ,
-            url : `${dhcpUrl}/micronets/v1/dhcp/subnets/${query.subnetId}/devices`,
-            data:hook.data
-          })
-          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse.data))
+          const dhcpResponse =  await dw.send({device:data}, 'PUT','device',query.subnetId, query.deviceId)
+          console.log('\n DHCP RESPONSE : ' + JSON.stringify(dhcpResponse))
           hook.result = dhcpResponse.data
           return Promise.resolve(hook)
         }

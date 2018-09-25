@@ -710,7 +710,7 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
       if ( dhcpSubnetIndex == -1 ) {
         //const dhcpSubnetResponse = await hook.app.service ( '/mm/v1/dhcp/subnets' ).create ( subnetToPost )
         console.log ( '\n DHCP WEB PROXY POST : ' + JSON.stringify ( subnetToPost ) )
-        const dhcpSubnetResponse = await dw.send ( { ...subnetToPost } , 'POST' )
+        const dhcpSubnetResponse = await dw.send ( { subnet:subnetToPost } , 'POST' )
         console.log ( '\n dhcpSubnetResponse : ' + JSON.stringify ( dhcpSubnetResponse ) )
         return dhcpSubnetResponse
       }
@@ -770,7 +770,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
         // if(dhcpSubnetDevice.status == 404 ) {
         console.log ( '\n DHCP Device not found . Add device' )
         const dhcpDevicePromises = await Promise.all ( dhcpDevicesPostBody.map ( async ( dhcpDevice , index ) => {
-          let dhcpDeviceToAdd = await dw.send ( { ...dhcpDevice } , "POST" , "device" , subnetId )
+          let dhcpDeviceToAdd = await dw.send ( {device:dhcpDevice } , "POST" , "device" , subnetId )
           console.log ( '\n DHCP Response for adding device : ' + JSON.stringify ( dhcpDeviceToAdd ) )
           return dhcpDeviceToAdd
         } ) )
