@@ -10,7 +10,7 @@ module.exports = {
       hook => {
         const {params, headers, data, id} = hook
         console.log('\n Gateway get hook id : ' + JSON.stringify(id))
-        return hook.app.service ( 'mm/v1/micronets/gtwystatus' ).find ( { query : { gatewayId : id } } )
+        return hook.app.service ( 'mm/v1/micronets/gateway' ).find ( { query : { gatewayId : id } } )
           .then ( ( { data } ) => {
             data = omitMeta(data[0])
             console.log('\n GET hook.result : ' + JSON.stringify(data))
@@ -20,7 +20,7 @@ module.exports = {
     ],
     create: [
       hook => {
-        const {params, headers, data} = hook
+        const {params, headers, data, id} = hook
         let timeStamp = moment(hook.data.timeStamp).format()
         hook.data = Object.assign({},{
           gatewayId: hook.data.gatewayId,
