@@ -13,17 +13,19 @@ module.exports = function (app) {
     hwtype: { type: String, required: true },
     subnet: { type: String, required: true },
     vlanId: { type: String, required: true  },
-    portMac: {type: String, required: true}
+    macAddress: {type: String, required: true}
   });
 
 
 
   const bridge = new Schema({
     _id:false,
-    bridgeName: { type: String, required: true },
-    bridgeMacAddress: { type: String, required: true },
+    name: { type: String, required: true },
+    macAddress: { type: String, required: true },
     trunkIp: { type: String, required: true },
     trunkPort: { type: String, required: true },
+    ovsHost: { type: String, required: true },
+    ovsPort: { type: String, required: true },
     ports: [{ type:ports, required: true }]
   });
 
