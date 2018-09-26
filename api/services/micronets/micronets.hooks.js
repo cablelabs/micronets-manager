@@ -56,7 +56,7 @@ const isODLAlive = async ( hook ) => {
 
 const getOdlConfig = async ( hook , id ) => {
   console.log ( '\n getOdlConfig hook with passed id : ' + JSON.stringify ( id ) )
-  return hook.app.service ( 'odl/v1/micronets/config' ).get ( id )
+  return hook.app.service ( '/mm/v1/micronets/odl' ).get ( id )
     .then ( ( data ) => {
       console.log ( '\n Data from odl config : ' + JSON.stringify ( data ) )
       return data
