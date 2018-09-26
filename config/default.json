@@ -30,7 +30,7 @@
       "expiresIn": "1d"
     }
   },
-  "mongodb": "MONGO_URL",
+  "mongodb": "mongodb://127.0.0.1:27017/micronets",
   "subnets": {
     "subnetMin": 10,
     "subnetMax": 254,
