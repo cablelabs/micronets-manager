@@ -2,8 +2,8 @@ version: '3'
 services:
   mongo:
      image: mongo
- #    volumes: // Commented to make it run locally
- #      - /data/mongodb/db:/data/db
+     volumes:
+       - /tmp/mongodb:/data/db
      ports:
        - "27017:27017"
   api:
@@ -38,13 +38,4 @@ services:
 #      - ./../../app:/usr/src/app
     ports:
       - '8080:8080'
-
-#  mongo:
-#     image: mongo
-# #    volumes: // Commented to make it run locally
-# #      - /data/mongodb/db:/data/db
-#     ports:
-#       - "27017:27017"
-
-
 
