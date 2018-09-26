@@ -9,7 +9,7 @@ module.exports = {
       hook => {
         const {params, headers, data, id} = hook
         console.log('\n ODL GET HOOK id : ' + JSON.stringify(id))
-        return hook.app.service ( 'odl/v1/micronets/config' ).find ( { query : { gatewayId : id } } )
+        return hook.app.service ( 'mm/v1/micronets/odl' ).find ( { query : { gatewayId : id } } )
           .then ( ( { data } ) => {
             data = omitMeta(data[0])
             console.log('\n GET hook.result : ' + JSON.stringify(data))
