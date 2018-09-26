@@ -31,12 +31,6 @@ module.exports = function (app) {
     broadcast: { type:String, required:false},
   })
 
-  // const dhcpSubnet = new Schema({
-  //   _id:false,
-  //   subnetId: { type: String, required: true, primaryKey: true },
-  //   ipv4Network: {type:ipv4, required:true},
-  //   devices:[{ type: device, required: false }]
-  // })
   const dhcp = new Schema({
     subnetId: { type: String, required: true, primaryKey: true },
     ipv4Network: {type:ipv4, required:true},
