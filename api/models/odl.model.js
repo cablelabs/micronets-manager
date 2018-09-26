@@ -24,8 +24,6 @@ module.exports = function (app) {
     macAddress: { type: String, required: true },
     trunkIp: { type: String, required: true },
     trunkPort: { type: String, required: true },
-    ovsHost: { type: String, required: true },
-    ovsPort: { type: String, required: true },
     ports: [{ type:ports, required: true }]
   });
 
@@ -42,6 +40,8 @@ module.exports = function (app) {
     gatewayId: { type: String, required: true , unique: true, primaryKey: true },
     hwModelId: { type: String, required: true },
     ovsVersion: { type: String, required: true },
+    ovsHost: { type: String, required: true },
+    ovsPort: { type: String, required: true },
     switchConfig: { type: bridges, required: true },
   }, {
     timestamps: true
