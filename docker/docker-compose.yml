@@ -1,5 +1,11 @@
 version: '3'
 services:
+  mongo:
+       image: mongo
+       volumes:
+         - /tmp/mongodb:/data/db
+       ports:
+         - "27017:27017"
   api:
     build:
       context: ./../..
@@ -33,12 +39,12 @@ services:
     ports:
       - '8080:8080'
 
-  mongo:
-     image: mongo
- #    volumes: // Commented to make it run locally
- #      - /data/mongodb/db:/data/db
-     ports:
-       - "27017:27017"
+#  mongo:
+#     image: mongo
+#     volumes:
+#       - /data/mongodb/db:/data/db
+#     ports:
+#       - "27017:27017"
 
 
 

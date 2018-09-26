@@ -2,7 +2,7 @@ FROM node:latest
 
 WORKDIR /usr/src/app
 
-# Bundle api source
+# Bundle app source
 COPY app .
 RUN ls -a
 
