@@ -4,6 +4,7 @@ const micronetWithDevices = require ( '../../mock-data/micronetWithDevices' );
 const micronetWithDevices2 = require ( '../../mock-data/micronetWithDevices2' );
 const micronetWithoutDevices = require ( '../../mock-data/micronetWithoutDevices' );
 const micronetOperationalConfig = require ( '../../mock-data/micronetsOperationalConfig' );
+const micronetNotifications = require ( '../../mock-data/micronetNotifications' );
 var rn = require ( 'random-number' );
 var async = require ( "async" );
 const axios = require ( 'axios' );
@@ -20,11 +21,15 @@ const odlAuthHeader = {
   username : 'admin' ,
   password : 'admin'
 }
+const PORT_WIRED = "wired"
+const PORT_WIRELESS = "wifi"
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
+
   const registry = await getRegistry(hook,{})
   const { websocketUrl } = registry
+  console.log('\n isGatewayAlive hook websocketUrl : ' + JSON.stringify(websocketUrl))
   const dhcpConnection = await dw.connect (websocketUrl ).then ( () => { return true } )
   console.log ( '\n DHCP Connection value : ' + JSON.stringify ( dhcpConnection ) )
   return dhcpConnection
@@ -36,19 +41,24 @@ const connectToGateway = async ( hook ) => {
 }
 
 const isODLAlive = async ( hook ) => {
+  console.log('\n isODLAlive hook ')
   const registry = await getRegistry(hook,{})
   const { odlUrl } = registry
   console.log ( '\n Polling ODL micronet notifications for OVS Manager connection ODL URL : ' + JSON.stringify(odlUrl) )
+    /* ODL CALL
   const odlNotifications = await axios ( {
     ...apiInit ,
     auth : odlAuthHeader ,
     method : 'get' ,
-    url : `http://${odlHost}:${odlSocket}/restconf/config/micronets-notifications:micronets-notifications` ,
+    url : `${odlUrl}/restconf/config/micronets-notifications:micronets-notifications` ,
   } )
+  */
+  // FAKE NOTIFICATIONS
+  const odlNotifications = Object.assign({},{data:micronetNotifications, status:200})
 
   const { data , status } = odlNotifications
-  console.log ( '\n isODLAlive ODL MICRONET NOTIFICATIONS DATA : ' + JSON.stringify ( data ) )
-  console.log ( '\n isODLAlive ODL MICRONET NOTIFICATIONS STATUS : ' + JSON.stringify ( status ) )
+  console.log ( '\n isODLAlive NOTIFICATIONS DATA : ' + JSON.stringify ( data ) )
+  console.log ( '\n isODLAlive NOTIFICATIONS STATUS : ' + JSON.stringify ( status ) )
   return (data && status == 200) ? true : false
 
 }
@@ -76,45 +86,75 @@ const isOdlStaticConfigPresent = async ( hook , reqBody ) => {
   return false
 }
 
+const getODLSwitchDetails = async (hook, gatewayId) => {
+  const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
+  const { switchConfig } = odlStaticConfig
+  console.log('\n getODLSwitchDetails SwitchConfig : ' + JSON.stringify(switchConfig))
+  const bridgeTrunkIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty ( "trunkPort" ) && bridge.hasOwnProperty ( "trunkIp" ) )
+  const bridgeTrunk = switchConfig.bridges[ bridgeTrunkIndex ]
+  const ovsHost =  odlStaticConfig.ovsHost
+  const ovsPort = odlStaticConfig.ovsPort
+  let wirelessPorts = bridgeTrunk.ports.map ( ( port ) => {
+    if(port.hasOwnProperty ( "hwtype" ) && port.hwtype == PORT_WIRELESS) {
+      return port
+    }})
+  wirelessPorts = wirelessPorts.filter(Boolean)
+  let wiredPorts = bridgeTrunk.ports.map ( ( port ) => {
+    if(port.hasOwnProperty ( "hwtype" ) && port.hwtype == PORT_WIRED){
+      return port
+    }
+  })
+  wiredPorts = wiredPorts.filter(Boolean)
+  console.log ( '\n\n Bridge Trunk Index : ' + JSON.stringify ( bridgeTrunkIndex )
+    + '\n Bridge Trunk : ' + JSON.stringify(bridgeTrunk)
+    + '\n WiredPorts ' + JSON.stringify ( wiredPorts )
+    + '\n WirelessPorts : ' + JSON.stringify ( wirelessPorts ) )
+  console.log ( '\n OVS Host : ' + JSON.stringify ( ovsHost ) + '\t\t OVS Port : ' + JSON.stringify(ovsPort))
+  return {
+    odlStaticConfig,
+    bridgeTrunkIndex,
+    bridgeTrunk,
+    wiredPorts,
+    wirelessPorts,
+    ovsHost,
+    ovsPort,
+    switchConfig
+  }
+}
+
 const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
   console.log ( '\n populateOdlConfig requestBody : ' + JSON.stringify ( requestBody ) + '\t\t GatewayId : ' + JSON.stringify ( gatewayId ) )
   const { micronet } = requestBody.micronets;
-  const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
-  const { switchConfig } = odlStaticConfig
-  // Get Port Trunk Index
-  const trunkIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty ( "portTrunk" ) )
-  const trunkGatewayPort = switchConfig.bridges[ trunkIndex ]
-  const ovsHost = switchConfig.bridges[ trunkIndex ].ovsHost
-  const wirelessPortIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty ( "portWireless" ) )
-  const wiredPortIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty ( "portWired" ) )
+  const {odlStaticConfig, bridgeTrunkIndex, bridgeTrunk, wiredPorts, wirelessPorts, ovsHost, ovsPort, switchConfig} = await getODLSwitchDetails(hook,gatewayId)
 
-  console.log ( '\n\n\n Trunk Index : ' + JSON.stringify ( trunkIndex ) + '\t\t WiredPortIndex : ' + JSON.stringify ( wiredPortIndex ) + '\t\t\t WirelessPortIndex : ' + JSON.stringify ( wirelessPortIndex ) )
-  const portWired = wiredPortIndex > -1 ? switchConfig.bridges[ wiredPortIndex ].portBridge : -1
-  const portWireless = wirelessPortIndex > -1 ? switchConfig.bridges[ wirelessPortIndex ].portBridge : -1
-  console.log ( '\n TrunkGatewayPort : ' + JSON.stringify ( trunkGatewayPort ) + '\t\t OVS Host : ' + JSON.stringify ( ovsHost ) )
-  console.log ( '\n Port Wired : ' + JSON.stringify ( portWired ) + '\t\t Port Wireless : ' + JSON.stringify ( portWireless ) )
-
-  console.log ( '\n  ODL STATIC CONFIG FROM API  : ' + JSON.stringify ( switchConfig ) )
+  console.log('\n Populate ODL Config  => bridgeTrunkIndex : ' + JSON.stringify(bridgeTrunkIndex)
+    + '\n bridgeTrunk : ' + JSON.stringify(bridgeTrunk)
+    + '\n wiredPorts : ' + JSON.stringify(wiredPorts)
+    + '\n wirelessPorts : ' + JSON.stringify(wirelessPorts)
+    + '\n ovsHost : ' + JSON.stringify(ovsHost)
+    + '\n ovsPort : ' + JSON.stringify(ovsPort)
+    + '\n switchConfig : ' + JSON.stringify(switchConfig))
   const reqBodyWithOdlConfig = micronet.map ( ( micronet , index ) => {
-
     return {
       ...micronet ,
-      "trunk-gateway-port" : trunkGatewayPort.portTrunk ,
+      "trunk-gateway-port" : bridgeTrunk.trunkPort,  // trunkGatewayPort.portTrunk ,
       "trunk-gateway-ip" : ovsHost ,
       "dhcp-server-port" : "LOCAL" ,
-      "dhcp-zone" : switchConfig.bridges[ trunkIndex ].subnet ,  // Maybe this shd be trunkIndex or index
-      "ovs-bridge-name" : switchConfig.bridges[ trunkIndex ].bridge ,  //Maybe this shd be trunkIndex or index
+      "dhcp-zone" :  bridgeTrunk.trunkIp,    //  switchConfig.bridges[ trunkIndex ].subnet ,  // Maybe this shd be trunkIndex or index
+      "ovs-bridge-name" : bridgeTrunk.name,     // switchConfig.bridges[ trunkIndex ].bridge ,  //Maybe this shd be trunkIndex or index
       "ovs-manager-ip" : ovsHost
     }
-  } )
+  } );
+  console.log('\n\n populateOdlConfig reqBodyWithOdlConfig : ' + JSON.stringify(reqBodyWithOdlConfig))
   return {
     reqBodyWithOdlConfig ,
-    portWireless ,
-    portWired ,
-    trunkIndex ,
-    wirelessPortIndex ,
-    wiredPortIndex ,
-    switchConfig
+    bridgeTrunkIndex ,
+    bridgeTrunk,
+    wirelessPorts ,
+    wiredPorts ,
+    switchConfig,
+    ovsHost,
+    ovsPort
   }
 }
 
@@ -314,7 +354,7 @@ const populatePostObj = async ( hook , reqBody ) => {
 
   /* Populate ODL Static Config */
   const config = await populateOdlConfig ( hook , reqBody , gatewayId )
-  const { reqBodyWithOdlConfig , portWired , portWireless } = config
+  const { reqBodyWithOdlConfig , wirelessPorts , wiredPorts } = config
   console.log ( '\n PopulatePostObj  CONFIG : ' + JSON.stringify ( config ) )
   // console.log ( '\n\n PopulatePostObj reqBodyWithOdlConfig : ' + JSON.stringify ( reqBodyWithOdlConfig ) )
 
@@ -331,10 +371,11 @@ const populatePostObj = async ( hook , reqBody ) => {
       console.log ( '\n SubnetAndDeviceIps connectedDevices Length : ' + JSON.stringify ( subnetAndDeviceIps[ index ].connectedDevices.length ) )
       connectedDevicesFull = subnetAndDeviceIps[ index ].connectedDevices.map ( ( device , index ) => {
         console.log ( '\n Device : ' + JSON.stringify ( device ) + '\t\t Index : ' + JSON.stringify ( index ) )
+        const wiredPortsLength = wiredPorts.length
         return {
           "device-mac" : device[ "device-mac" ] ,
           "device-ip" : device.deviceIp ,
-          "device-openflow-port" : portWired ,
+          "device-openflow-port" : wiredPortsLength > 0 ? wiredPorts[0].port : -1 ,
           "device-name" : device[ "device-name" ] ,
           "device-id" : device[ "device-id" ]
         }
@@ -361,10 +402,9 @@ const sanityCheckForMM = async hook => {
 const initializeMicronets = async ( hook , postBody ) => {
   console.log ( '\n InitializeMicronets postBody: ' + JSON.stringify ( postBody ) )
   // Delete all Micronets
-  const removeAllMicronetsResponse = await hook.app.service ( '/mm/v1/micronets' ).remove ( null )
-  console.log ( '\n removeAllMicronetsResponse : ' + JSON.stringify ( removeAllMicronetsResponse ) )
-  if ( removeAllMicronetsResponse ) {
-
+   // const removeAllMicronetsResponse = await hook.app.service ( '/mm/v1/micronets' ).remove ( null )
+  // console.log ( '\n removeAllMicronetsResponse : ' + JSON.stringify ( removeAllMicronetsResponse ) )
+  // if ( removeAllMicronetsResponse ) {
     /* ACTUAL ODL CALL
     // const odlResponse = await odlOperationsForUpserts ( hook , postBody )
     // return odlResponse
@@ -377,7 +417,7 @@ const initializeMicronets = async ( hook , postBody ) => {
       status : 200
     } )
     return odlResponse
-  }
+  // }
 }
 
 const getMicronet = async ( hook , query ) => {
@@ -680,7 +720,7 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   // Checks if micronet is added to d/b which indicates successful ODL call.
   let dhcpSubnetsPostBody = dhcpSubnetsToAdd.map ( ( dhcpSubnet , index ) => {
     console.log ( '\n DHCP SUBNET TO ADD : ' + JSON.stringify ( dhcpSubnet ) + '\t\t INDEX : ' + JSON.stringify ( index ) )
-    const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.name == dhcpSubnet.name || micronet[ "micronet-subnet-id" ] == dhcpSubnet.subnetId) )
+    const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.name.toLowerCase() == dhcpSubnet.name.toLowerCase() && micronet[ "micronet-subnet-id" ].toLowerCase() == dhcpSubnet.subnetId.toLowerCase()) )
     console.log ( '\n matchedMicronetIndex : ' + JSON.stringify ( matchedMicronetIndex ) )
     if ( matchedMicronetIndex > -1 ) {
       return {
@@ -931,7 +971,9 @@ module.exports = {
             if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
               console.log ( '\n isGatewayAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) + '\t\t isODLAlive : ' + JSON.stringify ( isOdlAlive ) )
               const postBodyForODL = await populatePostObj ( hook , body )
+
               console.log ( '\n CREATE HOOK INIT OBTAINED POST BODY : ' + JSON.stringify ( postBodyForODL ) )
+
               const odlResponse = await initializeMicronets ( hook , postBodyForODL )
               console.log ( '\n CREATE MICRO-NET INIT HOOK RESULT : ' + JSON.stringify ( odlResponse ) )
 
