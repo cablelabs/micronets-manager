@@ -40,12 +40,6 @@ module.exports = function (app) {
     micronet: [{ type: subnet, required: true }],
   });
 
-  // const micronets = new Schema({
-  //   micronet: [{ type:Schema.Types.ObjectId , ref:'subnets' , required:false }]
-  // }, {
-  //   timestamps: true
-  // });
-
   const micronets = new Schema({
     id: { type: String, required: true, primaryKey: true },
     name: { type: String, required: true },
