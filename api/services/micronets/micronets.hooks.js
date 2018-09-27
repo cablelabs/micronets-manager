@@ -26,7 +26,6 @@ const PORT_WIRELESS = "wifi"
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
-
   const registry = await getRegistry ( hook , {} )
   const { websocketUrl } = registry
   console.log ( '\n isGatewayAlive hook websocketUrl : ' + JSON.stringify ( websocketUrl ) )
@@ -398,10 +397,6 @@ const populatePostObj = async ( hook , reqBody ) => {
   return updatedReqPostBody
 }
 
-const sanityCheckForMM = async hook => {
-  return true
-}
-
 const initializeMicronets = async ( hook , postBody ) => {
   console.log ( '\n InitializeMicronets postBody: ' + JSON.stringify ( postBody ) )
   // Delete all Micronets
@@ -414,12 +409,9 @@ const initializeMicronets = async ( hook , postBody ) => {
   */
 
   // FAKE RESPONSE
-  const micronetFromDB = await getMicronet ( hook , {} )
-  const odlResponse = Object.assign ( {} , {
-    data : Object.assign ( {} , { micronets : { micronet : micronetWithDevices2.micronets.micronet } } ) ,
-    status : 200
-  } )
-  return odlResponse
+
+  const mockOdlResponse = await mockOdlOperationsForUpserts(hook,postBody,"","")
+  return mockOdlResponse
   // }
 }
 
@@ -475,6 +467,21 @@ const fetchOdlOperationalState = async ( hook ) => {
   console.log ( '\n FAKE OPERATIONAL STATE : ' + JSON.stringify ( odlOperationalState ) )
   console.log ( '\n fetchOdlOperationalState DATA : ' + JSON.stringify ( odlOperationalState.data ) + '\t\t STATUS : ' + JSON.stringify ( odlOperationalState.status ) )
   return odlOperationalState
+}
+
+// Calls mock-micronet API
+const mockOdlOperationsForUpserts = async ( hook , requestBody , micronetId, subnetId ) => {
+  console.log ( '\n mockOdlOperationsForUpserts hook requestBody : ' + JSON.stringify ( requestBody ) )
+  const registry = await getRegistry(hook,{})
+  const { mmUrl } = registry
+  const mockResponse = await axios ( {
+    ...apiInit ,
+    method : 'POST',
+    url : `${mmUrl}/mm/v1/mock/micronets`,
+    data : Object.assign({},{ micronets: { micronet:requestBody }})
+  })
+  console.log('\n Mock ODL Response Data : ' + JSON.stringify(mockResponse.data) + '\t\t Status : ' + JSON.stringify(mockResponse.status) )
+  return Object.assign({},{data:mockResponse.data, status:mockResponse.status})
 }
 
 const odlOperationsForUpserts = async ( hook , putBody ) => {
@@ -999,10 +1006,10 @@ module.exports = {
 
               /* ODL CALLS */
               const { status , data } = odlResponse
-              if ( data && status == 200 ) {
+              if ( data && status == 201 ) {
                 console.log ( '\n CREATE HOOK ODL OPERATIONAL RESPONSE DATA : ' + JSON.stringify ( data ) )
-                const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
-                console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
+                // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
+                // console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
                 const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
                   {
                     id : micronetFromDB.id ,
