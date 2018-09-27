@@ -26,7 +26,7 @@ module.exports = function (app) {
     'dhcp-server-port':{ type: String, required: false },
     'micronet-subnet-id': { type: String, required: true  },
     "dhcp-zone" : { type: String, required: true  } ,
-    "micronet-id" : { type: String, required: true } ,
+    "micronet-id" : { type: String, required: true, primaryKey:true } ,
     'micronet-bridge-nodeid': { type:String, required: false  },  // Is this required ?
     'connected-devices': [{type:connectedDevices}],
     'micronet-subnet': { type: String, required: true },
