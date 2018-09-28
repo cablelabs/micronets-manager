@@ -18,8 +18,6 @@ module.exports = {
           runValidators : true ,
           setDefaultsOnInsert : true
         }
-        // const query = Object.assign ( {}, { 'micronet-id' : id ? id.micronetId : params.micronetId } , hook.params.query );
-        // console.log ( '\n Get Hook ID : ' + JSON.stringify ( id ) + '\t\t DATA : ' + JSON.stringify ( data ) + '\t\t PARAMS : ' + JSON.stringify ( params ) + '\t\t QUERY : ' + JSON.stringify ( query ) )
         return hook.app.service ( '/mm/v1/mock/micronets' ).find ( {} )
           .then ( ( { data } ) => {
             hook.result = omitMeta ( data[ 0 ] );
@@ -50,10 +48,6 @@ module.exports = {
             }))
           })
           console.log('\n MOCK MICRO-NETS CONSTRUCTED RESPONSE : ' + JSON.stringify(mockMicronets))
-          const testObj  = Object.assign({},{
-            micronets : { micronet : mockMicronets }
-          })
-          console.log('\n\n\n  testObject : ' + JSON.stringify(testObj))
           if(mockMicronetFromDb && mockMicronetFromDb.hasOwnProperty('_id')) {
             console.log('\n Update existing record ...')
             const patchResult = await hook.app.service ( '/mm/v1/mock/micronets' ).patch ( null,
@@ -64,7 +58,7 @@ module.exports = {
             return Promise.resolve(hook)
           }
           if(Object.keys(mockMicronetFromDb).length == 0) {
-            console.log('\n mockMicronetFromDb not present create one: ' + JSON.stringify(mockMicronetFromDb))
+            console.log('\n Mock micronet not present create one ... : ' + JSON.stringify(mockMicronetFromDb))
             hook.data = Object.assign({},{ micronets:{micronet:mockMicronets}})
             return Promise.resolve(hook)
           }
@@ -78,7 +72,6 @@ module.exports = {
     remove: [
       hook => {
         const { params, data , id, path, headers } = hook
-        console.log('\n REMOVE HOOK PARAMS : ' + JSON.stringify(params) + '\t\t ID : ' + JSON.stringify(id) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t PATH : ' + JSON.stringify(path))
       }
     ]
   },
@@ -86,11 +79,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [
-      hook => {
-        console.log('\n  hook.result : ' + JSON.stringify(hook.result))
-      }
-    ],
+    create: [ hook => {} ],
     update: [],
     patch: [],
     remove: []
