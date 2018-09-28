@@ -1062,18 +1062,19 @@ module.exports = {
               console.log ( '\n ADD SUBNET TO MICRO-NET PostBodyForODL : ' + JSON.stringify ( postBodyForODL ) + '\t\t addSubnet Flag : ' + JSON.stringify ( addSubnet ) )
               // Call ODL and DHCP to add subnets
               if ( addSubnet ) {
-                const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
+                // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
+                const odlResponse = await mockOdlOperationsForUpserts(hook,postBodyForODL)
                 /* Update DB with ODL Response */
-                if ( odlResponse.data && odlResponse.status == 200 ) {
+                if ( odlResponse.data && odlResponse.status == 201 ) {
                   console.log ( '\n ODL Response : ' + JSON.stringify ( odlResponse ) )
-                  const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
-                  console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
+                 // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
+                 // console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
                   const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
                     {
                       id : micronetFromDB.id ,
                       name : micronetFromDB.name ,
                       ssid : micronetFromDB.ssid ,
-                      micronets : { micronet : dbUpdateResult }
+                      micronets : { micronet : odlResponse.data.micronets.micronet }
                     } ,
                     { query : {} , mongoose : { upsert : true } } );
                   console.log ( '\n CREATE HOOK ADD SUBNET PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
