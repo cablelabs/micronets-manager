@@ -2,10 +2,6 @@
 const createService = require('feathers-mongoose');
 const createModel = require('../../models/mock-micronets.model');
 const hooks = require('./mock-micronets.hooks');
-const micronetWithDevices = require('../../mock-data/micronetWithDevices');
-const micronetWithoutDevices = require('../../mock-data/micronetWithoutDevices');
-const micronetNotifications = require('../../mock-data/micronetNotifications');
-const micronetsOperationalConfig = require('../../mock-data/micronetsOperationalConfig');
 
 module.exports = function (app) {
   const Model = createModel(app);
@@ -21,4 +17,7 @@ module.exports = function (app) {
   app.use('/mm/v1/mock/micronets', createService(options));
   const service = app.service('mm/v1/mock/micronets');
   service.hooks(hooks);
+
+  app.use('/mm/v1/mock/micronets/:micronetId/subnets/:subnetId/devices', service);
+
 };

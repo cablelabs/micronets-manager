@@ -4,36 +4,83 @@ var gen = rn.generator({
   , max:  2534270984
   , integer: true
 })
+const omit = require ( 'ramda/src/omit' );
+const omitMeta = omit ( [ 'updatedAt' , 'createdAt' ,  '__v' ] );
 
 module.exports = {
   before: {
     all: [],
     find: [],
-    get: [],
-    create: [
+    get: [
       hook => {
-        const { params, data , id, path, headers } = hook
-         if (hook.data.micronets && !hook.id) {
-             let mockMicronets = []
-             const micronetsPostData = Object.assign({},hook.data)
-             console.log('\n CREATE HOOK MOCK MICRONET POST BODY : ' + JSON.stringify(micronetsPostData))
-               micronetsPostData.micronets.micronet.forEach((micronet, index) => {
-                console.log('\n MICRO-NET ID : ' + JSON.stringify(micronet["micronet-id"]))
-                mockMicronets.push(Object.assign({},{
-                  ...micronet ,
-                  "class": micronet.class ? micronet.class : micronet.name,
-                  "micronet-id" : micronet["micronet-id"]!= undefined ? micronet["micronet-id"] : gen ()
-                }))
-             })
-           console.log('\n MOCK MICRO-NETS DATA : ' + JSON.stringify(mockMicronets))
-           hook.data = Object.assign({},{ micronets:{micronet:mockMicronets}})
-           return Promise.resolve(hook)
-         }
+        const { data , params , id } = hook;
+        hook.params.mongoose = {
+          runValidators : true ,
+          setDefaultsOnInsert : true
+        }
+        // const query = Object.assign ( {}, { 'micronet-id' : id ? id.micronetId : params.micronetId } , hook.params.query );
+        // console.log ( '\n Get Hook ID : ' + JSON.stringify ( id ) + '\t\t DATA : ' + JSON.stringify ( data ) + '\t\t PARAMS : ' + JSON.stringify ( params ) + '\t\t QUERY : ' + JSON.stringify ( query ) )
+        return hook.app.service ( '/mm/v1/mock/micronets' ).find ( {} )
+          .then ( ( { data } ) => {
+            hook.result = omitMeta ( data[ 0 ] );
+            console.log ( '\n Get Hook Result : ' + JSON.stringify ( hook.result ) )
+            Promise.resolve ( hook )
+          } )
       }
     ],
-    update: [],
+    create: [
+      async (hook) => {
+        const { params, data , id, path, headers } = hook
+        hook.params.mongoose = {
+          runValidators : true ,
+          setDefaultsOnInsert : true
+        }
+        const mockMicronetFromDb = await hook.app.service('/mm/v1/mock/micronets').get({})
+        console.log('\n mockMicronetFromDb  : ' + JSON.stringify(mockMicronetFromDb))
+        if (hook.data.micronets && !hook.id) {
+          let mockMicronets = []
+          const micronetsPostData = Object.assign({},hook.data)
+          console.log('\n CREATE HOOK MOCK MICRONET POST BODY : ' + JSON.stringify(micronetsPostData))
+          micronetsPostData.micronets.micronet.forEach((micronet, index) => {
+            console.log('\n MICRO-NET ID : ' + JSON.stringify(micronet["micronet-id"]))
+            mockMicronets.push(Object.assign({},{
+              ...micronet ,
+              "class": micronet.class ? micronet.class : micronet.name,
+              "micronet-id" : micronet["micronet-id"]!= undefined ? micronet["micronet-id"] : gen ()
+            }))
+          })
+          console.log('\n MOCK MICRO-NETS CONSTRUCTED RESPONSE : ' + JSON.stringify(mockMicronets))
+          const testObj  = Object.assign({},{
+            micronets : { micronet : mockMicronets }
+          })
+          console.log('\n\n\n  testObject : ' + JSON.stringify(testObj))
+          if(mockMicronetFromDb && mockMicronetFromDb.hasOwnProperty('_id')) {
+            console.log('\n Update existing record ...')
+            const patchResult = await hook.app.service ( '/mm/v1/mock/micronets' ).patch ( null,
+              { micronets : { micronet : mockMicronets } } ,
+              { query : {} , mongoose : { upsert : true } }  );
+            console.log('\n PATCH RESULT : ' + JSON.stringify(patchResult))
+            hook.data = Object.assign({},{ micronets:patchResult[0].micronets })
+            return Promise.resolve(hook)
+          }
+          if(Object.keys(mockMicronetFromDb).length == 0) {
+            console.log('\n mockMicronetFromDb not present create one: ' + JSON.stringify(mockMicronetFromDb))
+            hook.data = Object.assign({},{ micronets:{micronet:mockMicronets}})
+            return Promise.resolve(hook)
+          }
+        }
+
+      }
+    ],
+    update: [
+    ],
     patch: [],
-    remove: []
+    remove: [
+      hook => {
+        const { params, data , id, path, headers } = hook
+        console.log('\n REMOVE HOOK PARAMS : ' + JSON.stringify(params) + '\t\t ID : ' + JSON.stringify(id) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t PATH : ' + JSON.stringify(path))
+      }
+    ]
   },
   after: {
     all: [],
