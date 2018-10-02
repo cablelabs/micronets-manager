@@ -18,6 +18,6 @@ module.exports = function (app) {
   const service = app.service('mm/v1/mock/micronets');
   service.hooks(hooks);
 
-  app.use('/mm/v1/mock/micronets/:micronetId/subnets/:subnetId/devices', service);
+  // app.use('/mm/v1/mock/micronets/:micronetId', service);
 
 };
