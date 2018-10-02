@@ -19,5 +19,5 @@ module.exports = function (app) {
   service.hooks(hooks);
 
   // app.use('/mm/v1/mock/micronets/:micronetId', service);
-
+  app.use('/mm/v1/mock/micronets/:micronetId/subnets/:subnetId/devices', service);
 };
