@@ -691,13 +691,23 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   const subnetWithDevices = await subnetAllocation.getNewIps ( subnetNo , formattedDevices )
   console.log ( '\n SubnetWithDevices : ' + JSON.stringify ( subnetWithDevices ) )
 
-  const formattedSubnetWithDevices = subnetWithDevices.connectedDevices.map ( ( device , index ) => {
-    return {
-      "device-mac" : device[ "device-mac" ] ,
-      "device-name" : device[ "device-name" ] ,
-      "device-id" : device[ "device-id" ] ,
-      "device-openflow-port" : device[ "device-openflow-port" ] ,
-      "device-ip" : device.deviceIp
+  const formattedSubnetWithDevices = formattedDevices.map ( ( device , index ) => {
+    console.log('\n Adding device ' + JSON.stringify(device) + '\t\t to formattedSubnetWithDevices ... ')
+    let deviceFromIpAllocator = subnetWithDevices.connectedDevices.map((ipAllocatorDevice) => {
+       if(ipAllocatorDevice['device-mac'] == device['device-mac'] && ipAllocatorDevice['device-name'] == device['device-name'] && ipAllocatorDevice['device-id'] == device['device-id']) {
+         return ipAllocatorDevice
+       }
+    })
+    deviceFromIpAllocator = deviceFromIpAllocator.filter(Boolean)
+    console.log('\n Matched deviceFromIpAllocator : ' + JSON.stringify(deviceFromIpAllocator))
+    if(deviceFromIpAllocator){
+      return {
+        "device-mac" : device[ "device-mac" ] ,
+        "device-name" : device[ "device-name" ] ,
+        "device-id" : device[ "device-id" ] ,
+        "device-openflow-port" : deviceFromIpAllocator[0][ "device-openflow-port" ] ,
+        "device-ip" : deviceFromIpAllocator[0].deviceIp
+      }
     }
   } )
   console.log ( '\n formattedSubnetWithDevices : ' + JSON.stringify ( formattedSubnetWithDevices ) )
