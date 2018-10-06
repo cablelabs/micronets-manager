@@ -406,7 +406,7 @@ const initializeMicronets = async ( hook , postBody ) => {
 
   // FAKE RESPONSE
 
-  const mockOdlResponse = await mockOdlOperationsForUpserts(hook,postBody,"","")
+  const mockOdlResponse = await mockOdlOperationsForUpserts ( hook , postBody , "" , "" )
   return mockOdlResponse
   // }
 }
@@ -466,18 +466,18 @@ const fetchOdlOperationalState = async ( hook ) => {
 }
 
 // Calls mock-micronet API
-const mockOdlOperationsForUpserts = async ( hook , requestBody , micronetId, subnetId ) => {
-  console.log ( '\n mockOdlOperationsForUpserts hook requestBody : ' + JSON.stringify ( requestBody )  + '\t\t MicronetId : ' + JSON.stringify(micronetId) +'\t\t SubnetId : ' + JSON.stringify(subnetId))
-  const registry = await getRegistry(hook,{})
+const mockOdlOperationsForUpserts = async ( hook , requestBody , micronetId , subnetId ) => {
+  console.log ( '\n mockOdlOperationsForUpserts hook requestBody : ' + JSON.stringify ( requestBody ) + '\t\t MicronetId : ' + JSON.stringify ( micronetId ) + '\t\t SubnetId : ' + JSON.stringify ( subnetId ) )
+  const registry = await getRegistry ( hook , {} )
   const { mmUrl } = registry
   const mockResponse = await axios ( {
     ...apiInit ,
-    method : 'POST',
-    url : micronetId && subnetId? `${mmUrl}/mm/v1/mock/micronets/${micronetId}/subnets/${subnetId}/devices` : `${mmUrl}/mm/v1/mock/micronets`,
-    data : Object.assign({},{ micronets: { micronet:requestBody }})
-  })
-  console.log('\n Mock ODL Response Data : ' + JSON.stringify(mockResponse.data) + '\t\t Status : ' + JSON.stringify(mockResponse.status) )
-  return Object.assign({},{data:mockResponse.data, status:mockResponse.status})
+    method : 'POST' ,
+    url : micronetId && subnetId ? `${mmUrl}/mm/v1/mock/micronets/${micronetId}/subnets/${subnetId}/devices` : `${mmUrl}/mm/v1/mock/micronets` ,
+    data : Object.assign ( {} , { micronets : { micronet : requestBody } } )
+  } )
+  console.log ( '\n Mock ODL Response Data : ' + JSON.stringify ( mockResponse.data ) + '\t\t Status : ' + JSON.stringify ( mockResponse.status ) )
+  return Object.assign ( {} , { data : mockResponse.data , status : mockResponse.status } )
 }
 
 const odlOperationsForUpserts = async ( hook , putBody ) => {
@@ -688,26 +688,26 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   console.log ( '\n SubnetWithDevices : ' + JSON.stringify ( subnetWithDevices ) )
 
   const formattedSubnetWithDevices = formattedDevices.map ( ( device , index ) => {
-    console.log('\n Adding device ' + JSON.stringify(device) + '\t\t to formattedSubnetWithDevices ... ')
-    let deviceFromIpAllocator = subnetWithDevices.connectedDevices.map((ipAllocatorDevice) => {
-       if(ipAllocatorDevice['device-mac'] == device['device-mac'] && ipAllocatorDevice['device-name'] == device['device-name'] && ipAllocatorDevice['device-id'] == device['device-id']) {
-         return ipAllocatorDevice
-       }
-    })
-    deviceFromIpAllocator = deviceFromIpAllocator.filter(Boolean)
-    console.log('\n Matched deviceFromIpAllocator : ' + JSON.stringify(deviceFromIpAllocator))
-    if(deviceFromIpAllocator){
+    console.log ( '\n Adding device ' + JSON.stringify ( device ) + '\t\t to formattedSubnetWithDevices ... ' )
+    let deviceFromIpAllocator = subnetWithDevices.connectedDevices.map ( ( ipAllocatorDevice ) => {
+      if ( ipAllocatorDevice[ 'device-mac' ] == device[ 'device-mac' ] && ipAllocatorDevice[ 'device-name' ] == device[ 'device-name' ] && ipAllocatorDevice[ 'device-id' ] == device[ 'device-id' ] ) {
+        return ipAllocatorDevice
+      }
+    } )
+    deviceFromIpAllocator = deviceFromIpAllocator.filter ( Boolean )
+    console.log ( '\n Matched deviceFromIpAllocator : ' + JSON.stringify ( deviceFromIpAllocator ) )
+    if ( deviceFromIpAllocator ) {
       return {
         "device-mac" : device[ "device-mac" ] ,
         "device-name" : device[ "device-name" ] ,
         "device-id" : device[ "device-id" ] ,
-        "device-openflow-port" : deviceFromIpAllocator[0][ "device-openflow-port" ] ,
-        "device-ip" : deviceFromIpAllocator[0].deviceIp
+        "device-openflow-port" : deviceFromIpAllocator[ 0 ][ "device-openflow-port" ] ,
+        "device-ip" : deviceFromIpAllocator[ 0 ].deviceIp
       }
     }
   } )
   console.log ( '\n formattedSubnetWithDevices : ' + JSON.stringify ( formattedSubnetWithDevices ) )
-  console.log('\n Micronet to update : ' + JSON.stringify(micronetToUpdate))
+  console.log ( '\n Micronet to update : ' + JSON.stringify ( micronetToUpdate ) )
   // TODO : Fix bug of adding devices twice.
   const updatedMicronetwithDevices = Object.assign ( {} , micronetToUpdate , { 'connected-devices' : micronetToUpdate[ 'connected-devices' ].concat ( formattedSubnetWithDevices ) } )
   console.log ( '\n UpdatedMicronetwithDevices : ' + JSON.stringify ( updatedMicronetwithDevices ) )
@@ -1071,12 +1071,12 @@ module.exports = {
               // Call ODL and DHCP to add subnets
               if ( addSubnet ) {
                 // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-                const odlResponse = await mockOdlOperationsForUpserts(hook,postBodyForODL)
+                const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL )
                 /* Update DB with ODL Response */
                 if ( odlResponse.data && odlResponse.status == 201 ) {
                   console.log ( '\n ODL Response : ' + JSON.stringify ( odlResponse ) )
-                 // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
-                 // console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
+                  // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
+                  // console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
                   const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
                     {
                       id : micronetFromDB.id ,
@@ -1138,8 +1138,8 @@ module.exports = {
               if ( devicesToAdd.length > 0 ) {
                 const postBodyForODL = await addDevicesInSubnet ( hook , req.params.micronetId , req.params.subnetId , devicesToAdd )
                 console.log ( '\n addDevicesInSubnet postBodyForODL  : ' + JSON.stringify ( postBodyForODL ) )
-               // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-                 const odlResponse = await mockOdlOperationsForUpserts(hook,postBodyForODL,req.params.micronetId, req.params.subnetId)
+                // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
+                const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL , req.params.micronetId , req.params.subnetId )
                 if ( odlResponse.status == 201 && odlResponse.data ) {
                   console.log ( '\n ODL Response : ' + JSON.stringify ( odlResponse ) )
                   // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
@@ -1153,7 +1153,7 @@ module.exports = {
                     } ,
                     { query : {} , mongoose : { upsert : true } } );
                   console.log ( '\n CREATE HOOK ADD DEVICES TO SUBNET PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
-                  if(patchResult) {
+                  if ( patchResult ) {
                     const addedDhcpDevices = await addDhcpDevices ( hook , body , req.params.micronetId , req.params.subnetId )
                     console.log ( '\n Added DHCP Devices : ' + JSON.stringify ( addedDhcpDevices ) )
                   }
@@ -1195,7 +1195,7 @@ module.exports = {
       async ( hook ) => {
         const { data , id , params } = hook;
         const registry = await getRegistry ( hook , {} )
-        const { odlUrl, mmUrl } = registry
+        const { odlUrl , mmUrl } = registry
         console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify ( id ) )
         let postBodyForDelete = [] , micronetToDelete = {}
         // ODL and Gateway checks
@@ -1204,6 +1204,7 @@ module.exports = {
         const isGatewayConnected = await connectToGateway ( hook )
         console.log ( '\n\n DELETE HOOK isGtwyAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t\t isOdlAlive : ' + JSON.stringify ( isOdlAlive ) + '\t\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) )
         if ( isGtwyAlive && isOdlAlive && isGatewayConnected ) {
+
           // Delete single micro-net
           if ( hook.id ) {
             console.log ( '\n DELETE MICRONET BY ID ' + JSON.stringify ( hook.id ) )
@@ -1219,54 +1220,49 @@ module.exports = {
               console.log ( '\n POST BODY FOR DELETE : ' + JSON.stringify ( postBodyForDelete ) + '\t\t for hook.id : ' + JSON.stringify ( hook.id ) )
             }
           }
-          // Delete all micro-nets
-          else {
-            console.log ( '\n No hook id present delete everything postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ) )
-          }
 
-         // console.log ( '\n DELETE HOOK ODL OPERATIONAL STATE DATA  : ' + JSON.stringify ( odlResponse.data ) + '\t\t STATUS : ' + JSON.stringify ( odlResponse.status ) )
+          // Delete all micro-nets
+
           const micronetFromDB = await getMicronet ( hook , {} )
-          // TODO : Check request body and construct new post for all delete cases
-         // if ( odlResponse.status == 200 ) {
-            const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
-              {
-                id : micronetFromDB.id ,
-                name : micronetFromDB.name ,
-                ssid : micronetFromDB.ssid ,
-                micronets : { micronet : postBodyForDelete }  // TODO : Add actual response odlResponse.data
-              } ,
-              { query : {} , mongoose : { upsert : true } } );
-            console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
-            if ( patchResult ) {
-              console.log ( '\n Micro-net deleted from MM DB.Deleting subnets and devices on dhcp ' )
-              if ( hook.id ) {
-                const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , micronetToDelete , hook.id )
-                console.log ( '\n dhcpSubnetsDeletePromise : ' + JSON.stringify ( dhcpSubnetsDeletePromise ) )
-                const mockMicronetsDelete = await axios ( {
-                  ...apiInit ,
-                  method : 'DELETE',
-                  url : `${mmUrl}/mm/v1/mock/micronets/${hook.id}`,
-                  data : Object.assign({},{ micronets: { micronet: postBodyForDelete }})
-                })
-                console.log('\n\n\n mock Micro-nets Delete : ' + JSON.stringify(mockMicronetsDelete.data) )
-                // TODO : Add subnet Allocation Delete
-              }
-              if ( postBodyForDelete.length == 0 && !hook.id ) {
-                const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , {} , undefined )
-                console.log ( '\n dhcpSubnetsDeletePromise : ' + JSON.stringify ( dhcpSubnetsDeletePromise ) )
-                const mockMicronetsDelete = await axios ( {
-                  ...apiInit ,
-                  method : 'DELETE',
-                  url : `${mmUrl}/mm/v1/mock/micronets`,
-                  data : Object.assign({},{ micronets: { micronet:[] }})
-                })
-                console.log('\n\n\n mock Micro-nets Delete : ' + JSON.stringify(mockMicronetsDelete.data))
-                // TODO : Add subnet Allocation Delete
-              }
+          const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
+            {
+              id : micronetFromDB.id ,
+              name : micronetFromDB.name ,
+              ssid : micronetFromDB.ssid ,
+              micronets : { micronet : postBodyForDelete }  // TODO : Add actual response odlResponse.data
+            } ,
+            { query : {} , mongoose : { upsert : true } } );
+          console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
+          if ( patchResult ) {
+            console.log ( '\n Micro-net deleted from MM DB.Deleting subnets and devices on dhcp ' )
+            if ( hook.id ) {
+              const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , micronetToDelete , hook.id )
+              console.log ( '\n dhcpSubnetsDeletePromise : ' + JSON.stringify ( dhcpSubnetsDeletePromise ) )
+              const mockMicronetsDelete = await axios ( {
+                ...apiInit ,
+                method : 'DELETE' ,
+                url : `${mmUrl}/mm/v1/mock/micronets/${hook.id}` ,
+                data : Object.assign ( {} , { micronets : { micronet : postBodyForDelete } } )
+              } )
+              console.log ( '\n\n\n mock Micro-nets Delete : ' + JSON.stringify ( mockMicronetsDelete.data ) )
+              // TODO : Add subnet Allocation Delete
             }
-            hook.result = patchResult
-            return Promise.resolve ( hook );
-         // }
+            if ( postBodyForDelete.length == 0 && !hook.id ) {
+              const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , {} , undefined )
+              console.log ( '\n dhcpSubnetsDeletePromise : ' + JSON.stringify ( dhcpSubnetsDeletePromise ) )
+              const mockMicronetsDelete = await axios ( {
+                ...apiInit ,
+                method : 'DELETE' ,
+                url : `${mmUrl}/mm/v1/mock/micronets` ,
+                data : Object.assign ( {} , { micronets : { micronet : [] } } )
+              } )
+              console.log ( '\n\n\n mock Micro-nets Delete : ' + JSON.stringify ( mockMicronetsDelete.data ) )
+              // TODO : Add subnet Allocation Delete
+            }
+          }
+          hook.result = patchResult
+          return Promise.resolve ( hook );
+
         }
       }
     ]
