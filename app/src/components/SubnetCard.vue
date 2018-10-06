@@ -7,7 +7,7 @@
         <span v-if="!show" class="grey--text" slot="text">{{`${subnet["connected-devices"].length} Devices`}}</span>
       </div>
       <v-spacer></v-spacer>
-      <v-btn raised class="addDevice" @click.native.stop="configureMicronet">Configure</v-btn>
+      <v-btn raised class="addDevice" @click.native.stop="configureMicronet" :disabled="true">Configure</v-btn>
       <v-card-actions>
         <v-btn icon @click.native="show = !show">
           <v-icon>{{ show ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</v-icon>
