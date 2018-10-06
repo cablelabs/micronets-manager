@@ -687,7 +687,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   console.log ( '\n Micronet-Subnet : ' + JSON.stringify ( micronetSubnet ) )
   const subnetNo = parseInt ( micronetSubnet.split ( '.' )[ 2 ] , 10 );
   console.log ( '\n SubnetNo : ' + JSON.stringify ( subnetNo ) )
-  // Remove hard-coded subnetNo later
+  // Remove hard-coded subnetNo laterSubnet to add device to
   const subnetWithDevices = await subnetAllocation.getNewIps ( subnetNo , formattedDevices )
   console.log ( '\n SubnetWithDevices : ' + JSON.stringify ( subnetWithDevices ) )
 
@@ -701,6 +701,8 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
     }
   } )
   console.log ( '\n formattedSubnetWithDevices : ' + JSON.stringify ( formattedSubnetWithDevices ) )
+  console.log('\n Micronet to update : ' + JSON.stringify(micronetToUpdate))
+  // TODO : Fix bug of adding devices twice.
   const updatedMicronetwithDevices = Object.assign ( {} , micronetToUpdate , { 'connected-devices' : micronetToUpdate[ 'connected-devices' ].concat ( formattedSubnetWithDevices ) } )
   console.log ( '\n UpdatedMicronetwithDevices : ' + JSON.stringify ( updatedMicronetwithDevices ) )
 
@@ -804,7 +806,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
           eui48 : device[ "device-mac" ]
         } ,
         networkAddress : {
-          ipv4 : "192.168.12.2" //TODO: Change to dhcpDeviceIp
+          ipv4 : dhcpDeviceIp //TODO: Change to dhcpDeviceIp
         }
       }
     } )
@@ -1145,6 +1147,10 @@ module.exports = {
                     } ,
                     { query : {} , mongoose : { upsert : true } } );
                   console.log ( '\n CREATE HOOK ADD DEVICES TO SUBNET PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
+                  if(patchResult) {
+                    const addedDhcpDevices = await addDhcpDevices ( hook , body , req.params.micronetId , req.params.subnetId )
+                    console.log ( '\n Added DHCP Devices : ' + JSON.stringify ( addedDhcpDevices ) )
+                  }
                   hook.result = patchResult
                   return Promise.resolve ( hook );
                 }
