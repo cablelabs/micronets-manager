@@ -13,10 +13,6 @@ var options = { integer : true }
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require ( '../../hooks/dhcpWrapperPromise' )
-//const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001"
-//const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z"
-const odlHost = "198.58.114.200"
-const odlSocket = "8181"
 const odlAuthHeader = {
   username : 'admin' ,
   password : 'admin'
@@ -1175,14 +1171,13 @@ module.exports = {
           }
 
           // Temporary Test
-          if ( originalUrl.toString () == '/mm/v1/micronets/subnets/testdhcp' ) {
-
-            console.log ( '\n test dhcp add device temp url' )
-            const subnetId = "WIRED_enp4s0"
-            const micronetId = "1534270984"
-            const addedDhcpDevices = await addDhcpDevices ( hook , body , micronetId , subnetId )
-            console.log ( '\n Added DHCP Devices : ' + JSON.stringify ( addedDhcpDevices ) )
-          }
+          // if ( originalUrl.toString () == '/mm/v1/micronets/subnets/testdhcp' ) {
+          //   console.log ( '\n test dhcp add device temp url' )
+          //   const subnetId = "WIRED_enp4s0"
+          //   const micronetId = "1534270984"
+          //   const addedDhcpDevices = await addDhcpDevices ( hook , body , micronetId , subnetId )
+          //   console.log ( '\n Added DHCP Devices : ' + JSON.stringify ( addedDhcpDevices ) )
+          // }
 
         }
       }
@@ -1199,6 +1194,8 @@ module.exports = {
     remove : [
       async ( hook ) => {
         const { data , id , params } = hook;
+        const registry = await getRegistry ( hook , {} )
+        const { odlUrl, mmUrl } = registry
         console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify ( id ) )
         let postBodyForDelete = [] , micronetToDelete = {}
         // ODL and Gateway checks
@@ -1207,6 +1204,7 @@ module.exports = {
         const isGatewayConnected = await connectToGateway ( hook )
         console.log ( '\n\n DELETE HOOK isGtwyAlive : ' + JSON.stringify ( isGtwyAlive ) + '\t\t\t isOdlAlive : ' + JSON.stringify ( isOdlAlive ) + '\t\t\t isGatewayConnected : ' + JSON.stringify ( isGatewayConnected ) )
         if ( isGtwyAlive && isOdlAlive && isGatewayConnected ) {
+          // Delete single micro-net
           if ( hook.id ) {
             console.log ( '\n DELETE MICRONET BY ID ' + JSON.stringify ( hook.id ) )
             const micronetFromDB = await getMicronet ( hook , {} )
@@ -1221,23 +1219,15 @@ module.exports = {
               console.log ( '\n POST BODY FOR DELETE : ' + JSON.stringify ( postBodyForDelete ) + '\t\t for hook.id : ' + JSON.stringify ( hook.id ) )
             }
           }
+          // Delete all micro-nets
           else {
             console.log ( '\n No hook id present delete everything postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ) )
           }
-          /* Uncomment later for real api call
-          if(postBodyForDelete.length == 0) {
-            postBodyForDelete = Object.assign({},{
-              micronets:{
-                micronet:postBodyForDelete
-              }
-            })
-          } */
-          // console.log('\n\n Updated EMPTY POST BODY FOR DELETE : ' + JSON.stringify(postBodyForDelete))
-          const odlResponse = await odlOperationsForUpserts ( hook , postBodyForDelete )
-          console.log ( '\n DELETE HOOK ODL OPERATIONAL STATE DATA  : ' + JSON.stringify ( odlResponse.data ) + '\t\t STATUS : ' + JSON.stringify ( odlResponse.status ) )
+
+         // console.log ( '\n DELETE HOOK ODL OPERATIONAL STATE DATA  : ' + JSON.stringify ( odlResponse.data ) + '\t\t STATUS : ' + JSON.stringify ( odlResponse.status ) )
           const micronetFromDB = await getMicronet ( hook , {} )
           // TODO : Check request body and construct new post for all delete cases
-          if ( odlResponse.status == 200 ) {
+         // if ( odlResponse.status == 200 ) {
             const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
               {
                 id : micronetFromDB.id ,
@@ -1248,23 +1238,36 @@ module.exports = {
               { query : {} , mongoose : { upsert : true } } );
             console.log ( '\n DELETE HOOK PATCH RESULT : ' + JSON.stringify ( patchResult ) )
             if ( patchResult ) {
-              console.log ( '\n Micronet deleted from MM DB.Deleting subnets and devices on dhcp ' )
+              console.log ( '\n Micro-net deleted from MM DB.Deleting subnets and devices on dhcp ' )
               if ( hook.id ) {
                 const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , micronetToDelete , hook.id )
                 console.log ( '\n dhcpSubnetsDeletePromise : ' + JSON.stringify ( dhcpSubnetsDeletePromise ) )
+                const mockMicronetsDelete = await axios ( {
+                  ...apiInit ,
+                  method : 'DELETE',
+                  url : `${mmUrl}/mm/v1/mock/micronets/${hook.id}`,
+                  data : Object.assign({},{ micronets: { micronet: postBodyForDelete }})
+                })
+                console.log('\n\n\n mock Micro-nets Delete : ' + JSON.stringify(mockMicronetsDelete.data) )
+                // TODO : Add subnet Allocation Delete
               }
               if ( postBodyForDelete.length == 0 && !hook.id ) {
                 const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , {} , undefined )
                 console.log ( '\n dhcpSubnetsDeletePromise : ' + JSON.stringify ( dhcpSubnetsDeletePromise ) )
+                const mockMicronetsDelete = await axios ( {
+                  ...apiInit ,
+                  method : 'DELETE',
+                  url : `${mmUrl}/mm/v1/mock/micronets`,
+                  data : Object.assign({},{ micronets: { micronet:[] }})
+                })
+                console.log('\n\n\n mock Micro-nets Delete : ' + JSON.stringify(mockMicronetsDelete.data))
+                // TODO : Add subnet Allocation Delete
               }
-
             }
             hook.result = patchResult
             return Promise.resolve ( hook );
-          }
-
+         // }
         }
-
       }
     ]
   } ,

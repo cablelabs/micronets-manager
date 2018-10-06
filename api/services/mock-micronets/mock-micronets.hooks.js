@@ -100,12 +100,24 @@ module.exports = {
         console.log('\n\n REMOVE HOOK PARAMS : ' + JSON.stringify(params) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t ID : ' + JSON.stringify(id) + '\t\t PATH : ' + JSON.stringify(path))
         const {  subnetId, micronetId } = params.route ;
         console.log('\n REMOVE HOOK SUBNET-ID : ' + JSON.stringify(subnetId) + '\t\t MICRONET-ID : ' + JSON.stringify(micronetId))
-        if(hook.id) {
+        if(hook.id && !subnetId) {
           console.log('\n Delete specific micronet hook.id : ' + JSON.stringify(hook.id))
           const micronetFromDB = await hook.app.service('/mm/v1/mock/micronets').get({})
           const filteredMicronet = micronetFromDB.micronets.micronet.filter((foundMicronet) => foundMicronet['micronet-id']!= hook.id)
           console.log('\n Filtered Micronet : ' + JSON.stringify(filteredMicronet))
           const patchResult = await hook.app.service('/mm/v1/mock/micronets').patch(micronetFromDB._id, {micronets: {micronet: filteredMicronet } }, { query : {} , mongoose : { upsert : true } }  )
+          console.log('\n\n DELETE PATCH RESULT : ' + JSON.stringify(patchResult))
+          hook.result = Object.assign({},{ micronets:patchResult.micronets })
+          return Promise.resolve(hook)
+        }
+        if(micronetId && subnetId) {
+          console.log('\n REMOVE HOOK FOR MICRO-NET ID : ' + JSON.stringify(micronetId) + '\t\t SUBNET ID : ' + JSON.stringify(subnetId))
+          const micronetFromDB = await hook.app.service('/mm/v1/mock/micronets').get({})
+        }
+        if(!hook.id && path == "mm/v1/mock/micronets") {
+         console.log('\n Delete all mock micro-nets ...')
+          const micronetFromDB = await hook.app.service('/mm/v1/mock/micronets').get({})
+          const patchResult = await hook.app.service('/mm/v1/mock/micronets').patch(micronetFromDB._id, {micronets: {micronet: [] } }, { query : {} , mongoose : { upsert : true } }  )
           console.log('\n\n DELETE PATCH RESULT : ' + JSON.stringify(patchResult))
           hook.result = Object.assign({},{ micronets:patchResult.micronets })
           return Promise.resolve(hook)
