@@ -468,13 +468,15 @@ const fetchOdlOperationalState = async ( hook ) => {
 // Calls mock-micronet API
 const mockOdlOperationsForUpserts = async ( hook , requestBody , micronetId , subnetId ) => {
   console.log ( '\n mockOdlOperationsForUpserts hook requestBody : ' + JSON.stringify ( requestBody ) + '\t\t MicronetId : ' + JSON.stringify ( micronetId ) + '\t\t SubnetId : ' + JSON.stringify ( subnetId ) )
+  let postBody = requestBody.hasOwnProperty('micronets') && requestBody.hasOwnProperty('name') && requestBody.hasOwnProperty('id') ? requestBody.micronets.micronet : requestBody
+  console.log('\n mockOdlOperationsForUpserts POSTBODY : ' + JSON.stringify(postBody))
   const registry = await getRegistry ( hook , {} )
   const { mmUrl } = registry
   const mockResponse = await axios ( {
     ...apiInit ,
     method : 'POST' ,
     url : micronetId && subnetId ? `${mmUrl}/mm/v1/mock/micronets/${micronetId}/subnets/${subnetId}/devices` : `${mmUrl}/mm/v1/mock/micronets` ,
-    data : Object.assign ( {} , { micronets : { micronet : requestBody } } )
+    data : Object.assign ( {} , { micronets : { micronet : postBody } } )
   } )
   console.log ( '\n Mock ODL Response Data : ' + JSON.stringify ( mockResponse.data ) + '\t\t Status : ' + JSON.stringify ( mockResponse.status ) )
   return Object.assign ( {} , { data : mockResponse.data , status : mockResponse.status } )
@@ -612,13 +614,14 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
     console.log ( '\n UpsertRegisteredDeviceToMicronet postBodyForODL : ' + JSON.stringify ( postBodyForODL ) + '\t\t addSubnet Flag : ' + JSON.stringify ( addSubnet ) )
 
     /* ODL API's */
-    const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-    if ( odlResponse.data && odlResponse.status == 200 ) {
+   // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
+    const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL )
+    if ( odlResponse.data && odlResponse.status == 201 ) {
       console.log ( '\n UpsertRegisteredDeviceToMicronet odlResponse : ' + JSON.stringify ( odlResponse ) )
-      const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
-      console.log ( '\n UpsertRegisteredDeviceToMicronet dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
+      // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
+     // console.log ( '\n UpsertRegisteredDeviceToMicronet dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
       const addSubnetPatchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
-        { micronets : { micronet : dbUpdateResult } } ,
+        { micronets : { micronet : odlResponse.data.micronets.micronet } } ,
         { query : {} , mongoose : { upsert : true } } );
       console.log ( '\n UpsertRegisteredDeviceToMicronet addSubnetPatchResult : ' + JSON.stringify ( addSubnetPatchResult ) )
 
@@ -646,7 +649,7 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
   }
 }
 
-// Add Devices in Subnet
+// Add Devices in Subnet from registration process and otherwise
 const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   console.log ( '\n addDevicesInSubnet micronetId : ' + JSON.stringify ( micronetId ) + '\t\t subnetId : ' + JSON.stringify ( subnetId ) )
   devices = [].concat ( devices )
@@ -674,9 +677,10 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   console.log ( '\n FormattedDevices : ' + JSON.stringify ( formattedDevices ) )
   const micronetFromDB = await getMicronet ( hook , {} )
   //console.log ( '\n addDevicesInSubnet micronetFromDB : ' + JSON.stringify ( micronetFromDB ) )
-  const micronetToUpdateIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => {
-    return (micronetId == micronet[ 'micronet-id' ] && subnetId == micronet[ 'micronet-subnet-id' ])
-  } )
+
+  const micronetToUpdateIndex = micronetId && subnetId ? micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => {
+      return (micronetId == micronet[ 'micronet-id' ] && subnetId == micronet[ 'micronet-subnet-id' ])
+    } ) : 0
   console.log ( '\n Micronet to Update Index: ' + JSON.stringify ( micronetToUpdateIndex ) )
   const micronetToUpdate = micronetFromDB.micronets.micronet[ micronetToUpdateIndex ]
   const micronetSubnet = micronetToUpdate[ 'micronet-subnet' ]
@@ -946,7 +950,7 @@ module.exports = {
           console.log ( '\n Hook.id for patch : ' + JSON.stringify ( micronetFromDB._id ) )
         }
 
-        /* User created.Initialize micronets object */
+        /* User created. Initialize micronets object */
         if ( hook.data && hook.data.type == 'userCreate' ) {
           const { type , data } = hook.data
           console.log ( '\n User Create event detected. TYPE .... : ' + JSON.stringify ( type ) + '\t\t DATA : ' + JSON.stringify ( data ) )
@@ -954,6 +958,7 @@ module.exports = {
           let user = await hook.app.service ( '/mm/v1/micronets/users' ).find ( { query } )
           user = user.data[ 0 ]
           console.log ( '\n User from db : ' + JSON.stringify ( user ) )
+          // Create Micronets object
           hook.data = Object.assign ( {} , {
             id : user.id ,
             name : user.name ,
@@ -972,18 +977,21 @@ module.exports = {
           const micronetFromDB = await getMicronet ( hook , {} )
           console.log ( '\n micronetFromDB._id for patch : ' + JSON.stringify ( micronetFromDB._id ) )
           const odlPostBody = await upsertRegisteredDeviceToMicronet ( hook , hook.data )
-          const odlResponse = await odlOperationsForUpserts ( hook , odlPostBody )
-          if ( odlResponse ) {
-            console.log ( '\n PATCH D/b FOR ODL RESPONSE ' )
-            console.log ( '\n ODL Response : ' + JSON.stringify ( odlResponse ) )
-            const dbUpdateResult = await updateMicronetModel ( hook , odlResponse )
-            console.log ( '\n dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
+          // const odlResponse = await odlOperationsForUpserts ( hook , odlPostBody )
+          // FAKE ODL API's
+          const odlResponse = await mockOdlOperationsForUpserts( hook , odlPostBody )
+          console.log('\n ')
+          if ( odlResponse.data ) {
+            const odlResponseData =  odlResponse.data
+            const patchRequestData =  (odlResponseData.hasOwnProperty('id') && odlResponseData.hasOwnProperty('name') && odlResponseData.hasOwnProperty('micronets')) ? odlResponseData.micronets.micronet.micronets.micronet
+              : ( odlResponseData.hasOwnProperty('micronets') && !odlResponseData.hasOwnProperty('name')) ? odlResponseData.micronets.micronet : odlResponseData
+            console.log('\n userDeviceRegistered patchRequestData : ' + JSON.stringify(patchRequestData))
             const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
               {
                 id : micronetFromDB.id ,
                 name : micronetFromDB.name ,
                 ssid : micronetFromDB.ssid ,
-                micronets : { micronet : dbUpdateResult }
+                micronets : { micronet : patchRequestData }
               } ,
               { query : {} , mongoose : { upsert : true } } )
             console.log ( '\n CREATE HOOK ADD SUBNET PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
