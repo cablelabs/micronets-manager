@@ -16,7 +16,7 @@ const msoPortalAuthPostConfig = {
 }
 const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/registration/token`
 const usersUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets/users`
-const micronetsUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets`
+// const micronetsUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets`
 const localDhcpUri = `${process.env.BASE_URL}`
 // const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v'])
 // const omitStateMeta = omit(['_id', '__v'])
@@ -69,26 +69,6 @@ export const mutations = {
 }
 
 export const actions = {
-
-  initializeMicronets ({state, commit, dispatch}, {token}) {
-    return axios({
-      ...{
-        crossDomain: true,
-        headers: {
-          'Content-type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      },
-      method: 'get',
-      url: micronetsUri
-    })
-      .then((response) => {
-        let {data} = response.data
-        console.log('\n\n\n DATA FETCH micronets URI : ' + JSON.stringify(data))
-        commit('setSubscriber', data)
-        return data
-      })
-  },
 
   fetchAuthToken ({commit, dispatch}) {
     return axios({
