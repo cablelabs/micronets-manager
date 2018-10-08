@@ -77,12 +77,11 @@ module.exports = {
         if(hook.data.micronets && hook.params.route.subnetId && hook.params.route.micronetId) {
           const micronetsPostData = Object.assign({},hook.data)
           console.log('\n CREATE HOOK MOCK MICRONET POST BODY : ' + JSON.stringify(micronetsPostData))
-
           if(mockMicronetFromDB && mockMicronetFromDB.hasOwnProperty('_id')) {
             hook.id = mockMicronetFromDB._id
             console.log('\n Update existing record to add devices for micronetId : ' + JSON.stringify(hook.params.route.micronetId) + '\t\t Subnet-Id : ' + JSON.stringify(hook.params.route.subnetId))
             const patchResult = await hook.app.service ( '/mm/v1/mock/micronets' ).patch ( hook.id,
-              { micronets : { micronet : micronetsPostData.micronets.micronet.micronets.micronet } } ,
+              { micronets : { micronet : micronetsPostData.micronets.micronet } } ,
               { query : {} , mongoose : { upsert : true } }  );
             console.log('\n PATCH RESULT FOR ADDING DEVICES : ' + JSON.stringify(patchResult))
             hook.result = Object.assign({},{ micronets:patchResult.micronets })

@@ -618,8 +618,6 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
     const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL )
     if ( odlResponse.data && odlResponse.status == 201 ) {
       console.log ( '\n UpsertRegisteredDeviceToMicronet odlResponse : ' + JSON.stringify ( odlResponse ) )
-      // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
-     // console.log ( '\n UpsertRegisteredDeviceToMicronet dbUpdateResult : ' + JSON.stringify ( dbUpdateResult ) )
       const addSubnetPatchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
         { micronets : { micronet : odlResponse.data.micronets.micronet } } ,
         { query : {} , mongoose : { upsert : true } } );
@@ -814,9 +812,9 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
         deviceId : device[ "device-id" ] ,
         macAddress : {
           eui48 : device[ "device-mac" ]
-        } ,
+        },
         networkAddress : {
-          ipv4 : dhcpDeviceIp //TODO: Change to dhcpDeviceIp
+          ipv4 : dhcpDeviceIp
         }
       }
     } )
@@ -951,9 +949,10 @@ module.exports = {
         }
 
         /* User created. Initialize micronets object */
+        // TODO : Create micronet when user is created
         if ( hook.data && hook.data.type == 'userCreate' ) {
           const { type , data } = hook.data
-          console.log ( '\n User Create event detected. TYPE .... : ' + JSON.stringify ( type ) + '\t\t DATA : ' + JSON.stringify ( data ) )
+          console.log ( '\n USER CREATE EVENT DETECTED . TYPE .... : ' + JSON.stringify ( type ) + '\t\t DATA : ' + JSON.stringify ( data ) )
           const query = Object.assign ( { id : data.subscriberId } );
           let user = await hook.app.service ( '/mm/v1/micronets/users' ).find ( { query } )
           user = user.data[ 0 ]
@@ -995,8 +994,41 @@ module.exports = {
               } ,
               { query : {} , mongoose : { upsert : true } } )
             console.log ( '\n CREATE HOOK ADD SUBNET PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
-            hook.result = patchResult
-            return Promise.resolve ( hook )
+            if(patchResult) {
+              console.log ( '\n MICRONET ADDED.ADDING SUBNETS TO DHCP GATEWAY ... ' )
+               const dhcpSubnetPostBody = Object.assign({},{
+                 micronets:{
+                   micronet: [ Object.assign({},{
+                       name: device.class,
+                      "micronet-subnet-id": device.class,
+                      "connected-devices":[]
+                   })
+                   ]
+                 }
+               })
+              const dhcpSubnet = await addDhcpSubnets(hook,dhcpSubnetPostBody)
+              console.log('\n dhcpSubnet : ' + JSON.stringify(dhcpSubnet.body))
+              if(dhcpSubnet) {
+                const dhcpDevicePostBody = Object.assign({},{
+                  micronets:{
+                    micronet: [ Object.assign({},{
+                      "connected-devices": [ Object.assign({}, {
+                        "device-mac": device.macAddress,
+                        "device-openflow-port": "4",
+                        "device-name": "Test Device", // TODO : Add Device Name
+                        "device-id": device.deviceId
+                      })]
+                    })]
+                  }})
+                const micronetIndex = patchRequestData.findIndex((micronet) => micronet.class == device.class)
+                const micronetId = patchRequestData[micronetIndex]['micronet-id']
+                console.log('\n micronetIndex : ' + JSON.stringify(micronetIndex) + '\t\t\t micronetId : ' + JSON.stringify(micronetId))
+                const dhcpAddDevice = await addDhcpDevices(hook,dhcpDevicePostBody,micronetId, device.class)
+                console.log('\n dhcpAdddDevice : ' + JSON.stringify(dhcpAddDevice.body))
+              }
+              hook.result = patchResult
+              return Promise.resolve ( hook )
+            }
           }
         }
 
