@@ -6,10 +6,16 @@ const port = app.get('port');
 var server
 const dw = require('../api/hooks/dhcpWrapperPromise')
 
-describe.skip('Test DHCP Wrapper Promise', function () {
+
+
+describe('Test DHCP Wrapper Promise', function () {
   describe('Positive Tests', function () {
     before((done) => {
-      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      // dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.eventEmitter.on('Test', () => {
+        console.log('Dooh')
+      });
+      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z')
         .then(() => {
           done()
         })
