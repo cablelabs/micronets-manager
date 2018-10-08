@@ -1,6 +1,8 @@
 const WebSocket = require('websocket').w3cwebsocket
 const fs = require('fs')
 const WebSocketAsPromised = require('websocket-as-promised');
+const EventEmitter = require('events')
+class MyEmitter extends EventEmitter {}
 
 
 const wsOptions = {
@@ -39,6 +41,7 @@ const wsOptions = {
 module.exports = {
   state: 'DISCONNECTED',
   requests: [],
+  eventEmitter: new MyEmitter()
 };
 
 var messageId = 0;
@@ -61,9 +64,14 @@ module.exports.isOpen = function() {
   else {
     return false
   }
+};
+
+module.exports.event = function() {
+  this.eventEmitter.emit('Test', {test: '123'})
 }
 
-module.exports.connect = (address) => {
+module.exports.connect = function(address) {
+  let me = this
   return new Promise(async function (resolve, reject) {
     if (wsp && wsp.isOpened) {
       resolve()
@@ -82,13 +90,21 @@ module.exports.connect = (address) => {
       });
       wsp.open()
         .then(() => wsp.sendPacked(hello));
-      wsp.onSend.addListener(data => console.log(data));
-      // wsp.onMessage.addListener(message => console.log(message));
 
       wsp.onUnpackedMessage.addListener(message => {
         if (message.message.messageType === 'CONN:HELLO') {
           console.log('connected to ' + address)
           resolve()
+        }
+        else if(message.message.messageType === 'EVENT:DHCP:leaseAcquired')
+        {
+          let leaseAcquired = convertFrom(message)
+          me.eventEmitter.emit('LeaseAcquired', leaseAcquired)
+        }
+        else if(message.message.messageType === 'EVENT:DHCP:leaseExpired')
+        {
+          let leaseExpired = convertFrom(message)
+          me.eventEmitter.emit('LeaseExpired', leaseExpired)
         }
       })
     }
