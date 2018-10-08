@@ -585,7 +585,7 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
   const { subscriberId , device } = data
   console.log ( '\n UpsertRegisteredDeviceToMicronet type : ' + JSON.stringify ( type ) + '\t\t subscriberId : ' + JSON.stringify ( subscriberId ) + '\t\t UpsertRegisteredDeviceToMicronet device : ' + JSON.stringify ( device ) )
 
-  const micronetFromDB = await getMicronet ( hook , {} )
+  let micronetFromDB = await getMicronet ( hook , {} )
   hook.id = micronetFromDB._id
 
   console.log ( '\n Micronet from DB : ' + JSON.stringify ( micronetFromDB ) )
@@ -625,9 +625,11 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
 
       // Add device to subnet
       if ( addSubnetPatchResult ) {
-        console.log ( '\n Subnet was added ' )
-        const micronet = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => (micronet.class == device.class) )
-        const postODLBody = await addDevicesInSubnet ( hook , micronet[ 'micronet-id' ] , micronet[ 'micronet-subnet-id' ] , device )
+        micronetFromDB = await getMicronet ( hook , {} )
+        const micronetToUpdateIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => (micronet.class == device.class) )
+        const micronetToUpdate = micronetFromDB.micronets.micronet[micronetToUpdateIndex]
+        console.log('\n micronetToUpdateIndex : ' + JSON.stringify(micronetToUpdateIndex) + '\t\t\t MicronetToUpdate : ' + JSON.stringify(micronetToUpdate))
+        const postODLBody = await addDevicesInSubnet ( hook , micronetToUpdate[ 'micronet-id' ] ,micronetToUpdate[ 'micronet-subnet-id' ] , device )
         console.log ( '\n UpsertRegisteredDeviceToMicronet postODLBody : ' + JSON.stringify ( postODLBody ) )
         return postODLBody
       }
