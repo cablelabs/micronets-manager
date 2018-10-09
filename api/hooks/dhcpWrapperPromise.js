@@ -1,7 +1,7 @@
-const WebSocket = require('websocket').w3cwebsocket
+const WebSocket = require('websocket').w3cwebsocket;
 const fs = require('fs')
 const WebSocketAsPromised = require('websocket-as-promised');
-const EventEmitter = require('events')
+const EventEmitter = require('events');
 class MyEmitter extends EventEmitter {}
 
 
@@ -101,7 +101,7 @@ module.exports.connect = function() {
 
       wsp.onUnpackedMessage.addListener(message => {
         if (message.message.messageType === 'CONN:HELLO') {
-          console.log('connected to ' + address)
+          console.log('connected to ' + me.address)
           resolve()
         }
         else if(message.message.messageType === 'EVENT:DHCP:leaseAcquired')
@@ -114,29 +114,34 @@ module.exports.connect = function() {
           let leaseExpired = convertFrom(message)
           me.eventEmitter.emit('LeaseExpired', leaseExpired)
         }
+        else {
+          console.log('Received Message')
+          console.log(message)
+        }
       })
 
       wsp.onClose.addListener(event => {
         console.log('Connections closed: ' + event.reason)
-        me.connect(address)
+        me.connect()
           .then(() => {
             console.log('Reconnected')
           })
           .catch((error => {
             console.err("ERROR: Could not reconnect")
-            throw new Error('Could not reconnect to the Web Socket at ' + address)
+            throw new Error('Could not reconnect to the Web Socket at ' + me.address)
           }))
       });
 
       wsp.onError.addListener(event => {
         console.error('Connection Error: ' + event)
-        me.connect(address)
+        me.connect()
           .then(() => {
             console.log('Reconnected')
           })
           .catch((error => {
             console.err("ERROR: Could not reconnect")
-            throw new Error('Could not reconnect to the Web Socket at ' + address)
+            console.err(error)
+            throw new Error('Could not reconnect to the Web Socket at ' + me.address)
           }))
       });
     }
@@ -145,10 +150,11 @@ module.exports.connect = function() {
 
 
 module.exports.send = function (json, method, type, subnetId, deviceId) {
+  let me = this
   return new Promise(async function (resolve, reject) {
       if (!wsp.isOpened) {
         console.log('Web Socket is not opened')
-        this.connect(() => {
+        me.connect(() => {
           let webSocketFormat = convertTo(json, method, type, subnetId, deviceId)
           wsp.sendRequest(webSocketFormat, {requestId: webSocketFormat.message.messageId})
             .then(response => {
@@ -181,8 +187,8 @@ module.exports.close = function() {
   wsp.close()
     .then(event => {
       console.log(event.reason)
-      return;
     })
+  return
 }
 
 

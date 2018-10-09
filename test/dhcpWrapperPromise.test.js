@@ -6,15 +6,25 @@ const port = app.get('port');
 var server
 const dw = require('../api/hooks/dhcpWrapperPromise')
 
+const address = 'wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z'
+var leaseAcquired = false
+var leaseExpired = false
 
 
 describe('Test DHCP Wrapper Promise', function () {
   describe('Positive Tests', function () {
     before((done) => {
-      dw.eventEmitter.on('Test', () => {
-        console.log('Dooh')
+      dw.eventEmitter.on('LeaseAcquired', (obj) => {
+        console.log('Got Lease Acquired')
+        console.log(obj)
+        leaseAcquired = true
       });
-      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy//micronets-dhcp-7B2A-BE88-08817Z')
+      dw.eventEmitter.on('LeaseExpired', (obj) => {
+        console.log('Got Lease Acquired')
+        console.log(obj)
+          leaseExpired = true
+      })
+      dw.setAddress(address)
       dw.connect()
         .then(() => {
           done()
@@ -70,7 +80,7 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('Post another Subnet to DHCP', (done) => {
-      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress(address)
       dw.connect()
         .then(() => {
           let promiseList = [];
@@ -109,7 +119,7 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('Post multiple Subnets to DHCP', (done) => {
-      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress(address)
       dw.connect()
         .then(() => {
           let promiseList = [];
@@ -154,7 +164,7 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('GET Subnets', (done) => {
-      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress(address)
       dw.connect()
         .then(() => {
           let promiseList = []
@@ -279,6 +289,27 @@ describe('Test DHCP Wrapper Promise', function () {
           done(err)
         })
     });
+    it.skip('Verify Lease Acquired', (done) => {
+      leaseAcquired.should.equal(true)
+      done()
+    })
+    it.skip('Verify Lease Expired', (done) => {
+      leaseExpired.should.equal(true)
+      done()
+    })
+    it('Test Reconnect', (done) =>{
+      dw.close()
+      //wait
+      setTimeout(function() {
+        if (dw.isOpen()) {
+          done()
+        }
+        else {
+          done('Failed to reconnect')
+        }
+      }, 500)
+
+    })
   });
   describe('Negative Tests', function () {
     it('Subnet Id already exists', (done) => {
@@ -556,7 +587,7 @@ describe('Test DHCP Wrapper Promise', function () {
   });
   describe('Clean up', function () {
     it('Delete Device', (done) => {
-      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress(address)
       dw.connect()
         .then(() => {
           let promiseList = []
@@ -577,7 +608,7 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('Delete Subnets', (done) => {
-      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress(address)
       dw.connect()
         .then(() => {
           let promiseList = []
@@ -601,7 +632,7 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('Delete All Subnets', (done) => {
-      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress(address)
       dw.connect()
         .then(() => {
           let promiseList = []
