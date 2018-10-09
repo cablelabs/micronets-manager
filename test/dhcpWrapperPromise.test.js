@@ -11,11 +11,11 @@ const dw = require('../api/hooks/dhcpWrapperPromise')
 describe('Test DHCP Wrapper Promise', function () {
   describe('Positive Tests', function () {
     before((done) => {
-      // dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
       dw.eventEmitter.on('Test', () => {
         console.log('Dooh')
       });
-      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z')
+      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy//micronets-dhcp-7B2A-BE88-08817Z')
+      dw.connect()
         .then(() => {
           done()
         })
@@ -70,7 +70,8 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('Post another Subnet to DHCP', (done) => {
-      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.connect()
         .then(() => {
           let promiseList = [];
           promiseList.push(dw.send({
@@ -108,7 +109,8 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('Post multiple Subnets to DHCP', (done) => {
-      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.connect()
         .then(() => {
           let promiseList = [];
           promiseList.push(dw.send(
@@ -152,7 +154,8 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('GET Subnets', (done) => {
-      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.connect()
         .then(() => {
           let promiseList = []
           promiseList.push(dw.send({}, 'GET'));
@@ -553,7 +556,8 @@ describe('Test DHCP Wrapper Promise', function () {
   });
   describe('Clean up', function () {
     it('Delete Device', (done) => {
-      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.connect()
         .then(() => {
           let promiseList = []
           promiseList.push(dw.send({}, 'DELETE', 'device', 'mocksubnet001', 'MyDevice01'));
@@ -573,7 +577,8 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('Delete Subnets', (done) => {
-      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.connect()
         .then(() => {
           let promiseList = []
           promiseList.push(dw.send({}, 'DELETE', 'subnet', 'mocksubnet001'));
@@ -596,7 +601,8 @@ describe('Test DHCP Wrapper Promise', function () {
         })
     });
     it('Delete All Subnets', (done) => {
-      dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.setAddress('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001')
+      dw.connect()
         .then(() => {
           let promiseList = []
           promiseList.push(dw.send({}, 'DELETE'));

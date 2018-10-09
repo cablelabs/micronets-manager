@@ -41,7 +41,8 @@ const wsOptions = {
 module.exports = {
   state: 'DISCONNECTED',
   requests: [],
-  eventEmitter: new MyEmitter()
+  eventEmitter: new MyEmitter(),
+  address: ''
 };
 
 var messageId = 0;
@@ -70,14 +71,21 @@ module.exports.event = function() {
   this.eventEmitter.emit('Test', {test: '123'})
 }
 
-module.exports.connect = function(address) {
+module.exports.setAddress = function(address) {
+  this.address = address
+}
+
+module.exports.connect = function() {
   let me = this
   return new Promise(async function (resolve, reject) {
-    if (wsp && wsp.isOpened) {
+    if (!me.address) {
+      reject(new Error('No WSS Address provided'))
+    }
+    else if (wsp && wsp.isOpened) {
       resolve()
     }
     else {
-      wsp = new WebSocketAsPromised(address, {
+      wsp = new WebSocketAsPromised(me.address, {
         createWebSocket: url => new WebSocket(url, null, null, null, null, {tlsOptions: wsOptions}),
         packMessage: data => JSON.stringify(data),
         unpackMessage: message => {
@@ -85,8 +93,8 @@ module.exports.connect = function(address) {
           if (temp && temp.message && temp.message.inResponseTo) temp.id = temp.message.inResponseTo;
           return temp
         },
-        attachRequestId: (data, requestId) => Object.assign({id: requestId}, data), // attach requestId to message as `id` field
-        extractRequestId: data => data && data.id,                                  // read requestId from message `id` field
+        attachRequestId: (data, requestId) => Object.assign({id: requestId}, data), // attach requestId to message as 'id' field
+        extractRequestId: data => data && data.id,                                  // read requestId from message 'id' field
       });
       wsp.open()
         .then(() => wsp.sendPacked(hello));
@@ -107,6 +115,30 @@ module.exports.connect = function(address) {
           me.eventEmitter.emit('LeaseExpired', leaseExpired)
         }
       })
+
+      wsp.onClose.addListener(event => {
+        console.log('Connections closed: ' + event.reason)
+        me.connect(address)
+          .then(() => {
+            console.log('Reconnected')
+          })
+          .catch((error => {
+            console.err("ERROR: Could not reconnect")
+            throw new Error('Could not reconnect to the Web Socket at ' + address)
+          }))
+      });
+
+      wsp.onError.addListener(event => {
+        console.error('Connection Error: ' + event)
+        me.connect(address)
+          .then(() => {
+            console.log('Reconnected')
+          })
+          .catch((error => {
+            console.err("ERROR: Could not reconnect")
+            throw new Error('Could not reconnect to the Web Socket at ' + address)
+          }))
+      });
     }
   })
 };
@@ -114,20 +146,32 @@ module.exports.connect = function(address) {
 
 module.exports.send = function (json, method, type, subnetId, deviceId) {
   return new Promise(async function (resolve, reject) {
-    if (wsp.isOpened) {
-      let webSocketFormat = convertTo(json, method, type, subnetId, deviceId)
-      wsp.sendRequest(webSocketFormat, {requestId: webSocketFormat.message.messageId})
-        .then(response => {
-          console.log('Received Response')
-          console.log(response)
-          resolve(convertFrom(response))
+      if (!wsp.isOpened) {
+        console.log('Web Socket is not opened')
+        this.connect(() => {
+          let webSocketFormat = convertTo(json, method, type, subnetId, deviceId)
+          wsp.sendRequest(webSocketFormat, {requestId: webSocketFormat.message.messageId})
+            .then(response => {
+              console.log('Received Response')
+              console.log(response)
+              resolve(convertFrom(response))
+            })
         })
-    }
-    else {
-      console.log('Websocket is not opened')
-      reject(new Error('Websocket is not opened'))
-    }
-  })
+          .catch((err) => {
+            console.err(err)
+            throw new Error('Could not send request, Address is not set')
+          })
+      }
+      else {
+        let webSocketFormat = convertTo(json, method, type, subnetId, deviceId)
+        wsp.sendRequest(webSocketFormat, {requestId: webSocketFormat.message.messageId})
+          .then(response => {
+            console.log('Received Response')
+            console.log(response)
+            resolve(convertFrom(response))
+          })
+      }
+  });
 };
 
 
