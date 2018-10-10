@@ -1,10 +1,11 @@
 <template>
   <div class="device-row">
-    <div v-if="Object.keys(deviceLeases).length > 0 && deviceLeases[device.deviceId]" class="device-indicator">
-      <div v-if="deviceLeases[device.deviceId].status == 'positive'"><status-indicator positive pulse></status-indicator></div>
-      <div v-else-if="deviceLeases[device.deviceId].status == 'intermediary'"><status-indicator intermediary pulse></status-indicator></div>
+    <!--<p>DEVICE LEASES : {{deviceLeases}}</p>-->
+    <div v-if="Object.keys(deviceLeases).length > 0" class="device-indicator">
+      <div v-if="deviceLeases[deviceId].status == 'positive'"><status-indicator positive pulse></status-indicator></div>
+      <div v-else-if="deviceLeases[deviceId].status == 'intermediary'"><status-indicator intermediary pulse></status-indicator></div>
     </div>
-    <div v-else="!deviceLeases[device.deviceId]" class="device-indicator">
+    <div v-else="!deviceLeases[deviceId]" class="device-indicator">
       <status-indicator intermediary pulse></status-indicator>
     </div>
     <span class="device-title">
@@ -21,7 +22,7 @@
 </template>
 
 <script>
-import { mapMutations, mapState } from 'vuex'
+import { mapState } from 'vuex'
 import { StatusIndicator } from 'vue-status-indicator'
 import 'vue-status-indicator/styles.css'
 
@@ -30,22 +31,19 @@ export default {
   name: 'DeviceCard',
   props: {
     device: Object,
+    deviceId: String,
     subnetId: String,
     micronetId: String
   },
   computed: {
-    ...mapState(['micronets', 'deviceLeases'])
+    ...mapState(['micronets', 'deviceLeases', 'users'])
   },
   methods: {
-    ...mapMutations(['setEditTargetIds']),
-    configureMicronet () {
-      this.setEditTargetIds({ micronetId: this.micronetId, subnetId: this.subnetId, deviceId: this.device.deviceId })
-      this.$router.push(`/configure-micronet/${this.micronetId}/subnet/${this.subnetId}`)
-    },
-    created () {
-      console.log('\n DeviceCard.vue created method micronets : ' + JSON.stringify(this.micronets) + '\t\t Device Leases : ' + JSON.stringify(this.deviceLeases))
-    },
-    mounted () {}
+    created () {},
+    mounted () {
+      console.log('\n DeviceCard.vue mounted method Device Leases : ' + JSON.stringify(this.deviceLeases))
+      console.log('\n DeviceCard.vue mounted method passed props Device : ' + JSON.stringify(this.device) + '\t\t Device ID : ' + JSON.stringify(this.deviceId))
+    }
   }
 }
 </script>

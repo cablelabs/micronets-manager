@@ -20,14 +20,15 @@
   import SubnetCard from '../components/SubnetCard'
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
-
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+  // import io from 'socket.io-client'
+  // const socket = io(`${process.env.MM_SERVER_BASE_URL}`)
 
   export default {
     components: { SubnetCard, Layout, AddSubnetForm },
     name: 'micronets',
     computed: {
-      ...mapState(['subscriber', 'leases', 'deviceLeases']),
+      ...mapState(['subscriber', 'deviceLeases', 'users']),
       ...mapGetters(['editTarget'])
     },
     data: () => ({
@@ -36,7 +37,7 @@
     }),
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertLeases', 'upsertDeviceLeases']),
+      ...mapActions(['fetchMicronets', 'fetchSubscribers', 'fetchUsers']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -46,25 +47,14 @@
       }
     },
     mounted () {
-      this.setEditTargetIds({})
-      // this.micronets.micronets.micronet.length > 0 ? this.upsertDeviceLeases({event: 'init'}) : '' // Might be problematic
-      return this.fetchMicronets(this.$router.currentRoute.params.id).then(() => {
+      this.fetchMicronets(this.$router.currentRoute.params.id).then(() => {
         console.log('\n Mounted this.subscriber : ' + JSON.stringify(this.subscriber))
-        // if (data.devices && this.deviceLeases.length === 0) {
-        //   this.upsertDeviceLeases({event: 'init'})
-        // }
+      })
+      this.fetchUsers().then(() => {
+        console.log('\n Mounted this.deviceLeases : ' + JSON.stringify(this.deviceLeases))
       })
     },
-    created () {
-      this.setEditTargetIds({})
-      // this.micronets.micronets.micronet.length > 0 ? this.upsertDeviceLeases({event: 'init'}) : '' // Might be problematic
-      return this.fetchMicronets(this.$router.currentRoute.params.id).then(() => {
-        console.log('\n Created this.subscriber : ' + JSON.stringify(this.subscriber))
-        // if (data.devices && this.deviceLeases.length === 0) {
-        //   this.upsertDeviceLeases({event: 'init'})
-        // }
-      })
-    }
+    created () {}
   }
 </script>
 

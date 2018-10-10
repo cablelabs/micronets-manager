@@ -22,8 +22,7 @@
         </span>
         <v-list class="device-list">
           <template v-for="(device, deviceIndex) in subnet['connected-devices']">
-            <!--<DeviceCard :device="device" :key="device.deviceId" :subnetId="subnet.subnetId" :micronetId="micronetId" />-->
-            <DeviceCard :device="device" :subnetId="subnet['micronet-subnet-id']" :micronetId="micronetId" :subscriberId="subscriberId"/>
+            <DeviceCard :device="device" :deviceId="device['device-id']" :subnetId="subnet['micronet-subnet-id']" :micronetId="micronetId" :subscriberId="subscriberId"/>
             <v-divider v-if="deviceIndex + 1 < subnet['connected-devices'].length" :inset="false" class="list-divider"/>
           </template>
         </v-list>
@@ -57,11 +56,9 @@ export default {
     }
   },
   mounted () {
-    console.log('\n SubnetCard mounted method this.subnet : ' + JSON.stringify(this.subnet))
+    console.log('\n SubnetCard mounted method this.subnet : ' + JSON.stringify(this.subnet) + '\t\t micronetID : ' + JSON.stringify(this.micronetId) + '\t\t Subscriber ID : ' + JSON.stringify(this.subscriberId))
   },
-  created () {
-    console.log('\n SubnetCard created method this.subnet : ' + JSON.stringify(this.subnet))
-  }
+  created () {}
 }
 </script>
 

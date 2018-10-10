@@ -49,32 +49,23 @@
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers']),
-      openAddMicronet (micronetId) {
-        this.dialog = true
-        this.setEditTargetIds({ micronetId })
-      },
-      close (data) {
-        this.dialog = data
-      }
+      ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers'])
     },
     mounted () {
-      this.setEditTargetIds({})
       this.fetchMicronets().then(() => {
-        console.log('\n Mounted state obj Subscriber : ' + JSON.stringify(this.subscriber))
-        console.log('\n\n Mounted state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
-        // this.upsertDeviceLeases({event: 'init'})
+        console.log('\n  Home.vue Mounted state obj Subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n\n Home.vue Mounted state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
       })
       this.fetchUsers().then(() => {
-        console.log('\n Mounted state obj users : ' + JSON.stringify(this.users))
+        console.log('\n Home.vue Mounted state obj users : ' + JSON.stringify(this.users))
       })
     },
     created () {
       this.fetchMicronets().then(() => {
-        console.log('\n Created state obj Subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n Home.vue Created state obj Subscriber : ' + JSON.stringify(this.subscriber))
       })
       this.fetchUsers().then(() => {
-        console.log('\n Created state obj users : ' + JSON.stringify(this.users))
+        console.log('\n Home.vue Created state obj users : ' + JSON.stringify(this.users))
       })
     }
   }

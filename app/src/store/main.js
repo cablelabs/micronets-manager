@@ -17,7 +17,6 @@ const msoPortalAuthPostConfig = {
 const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/registration/token`
 const usersUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets/users`
 // const micronetsUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets`
-const localDhcpUri = `${process.env.BASE_URL}`
 // const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v'])
 // const omitStateMeta = omit(['_id', '__v'])
 
@@ -87,8 +86,6 @@ export const actions = {
     let deviceLeasesForState = {}
     let deviceLeases = data.devices.map((device, index) => {
       console.log('\n Current device : ' + JSON.stringify(device) + '\t\t Index : ' + JSON.stringify(index))
-     // const findDeviceIdIndex = state.deviceLeases.findIndex((stateDevice) => stateDevice === device.deviceId)
-     // console.log('\n findDeviceIdIndex : ' + JSON.stringify(findDeviceIdIndex))
       deviceLeasesForState[device.deviceId] = Object.assign({}, {status: device.deviceLeaseStatus})
       return deviceLeasesForState
     })
@@ -96,7 +93,6 @@ export const actions = {
     console.log('\n deviceLeases : ' + JSON.stringify(deviceLeases))
     console.log('\n deviceLeasesForState : ' + JSON.stringify(deviceLeasesForState))
     deviceLeases = [].concat(...deviceLeases)
-    // deviceLeases = deviceLeases.filter(Boolean)
     console.log('\n Constructed Device Lease status : ' + JSON.stringify(deviceLeasesForState))
     commit('setDeviceLeases', deviceLeasesForState)
   },
@@ -175,88 +171,6 @@ export const actions = {
       updatedDeviceLeases[data.deviceId] = { status: 'intermediary' }
       commit('setDeviceLeases', updatedDeviceLeases)
     }
-  },
-
-  fetchDhcpSubnets ({commit}) {
-    const url = `${localDhcpUri}/dhcp/subnets`
-    console.log('\n FtchDhcpSubnets url : ' + JSON.stringify(url))
-    return axios({
-      ...apiInit,
-      method: 'get',
-      url: url
-    })
-      .then(({data}) => {
-        console.log('\n FetchDhcpSubnets Data : ' + JSON.stringify(data))
-        commit('setDhcpSubnets', data)
-        return data
-      })
-  },
-
-  upsertDhcpSubnet ({state, commit, dispatch}, {data, id}) {
-    console.log('\n Testing state for dhcp subnets : ' + JSON.stringify(state.dhcpSubnets))
-    const url = id ? `${localDhcpUri}/dhcp/subnets/${id}` : `${localDhcpUri}/dhcp/subnets`
-    const method = id ? 'put' : 'post'
-    return axios({
-      ...apiInit,
-      method: method,
-      url: url,
-      data
-    })
-      .then(({data}) => {
-        return dispatch('fetchDhcpSubnets')
-      })
-  },
-
-  deleteDhcpSubnet ({state, commit, dispatch}, {id, data}) {
-    const url = `${localDhcpUri}/dhcp/subnets`
-    return axios({
-      ...apiInit,
-      method: 'delete',
-      url: `${url}/${id}`,
-      data
-    })
-      .then(({data}) => {
-        return dispatch('fetchDhcpSubnets')
-      })
-  },
-
-  fetchDhcpSubnetDevices ({commit}, subnetId) {
-    const url = `${localDhcpUri}/dhcp/subnets/${subnetId}/devices`
-    return axios({
-      ...apiInit,
-      method: 'get',
-      url: url
-    })
-      .then(({data}) => {
-        commit('setDhcpSubnetDevices', data)
-        return data
-      })
-  },
-
-  upsertDhcpSubnetDevice ({commit, dispatch}, {subnetId, deviceId, data, event}) {
-    const method = event === 'addDhcpSubnetDevice' ? 'post' : 'put'
-    const url = event === 'addDhcpSubnetDevice' ? `${localDhcpUri}/dhcp/subnets/${subnetId}/devices` : `${localDhcpUri}/dhcp/subnets/${subnetId}/devices/${deviceId}`
-    return axios({
-      ...apiInit,
-      method: method,
-      url: url,
-      data
-    })
-      .then(({data}) => {
-        return dispatch('fetchDhcpSubnetDevices', subnetId)
-      })
-  },
-
-  deleteDhcpSubnetDevice ({commit, dispatch}, {subnetId, deviceId}) {
-    const url = `${localDhcpUri}/dhcp/subnets/${subnetId}/devices/${deviceId}`
-    return axios({
-      ...apiInit,
-      method: 'delete',
-      url: url
-    })
-      .then(({data}) => {
-        return dispatch('fetchDhcpSubnetDevices', subnetId)
-      })
   }
 }
 
