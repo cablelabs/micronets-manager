@@ -1,7 +1,5 @@
 import axios from 'axios'
 import {findIndex, propEq} from 'ramda'
-// import uuidv4 from 'uuid/v4'
-
 const setState = prop => (state, value) => { state[prop] = value }
 const micronetsUrl = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets`
 const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
@@ -34,16 +32,7 @@ export const initialState = {
   deviceLeases: []
 }
 
-export const getters = {
-  editTarget (state) {
-    if (!state.editTargetIds) return null
-    const {micronetId, subnetId, deviceId} = state.editTargetIds
-    const micronet = state.micronets.filter(x => x._id === micronetId)[0]
-    if (!subnetId) return micronet
-    const subnet = micronet.subnets.filter(x => x.subnetId === subnetId)[0]
-    return !deviceId ? subnet : subnet.deviceList.filter(x => x.deviceId === deviceId)[0]
-  }
-}
+export const getters = {}
 
 export const mutations = {
   setSubscriber: setState('subscriber'),
@@ -53,9 +42,6 @@ export const mutations = {
   setDhcpSubnetDevices: setState('dhcpSubnetDevices'),
   setLeases: setState('leases'),
   setDeviceLeases: setState('deviceLeases'),
-  setEditTargetIds (state, {micronetId, subnetId, deviceId}) {
-    state.editTargetIds = {micronetId, subnetId, deviceId}
-  },
   replaceMicronet (state, micronet) {
     const index = findIndex(propEq('_id', micronet._id), state.micronets)
     if (index < 0) return state.micronets.push(micronet)
@@ -136,41 +122,6 @@ export const actions = {
         commit('setSubscriber', data.data[0])
         return data.data[0]
       })
-  },
-
-  upsertDeviceLeases ({state, commit}, {type, data, event}) {
-    if (event === 'init') {
-      let deviceLeasesForState = {}
-      state.micronets.forEach((micronet, micronetIndex) => {
-        micronet.subnets.forEach((subnet, subnetIndex) => {
-          subnet.deviceList.forEach((device, deviceIndex) => {
-            deviceLeasesForState[device.deviceId] = Object.assign({}, {status: 'intermediary'})
-          })
-        })
-      })
-      commit('setDeviceLeases', deviceLeasesForState)
-      return deviceLeasesForState
-    }
-
-    if (event === 'upsert') {
-      if (type === 'leaseAcquired') {
-        let updatedDeviceLeases = Object.assign({}, state.deviceLeases)
-        updatedDeviceLeases[data.deviceId].status = 'positive'
-        commit('setDeviceLeases', updatedDeviceLeases)
-      }
-
-      if (type === 'leaseExpired') {
-        let updatedDeviceLeases = Object.assign({}, state.deviceLeases)
-        updatedDeviceLeases[data.deviceId].status = 'intermediary'
-        commit('setDeviceLeases', updatedDeviceLeases)
-      }
-    }
-
-    if (event === 'addDeviceLease') {
-      let updatedDeviceLeases = Object.assign({}, state.deviceLeases)
-      updatedDeviceLeases[data.deviceId] = { status: 'intermediary' }
-      commit('setDeviceLeases', updatedDeviceLeases)
-    }
   }
 }
 

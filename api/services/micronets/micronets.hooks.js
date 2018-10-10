@@ -920,7 +920,6 @@ module.exports = {
     find : [
       hook => {
         const { data , params , id } = hook;
-        console.log ( '\n Before Find Hook ID : ' + JSON.stringify ( id ) + '\t\t DATA : ' + JSON.stringify ( data ) + '\t\t PARAMS : ' + JSON.stringify ( params ) )
       }
     ] ,
     get : [
