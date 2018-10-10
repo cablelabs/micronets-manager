@@ -971,7 +971,7 @@ module.exports = {
           return Promise.resolve ( hook )
         }
 
-        else if ( hook.data && hook.data.type == 'userDeviceRegistered' ) {
+         if ( hook.data && hook.data.type == 'userDeviceRegistered' ) {
           console.log ( '\n User Device Registered event detected.Adding device to new or existing subnet for data .. : ' + JSON.stringify ( hook.data ) )
           const { type , data } = hook.data
           const { subscriberId , device } = data

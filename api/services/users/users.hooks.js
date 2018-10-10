@@ -4,11 +4,12 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const errors = require('@feathersjs/errors')
 const mongoose = require('mongoose');
 
+
 module.exports = {
   before : {
-    all : [ authenticate ( 'jwt' ) ] ,
+    all : [  ] ,
     find : [] ,
-    get : [
+    get : [ authenticate ( 'jwt' ),
       hook => {
         const {params, id} = hook
         const query = Object.assign({ id: id ? id : params.id }, hook.params.query);
@@ -20,7 +21,7 @@ module.exports = {
           })
       }
     ] ,
-    create : [
+    create : [ authenticate ( 'jwt' ),
       ( hook ) => {
         const {data } = hook;
         hook.data = Object.assign({}, {
@@ -29,14 +30,14 @@ module.exports = {
           ssid: data.ssid,
           devices : [data.devices]
         })
-        hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userCreate' , {
-          type : 'userCreate' ,
-          data : { subscriberId : hook.data.id  }
-        } );
+        // hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userCreate' , {
+        //   type : 'userCreate' ,
+        //   data : { subscriberId : hook.data.id  }
+        // } );
       }
     ] ,
     update : [] ,
-    patch : [
+    patch : [ authenticate ( 'jwt' ),
       (hook) => {
       const { params, data, id } = hook;
         hook.params.mongoose = {
@@ -89,8 +90,34 @@ module.exports = {
     all : [] ,
     find : [] ,
     get : [] ,
-    create : [] ,
-    update : [] ,
+    create : [
+      async(hook) => {
+       console.log('\n AFTER USER CREATE HOOK RESULT : .. ' + JSON.stringify(hook.result))
+        const user = hook.result
+        // const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
+        //   id : user.id ,
+        //   name : user.name ,
+        //   ssid : user.ssid ,
+        //   micronets : Object.assign ( {} , {
+        //     micronet : []
+        //   } )
+        // }))
+        hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userCreate' , {
+          type : 'userCreate' ,
+          data : { subscriberId : hook.result.id  }
+        } );
+      }
+    ] ,
+    update : [
+      async(hook) => {
+        console.log('\n AFTER UPDATE HOOK : ' + JSON.stringify(hook.result))
+        hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userDeviceUpdate' , {
+          type : 'userDeviceUpdate' ,
+          data : { subscriberId : hook.result.id, devices:hook.result.devices  }
+        } );
+
+      }
+    ] ,
     patch : [
       hook => {
         const { params , data , payload } = hook;
