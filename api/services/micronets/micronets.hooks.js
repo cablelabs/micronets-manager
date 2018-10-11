@@ -176,7 +176,13 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   const { switchConfig } = odlStaticConfig
   /* Get SwitchConfig */
 
+  /* Get Allocated subnets  */
+  const micronetFromDB = await getMicronet(hook,{})
+  const allocatedSubnetNos = micronetFromDB.micronets.micronet.map((micronet)=> { return (micronet['micronet-subnet']) })
+  console.log('\n allocatedSubnetNos from Micro-net database : ' + JSON.stringify(allocatedSubnetNos))
+
   console.log ( '\n\n GET STATIC SUBNET IPs SWITCH CONFIG : ' + JSON.stringify ( switchConfig ) )
+
 
   let wiredSwitchConfigSubnets = switchConfig.bridges.map ( ( bridge ) => {
     console.log ( '\n Current bridge : ' + JSON.stringify ( bridge.name ) )
@@ -188,9 +194,11 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
       }
     })
   })
- // Flatten array , filter null values and remove duplicate elements
+
+  // Flatten array , filter null values , remove duplicate elements, remove previously allocated subnetNos
   wiredSwitchConfigSubnets = [].concat(...wiredSwitchConfigSubnets).filter ( Boolean )
   wiredSwitchConfigSubnets = [...(new Set(wiredSwitchConfigSubnets))]
+  wiredSwitchConfigSubnets = wiredSwitchConfigSubnets.filter( ( el ) => !allocatedSubnetNos.includes( el ) );
 
   let wirelessSwitchConfigSubnets = switchConfig.bridges.map ( ( bridge ) => {
     console.log ( '\n Current bridge : ' + JSON.stringify ( bridge.name ) )
@@ -203,8 +211,10 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
     })
   })
 
+  // Flatten array , filter null values , remove duplicate elements, remove previously allocated subnetNos
   wirelessSwitchConfigSubnets = [].concat(...wirelessSwitchConfigSubnets).filter ( Boolean )
   wirelessSwitchConfigSubnets = [...(new Set(wirelessSwitchConfigSubnets))]
+  wirelessSwitchConfigSubnets = wirelessSwitchConfigSubnets.filter( ( el ) => !allocatedSubnetNos.includes( el ) );
 
   console.log ( '\n GetStaticSubnetIps wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
 
