@@ -161,7 +161,7 @@ const getSubnet = ( hook , index ) => {
     return subnet
   } )
 }
-
+/* Get Static Subnet IP's */
 const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   console.log ( '\n getStaticSubnetIps requestBody : ' + JSON.stringify ( requestBody ) + '\t\t subnetDetails : ' + JSON.stringify ( subnetDetails ) )
 
@@ -178,20 +178,38 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
 
   console.log ( '\n\n GET STATIC SUBNET IPs SWITCH CONFIG : ' + JSON.stringify ( switchConfig ) )
 
-  let wiredSwitchConfigSubnets = switchConfig.bridges.map ( ( swConfig ) => {
-    if ( swConfig.portWired == "wired" ) return swConfig.subnet
-  } )
-  wiredSwitchConfigSubnets = wiredSwitchConfigSubnets.filter ( Boolean )
+  let wiredSwitchConfigSubnets = switchConfig.bridges.map ( ( bridge ) => {
+    console.log ( '\n Current bridge : ' + JSON.stringify ( bridge.name ) )
+    return bridge.ports.map ( ( port , index ) => {
+      console.log('\n\n Port : ' + JSON.stringify(port))
+      if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == "wired" ) {
+        // return { subnet : port.subnet , port : port }
+         return port.subnet
+      }
+    })
+  })
+ // Flatten array , filter null values and remove duplicate elements
+  wiredSwitchConfigSubnets = [].concat(...wiredSwitchConfigSubnets).filter ( Boolean )
+  wiredSwitchConfigSubnets = [...(new Set(wiredSwitchConfigSubnets))]
 
-  let wirelessSwitchConfigSubnets = switchConfig.bridges.map ( ( swConfig ) => {
-    if ( swConfig.portWired == "wireless" ) return swConfig.subnet
-  } )
-  wirelessSwitchConfigSubnets = wirelessSwitchConfigSubnets.filter ( Boolean )
+  let wirelessSwitchConfigSubnets = switchConfig.bridges.map ( ( bridge ) => {
+    console.log ( '\n Current bridge : ' + JSON.stringify ( bridge.name ) )
+    return bridge.ports.map ( ( port , index ) => {
+      console.log('\n\n Port : ' + JSON.stringify(port))
+      if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == "wifi" ) {
+        // return { subnet : port.subnet , port : port }
+        return port.subnet
+      }
+    })
+  })
 
-  console.log ( '\n wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
+  wirelessSwitchConfigSubnets = [].concat(...wirelessSwitchConfigSubnets).filter ( Boolean )
+  wirelessSwitchConfigSubnets = [...(new Set(wirelessSwitchConfigSubnets))]
+
+  console.log ( '\n GetStaticSubnetIps wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
 
   const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
-    const subnetNo = wiredSwitchConfigSubnets[ index ].split ( '.' )[ 2 ]
+    const subnetNo = parseInt(wiredSwitchConfigSubnets[ index ].split ( '.' )[ 2 ])
     console.log ( '\n Calling IP Allocator to create subnet ' + JSON.stringify ( subnetNo ) )
     const subnets = await subnetAllocation.getNewSubnet ( index , subnetNo )
     // console.log ( '\n GET SUBNET IPs Subnets from IPAllocator : ' + JSON.stringify ( subnets ) )
@@ -201,6 +219,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   return promises
 }
 
+/* Get Dynamic Subnet IP's */
 const getSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   console.log ( '\n getSubnetIps requestBody : ' + JSON.stringify ( requestBody ) + '\t\t subnetDetails : ' + JSON.stringify ( subnetDetails ) )
   const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
@@ -249,9 +268,10 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
   console.log ( '\n getSubnetAndDeviceIps Subnet Details : ' + JSON.stringify ( subnetDetails ) )
 
   // Gets random subnets
-  const subnets = await getSubnetIps ( hook , subnetDetails , requestBody )
-  // Gets specific subnets
-  // const subnets = await getStaticSubnetIps ( hook , subnetDetails , requestBody )
+  // const subnets = await getSubnetIps ( hook , subnetDetails , requestBody )
+
+  // Gets static subnets
+  const subnets = await getStaticSubnetIps ( hook , subnetDetails , requestBody )
   console.log ( '\n getSubnetAndDeviceIps Obtained subnets : ' + JSON.stringify ( subnets ) )
 
   /* Add check for devices length in subnetDetails array */
@@ -685,6 +705,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   const micronetToUpdate = micronetFromDB.micronets.micronet[ micronetToUpdateIndex ]
   const micronetSubnet = micronetToUpdate[ 'micronet-subnet' ]
   console.log ( '\n Micronet-Subnet : ' + JSON.stringify ( micronetSubnet ) )
+  // Convert subnetNo string to Int
   const subnetNo = parseInt ( micronetSubnet.split ( '.' )[ 2 ] , 10 );
   console.log ( '\n SubnetNo : ' + JSON.stringify ( subnetNo ) )
   // Remove hard-coded subnetNo laterSubnet to add device to
@@ -941,9 +962,9 @@ module.exports = {
     ] ,
     create : [
       async hook => {
-        const { params , id } = hook;
+        const { params , id, data } = hook;
         const micronetFromDB = await getMicronet ( hook , {} )
-
+        console.log('\n\n CREATE MICRO-NETS HOOK PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data))
         if ( micronetFromDB ) {
           hook.id = micronetFromDB._id
           console.log ( '\n Hook.id for patch : ' + JSON.stringify ( micronetFromDB._id ) )
@@ -952,17 +973,13 @@ module.exports = {
         /* User created. Initialize micronets object */
         // TODO : Create micronet when user is created
         if ( hook.data && hook.data.type == 'userCreate' ) {
-          const { type , data } = hook.data
-          console.log ( '\n USER CREATE EVENT DETECTED . TYPE .... : ' + JSON.stringify ( type ) + '\t\t DATA : ' + JSON.stringify ( data ) )
-          const query = Object.assign ( { id : data.subscriberId } );
-          let user = await hook.app.service ( '/mm/v1/micronets/users' ).find ( { query } )
-          user = user.data[ 0 ]
-          console.log ( '\n User from db : ' + JSON.stringify ( user ) )
+          const { type , id, ssid, name } = hook.data
+          console.log ( '\n USER CREATE EVENT DETECTED . TYPE .... : ' + JSON.stringify ( type ) + '\t\t ID : ' + JSON.stringify ( id ) )
           // Create Micronets object
           hook.data = Object.assign ( {} , {
-            id : user.id ,
-            name : user.name ,
-            ssid : user.ssid ,
+            id : id ,
+            name : name ,
+            ssid : ssid ,
             micronets : Object.assign ( {} , {
               micronet : []
             } )
