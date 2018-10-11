@@ -94,18 +94,15 @@ module.exports = {
       async(hook) => {
        console.log('\n AFTER USER CREATE HOOK RESULT : .. ' + JSON.stringify(hook.result))
         const user = hook.result
-        // const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
-        //   id : user.id ,
-        //   name : user.name ,
-        //   ssid : user.ssid ,
-        //   micronets : Object.assign ( {} , {
-        //     micronet : []
-        //   } )
-        // }))
-        hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userCreate' , {
-          type : 'userCreate' ,
-          data : { subscriberId : hook.result.id  }
-        } );
+        const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
+          type: 'userCreate',
+          id : user.id ,
+          name : user.name ,
+          ssid : user.ssid ,
+          micronets : Object.assign ( {} , {
+            micronet : []
+          } )
+        }))
       }
     ] ,
     update : [
