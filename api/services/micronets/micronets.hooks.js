@@ -769,12 +769,34 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   const dhcpSubnetLength = dhcpSubnetsToAdd.length
   const micronetFromDB = await getMicronet ( hook , {} )
   const { micronet } = micronetFromDB.micronets
+  const registry = await getRegistry ( hook , {} )
+  const { websocketUrl , mmUrl, gatewayId } = registry
+  console.log ( '\n WebsocketUrl : ' + JSON.stringify ( websocketUrl ) )
+  const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
+  const { bridges } = odlStaticConfig.switchConfig
+  console.log('\n switchConfig bridges : ' + JSON.stringify(bridges))
+  const bridge = bridges.map((bridge) => {return bridge})
 
   // Checks if micronet is added to d/b which indicates successful ODL call.
   let dhcpSubnetsPostBody = dhcpSubnetsToAdd.map ( ( dhcpSubnet , index ) => {
     console.log ( '\n DHCP SUBNET TO ADD : ' + JSON.stringify ( dhcpSubnet ) + '\t\t INDEX : ' + JSON.stringify ( index ) )
     const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.name.toLowerCase () == dhcpSubnet.name.toLowerCase () && micronet[ "micronet-subnet-id" ].toLowerCase () == dhcpSubnet.subnetId.toLowerCase ()) )
     console.log ( '\n matchedMicronetIndex : ' + JSON.stringify ( matchedMicronetIndex ) )
+    let matchedPortFromSubnet = bridges.map((bridge) => {
+      console.log('\n Bridge : ' + JSON.stringify(bridge))
+      return bridge.ports.map((port) =>
+      {
+        if(micronet[ matchedMicronetIndex ][ "micronet-subnet" ] == port.subnet) {
+          return {
+            ovsBridge: bridge.name,
+            ovsPort: port.port,
+            interface: port.interface
+          }
+        }
+      })
+    })
+    matchedPortFromSubnet = [].concat(...matchedPortFromSubnet).filter(Boolean)
+    console.log('\n matchedPortFromSubnet : ' + JSON.stringify(matchedPortFromSubnet))
     if ( matchedMicronetIndex > -1 ) {
       return {
         subnetId : dhcpSubnet.subnetId ,
@@ -782,15 +804,17 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
           network : micronet[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
           mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
           gateway : micronet[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
-        }
+        },
+        ovsBridge: matchedPortFromSubnet[0].ovsBridge,
+        ovsPort: matchedPortFromSubnet[0].ovsPort,
+        interface: matchedPortFromSubnet[0].interface
+
       }
     }
   } )
   dhcpSubnetsPostBody = dhcpSubnetsPostBody.filter ( Boolean )
   console.log ( '\n dhcpSubnetsPostBody : ' + JSON.stringify ( dhcpSubnetsPostBody ) )
-  const registry = await getRegistry ( hook , {} )
-  const { websocketUrl , mmUrl } = registry
-  console.log ( '\n WebsocketUrl : ' + JSON.stringify ( websocketUrl ) )
+
   const dhcpSubnets = await axios ( {
     ...apiInit ,
     method : 'get' ,
