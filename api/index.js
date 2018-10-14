@@ -5,7 +5,7 @@ const port = app.get ( 'port' );
 const server = app.listen ( port );
 const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
-const webSocketUrl = 'wss://localhost:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z'
+const webSocketUrl = 'wss://74.207.229.106:5050/micronets/v1/ws-proxy/grandpa-gw'
 
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
@@ -14,7 +14,7 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 server.on ( 'listening' , async () => {
   logger.info ( 'Feathers application started on http://%s:%d' , app.get ( 'host' ) , port )
   await dw.setAddress ( webSocketUrl );
-  await dw.connect ().then ( () => { return true } );
+  await dw.connect ().webSocketUrlthen ( () => { return true } );
 } );
 
 io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )

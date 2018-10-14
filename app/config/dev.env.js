@@ -8,5 +8,5 @@ module.exports = merge(prodEnv, {
   CLIENT_BASE_URL: '"http://127.0.0.1:8080"',
   MSO_PORTAL_BASE_URL: '"http://127.0.0.1:3210"',
   DHCP_BASE_URL: '"http://10.36.32.127:5001"',
-  DHCP_SOCKET_URL: '"wss://localhost:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z"'
+  DHCP_SOCKET_URL: '"wss://74.207.229.106:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z"'
 })

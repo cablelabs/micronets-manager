@@ -4,8 +4,7 @@ const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application
 const axios = require ( 'axios' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v' ] );
 const dhcpUrlPrefix = "/mm/v1/dhcp/subnets"
-// const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001"
-// const dhcpConnectionUrl = "wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z"
+
 
 const getRegistryForSubscriber = async ( hook , subscriberId ) => {
   const query = Object.assign ( {} , { subscriberId : subscriberId } , hook.params.query );
