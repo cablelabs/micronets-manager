@@ -32,6 +32,8 @@ const isGatewayAlive = async ( hook ) => {
   return dhcpConnection
 }
 
+const flattenArray = (a) => Array.isArray(a) ? [].concat(...a.map(flattenArray)) : a;
+
 const connectToGateway = async ( hook ) => {
   console.log ( '\n connectToGateway hook ...' )
   return true
@@ -218,15 +220,21 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
 
   console.log ( '\n GetStaticSubnetIps wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
 
-  const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
-    const subnetNo = parseInt(wiredSwitchConfigSubnets[ index ].split ( '.' )[ 2 ])
-    console.log ( '\n Calling IP Allocator to create subnet ' + JSON.stringify ( subnetNo ) )
-    const subnets = await subnetAllocation.getNewSubnet ( index , subnetNo )
-    // console.log ( '\n GET SUBNET IPs Subnets from IPAllocator : ' + JSON.stringify ( subnets ) )
-    return Object.assign ( {} , subnets )
-  } ) )
-  console.log ( '\n getStaticSubnetIps Obtained subnets : ' + JSON.stringify ( promises ) )
-  return promises
+  if(wiredSwitchConfigSubnets.length > 0) {
+    const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
+      const subnetNo = parseInt(wiredSwitchConfigSubnets[ index ].split ( '.' )[ 2 ])
+      console.log ( '\n Calling IP Allocator to create subnet ' + JSON.stringify ( subnetNo ) )
+      const subnets = await subnetAllocation.getNewSubnet ( index , subnetNo )
+      // console.log ( '\n GET SUBNET IPs Subnets from IPAllocator : ' + JSON.stringify ( subnets ) )
+      return Object.assign ( {} , subnets )
+    } ) )
+    console.log ( '\n getStaticSubnetIps Obtained subnets : ' + JSON.stringify ( promises ) )
+    return promises
+  }
+  else {
+   // TODO : Add Errors
+  }
+
 }
 
 /* Get Dynamic Subnet IP's */
@@ -782,38 +790,38 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
     console.log ( '\n DHCP SUBNET TO ADD : ' + JSON.stringify ( dhcpSubnet ) + '\t\t INDEX : ' + JSON.stringify ( index ) )
     const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.name.toLowerCase () == dhcpSubnet.name.toLowerCase () && micronet[ "micronet-subnet-id" ].toLowerCase () == dhcpSubnet.subnetId.toLowerCase ()) )
     console.log ( '\n matchedMicronetIndex : ' + JSON.stringify ( matchedMicronetIndex ) )
-    let matchedPortFromSubnet = bridges.map((bridge) => {
+    return bridges.map((bridge) => {
       console.log('\n Bridge : ' + JSON.stringify(bridge))
+      console.log('\n\n micronet[ matchedMicronetIndex ][ "micronet-subnet" ] : ' + JSON.stringify(micronet[ matchedMicronetIndex ][ "micronet-subnet" ]))
       return bridge.ports.map((port) =>
       {
-        if(micronet[ matchedMicronetIndex ][ "micronet-subnet" ] == port.subnet) {
-          return {
+        if(micronet[ matchedMicronetIndex ][ "micronet-subnet" ] == port.subnet &&  matchedMicronetIndex > -1 ) {
+          const matchedPortForSubnet = Object.assign( {},{
             ovsBridge: bridge.name,
             ovsPort: port.port,
             interface: port.interface
-          }
+          })
+           console.log('\n Current matchedPortForSubnet : ' + JSON.stringify(matchedPortForSubnet))
+            return {
+              subnetId : dhcpSubnet.subnetId ,
+              ipv4Network : {
+                network : micronet[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
+                mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
+                gateway : micronet[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
+              },
+              ovsBridge: bridge.name,
+              ovsPort: port.port,
+              interface: port.interface
+            }
         }
       })
     })
-    matchedPortFromSubnet = [].concat(...matchedPortFromSubnet).filter(Boolean)
-    console.log('\n matchedPortFromSubnet : ' + JSON.stringify(matchedPortFromSubnet))
-    if ( matchedMicronetIndex > -1 ) {
-      return {
-        subnetId : dhcpSubnet.subnetId ,
-        ipv4Network : {
-          network : micronet[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
-          mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
-          gateway : micronet[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
-        },
-        ovsBridge: matchedPortFromSubnet[0].ovsBridge,
-        ovsPort: matchedPortFromSubnet[0].ovsPort,
-        interface: matchedPortFromSubnet[0].interface
-
-      }
-    }
-  } )
-  dhcpSubnetsPostBody = dhcpSubnetsPostBody.filter ( Boolean )
+  })
   console.log ( '\n dhcpSubnetsPostBody : ' + JSON.stringify ( dhcpSubnetsPostBody ) )
+  dhcpSubnetsPostBody = flattenArray(dhcpSubnetsPostBody);
+  console.log('\n AFTER FLATTEN ARRAY dhcpSubnetsPostBody : ' + JSON.stringify(dhcpSubnetsPostBody))
+  dhcpSubnetsPostBody = dhcpSubnetsPostBody.filter((el)=> { return el!=null} )
+  console.log ( '\n AFTER REMOVING NULL dhcpSubnetsPostBody : ' + JSON.stringify ( dhcpSubnetsPostBody ) )
 
   const dhcpSubnets = await axios ( {
     ...apiInit ,
@@ -825,7 +833,7 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   const dhcpSubnetPromises = await Promise.all ( dhcpSubnetsPostBody.map ( async ( subnetToPost , index ) => {
     const dhcpSubnetIndex = subnets.findIndex ( ( subnet ) => subnet.subnetId == subnetToPost.subnetId )
     console.log ( '\n dhcpSubnetIndex : ' + JSON.stringify ( dhcpSubnetIndex ) )
-    if ( dhcpSubnetIndex == -1 ) {
+    if ( dhcpSubnetIndex == -1 && subnetToPost!=null ) {
       //const dhcpSubnetResponse = await hook.app.service ( '/mm/v1/dhcp/subnets' ).create ( subnetToPost )
       console.log ( '\n DHCP WEB PROXY POST : ' + JSON.stringify ( subnetToPost ) )
       const dhcpSubnetResponse = await axios ( {
@@ -998,7 +1006,7 @@ module.exports = {
       async hook => {
         const { params , id, data } = hook;
         const micronetFromDB = await getMicronet ( hook , {} )
-        console.log('\n\n CREATE MICRO-NETS HOOK PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data))
+        // console.log('\n\n CREATE MICRO-NETS HOOK PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data))
         if ( micronetFromDB ) {
           hook.id = micronetFromDB._id
           console.log ( '\n Hook.id for patch : ' + JSON.stringify ( micronetFromDB._id ) )
