@@ -33,14 +33,8 @@ module.exports = {
           runValidators : true ,
           setDefaultsOnInsert : true
         }
-        console.log('\n\n CREATE HOOK PARAMS : ' + JSON.stringify(params))
-        console.log('\n\n CREATE HOOK DATA : ' + JSON.stringify(data))
-        console.log('\n\n CREATE HOOK ID : ' + JSON.stringify(id))
-        console.log('\n\n CREATE HOOK PATH : ' + JSON.stringify(path))
-        console.log('\n\n CREATE HOOK HEADERS : ' + JSON.stringify(headers))
-        console.log('\n\n CREATE HOOK URL : ' + JSON.stringify(url))
+        console.log('\n\n CREATE MOCK MICRONET CREATE HOOK PARAMS : ' + JSON.stringify(params) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t ID : ' + JSON.stringify(id) + '\t\t PATH : ' + JSON.stringify(path) + '\t\t HEADERS : ' + JSON.stringify(headers) + '\t\t URL : ' + JSON.stringify(url))
         const mockMicronetFromDB = await hook.app.service('/mm/v1/mock/micronets').get({})
-
         console.log('\n mockMicronetFromDB  : ' + JSON.stringify(mockMicronetFromDB))
         // Create or update micronet
         if (hook.data.micronets && !hook.id && !hook.params.route.micronetId && !hook.params.route.subnetId) {
