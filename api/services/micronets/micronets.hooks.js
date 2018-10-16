@@ -698,7 +698,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
       console.log ( '\n Device is from registration process ... ' )
       return {
         "device-mac" : device.macAddress ,
-        "device-name" : `Test Device ${index}` ,  // deviceName not present in Token
+        "device-name" : `Test Device` ,  // deviceName not present in Token
         "device-id" : device.deviceId ,
         "device-openflow-port" : 2 // TODO: Add device-openflow-port value from switch config
       }
@@ -706,7 +706,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
     else {
       return {
         "device-mac" : device[ "device-mac" ] ,
-        "device-name" : device[ "device-name" ] || `Test Device ${index}` ,  // deviceName not present in Token
+        "device-name" : device[ "device-name" ] || `Test Device` ,  // deviceName not present in Token
         "device-id" : device[ "device-id" ] ,
         "device-openflow-port" : device[ "device-openflow-port" ]
       }
@@ -751,7 +751,6 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   } )
   console.log ( '\n formattedSubnetWithDevices : ' + JSON.stringify ( formattedSubnetWithDevices ) )
   console.log ( '\n Micronet to update : ' + JSON.stringify ( micronetToUpdate ) )
-  // TODO : Fix bug of adding devices twice.
   const updatedMicronetwithDevices = Object.assign ( {} , micronetToUpdate , { 'connected-devices' : micronetToUpdate[ 'connected-devices' ].concat ( formattedSubnetWithDevices ) } )
   console.log ( '\n UpdatedMicronetwithDevices : ' + JSON.stringify ( updatedMicronetwithDevices ) )
 
@@ -768,8 +767,9 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
 const addDhcpSubnets = async ( hook , requestBody ) => {
   console.log ( '\n\n addDhcpSubnets requestBody : ' + JSON.stringify ( requestBody ) )
   const dhcpSubnetsToAdd = requestBody.micronets.micronet.map ( ( micronet , index ) => {
+    console.log('\n\n Request Body micro-net : ' + JSON.stringify(micronet['micronet-subnet-id']))
     return {
-      name : micronet.name ,
+      class : micronet.class ? micronet.class : micronet.name ,
       subnetId : micronet[ "micronet-subnet-id" ]
     }
   } )
@@ -787,8 +787,11 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
 
   // Checks if micronet is added to d/b which indicates successful ODL call.
   let dhcpSubnetsPostBody = dhcpSubnetsToAdd.map ( ( dhcpSubnet , index ) => {
-    console.log ( '\n DHCP SUBNET TO ADD : ' + JSON.stringify ( dhcpSubnet ) + '\t\t INDEX : ' + JSON.stringify ( index ) )
-    const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.name.toLowerCase () == dhcpSubnet.name.toLowerCase () && micronet[ "micronet-subnet-id" ].toLowerCase () == dhcpSubnet.subnetId.toLowerCase ()) )
+    console.log ('\n\n DHCP SUBNET TO ADD : ' + JSON.stringify ( dhcpSubnet ) + '\t\t INDEX : ' + JSON.stringify ( index ) )
+    console.log('\n\n MICRO-NET FROM DB : ' + JSON.stringify(micronet))
+    // Original check with class property in request body
+    // const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.class.toLowerCase () == dhcpSubnet.class.toLowerCase () && micronet[ "micronet-subnet-id" ].toLowerCase () == dhcpSubnet.subnetId.toLowerCase ()) )
+    const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.class.toLowerCase () == dhcpSubnet.class.toLowerCase ()) )
     console.log ( '\n matchedMicronetIndex : ' + JSON.stringify ( matchedMicronetIndex ) )
     return bridges.map((bridge) => {
       console.log('\n Bridge : ' + JSON.stringify(bridge))
@@ -859,7 +862,9 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
 
   // Check if micronet exists in DB
   const micronetFromDB = await getMicronet ( hook , {} )
-  const micronetIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => micronet[ "micronet-id" ] == micronetId && micronet[ "micronet-subnet-id" ] == subnetId )
+  // Original check with class property in request body
+  // const micronetIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => micronet[ "micronet-id" ] == micronetId && micronet[ "micronet-subnet-id" ] == subnetId )
+  const micronetIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => micronet[ "micronet-id" ] == micronetId )
   console.log ( '\n micronetIndex : ' + JSON.stringify ( micronetIndex ) )
   // Construct POST DHCP Device body
   let dhcpDevicesPostBody = requestBody.micronets.micronet.map ( ( micronet , index ) => {
