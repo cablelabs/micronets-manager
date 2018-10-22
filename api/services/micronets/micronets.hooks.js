@@ -1278,7 +1278,7 @@ module.exports = {
         const registry = await getRegistry ( hook , {} )
         const { odlUrl , mmUrl } = registry
         console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify ( id ) )
-        let postBodyForDelete = [] , micronetToDelete = {}
+        let postBodyForDelete = [] , micronetToDelete = {}, registeredDevicesToDelete = []
         // ODL and Gateway checks
         const isGtwyAlive = await isGatewayAlive ( hook )
         const isOdlAlive = await isODLAlive ( hook )
@@ -1297,8 +1297,10 @@ module.exports = {
             // Valid index. Micronet exists
             if ( micronetToDeleteIndex > -1 ) {
               micronetToDelete = micronet[ micronetToDeleteIndex ]
+              registeredDevicesToDelete = micronetToDelete['connected-devices']
               postBodyForDelete = micronet.filter ( ( micronet , index ) => index != micronetToDeleteIndex )
               console.log ( '\n POST BODY FOR DELETE : ' + JSON.stringify ( postBodyForDelete ) + '\t\t for hook.id : ' + JSON.stringify ( hook.id ) )
+              console.log('\n\n registeredDevicesToDelete : ' + JSON.stringify(registeredDevicesToDelete))
             }
           }
 
@@ -1326,6 +1328,24 @@ module.exports = {
               } )
               console.log ( '\n\n\n mock Micro-nets Delete : ' + JSON.stringify ( mockMicronetsDelete.data ) )
               // TODO : Add subnet Allocation Delete
+              // TODO: Store userId from micronet
+              // Delete Registered devices from users
+              // console.log('\n micronetToDelete.id : ' + JSON.stringify(micronetToDelete.id))
+              let users = await hook.app.service(`/mm/v1/micronets/users`).find({})
+              users = users.data[0]
+              console.log('\n Current registered devices for users : ' + JSON.stringify(users.devices))
+              let updatedDevices = users.devices.map((registeredDevice, index) => {
+                  console.log('\n Current registered Device : ' + JSON.stringify(registeredDevice) + '\t\t At Index : ' + JSON.stringify(index))
+                  const deviceToDeleteIndex = registeredDevicesToDelete.findIndex((deviceFromMicronet) => registeredDevice.macAddress == deviceFromMicronet['device-mac'] && registeredDevice.deviceId == deviceFromMicronet['device-id'])
+                  console.log('\n deviceToDeleteIndex : ' + JSON.stringify(deviceToDeleteIndex))
+                  if(deviceToDeleteIndex == -1 ) {
+                      return registeredDevice
+                  }
+              })
+              updatedDevices = updatedDevices.filter(Boolean)
+              console.log('\n updatedDevices : ' + JSON.stringify(updatedDevices))
+              const userPatchResult = await hook.app.service('/mm/v1/micronets/users/').patch(null, Object.assign({ devices:updatedDevices, deleteRegisteredDevices:true }), { query : {id:users.id} , mongoose : { upsert : true } })
+              console.log('\n Users Patch Result : ' + JSON.stringify(userPatchResult))
             }
             if ( postBodyForDelete.length == 0 && !hook.id ) {
               const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , {} , undefined )

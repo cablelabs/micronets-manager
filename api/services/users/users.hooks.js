@@ -39,51 +39,69 @@ module.exports = {
     update : [] ,
     patch : [ authenticate ( 'jwt' ),
       (hook) => {
-      const { params, data, id } = hook;
+        const { params, data, id } = hook;
+        console.log('\n Users Patch Request DATA : ' + JSON.stringify(data) + '\t\t ID : ' + JSON.stringify(id) + '\t\t PARAMS : ' + JSON.stringify(params))
         hook.params.mongoose = {
           runValidators: true,
           setDefaultsOnInsert: true
         }
-        return hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : params.query.id } } )
+        return hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : params.query.id || hook.id } } )
           .then ( ( { data } ) => {
               if(data[0].id && !mongoose.Types.ObjectId.isValid(data[0].id))
               {
-                const originalUser = data[ 0 ];
-                const foundDeviceIndex = originalUser.devices.findIndex( device => device.clientId ==  hook.data.clientId && device.deviceId == hook.data.deviceId && device.macAddress == hook.data.macAddress && device.class == hook.data.class);
-
-                if(foundDeviceIndex >= 0 ) {
-                  console.log('\n Device already present.')
-                  if(data.isRegistered == originalUser.devices[foundDeviceIndex].isRegistered) {
-                    return Promise.resolve(hook)
-                  }
-
-                  if((data.isRegistered != originalUser.devices[foundDeviceIndex].isRegistered) || (data.isRegistered == !originalUser.devices[foundDeviceIndex].isRegistered)) {
-                    let updatedDevice = Object.assign(originalUser.devices[foundDeviceIndex], {isRegistered: true, deviceLeaseStatus:"intermediary"})
-                    let updatedUser = Object.assign ( {} , originalUser , updatedDevice);
-                    hook.data =  Object.assign ( {} , updatedUser );
-                    hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceRegistered' , {
-                      type : 'userDeviceRegistered' ,
-                      data : { subscriberId : hook.data.id , device : updatedDevice }
-                    } );
-                  }
-
-                }
-                if(foundDeviceIndex == -1 ) {
-                  let updatedUser = Object.assign ( {} , originalUser , originalUser.devices.push ( hook.data ) );
-                  console.log ( '\n Updated user : ' + JSON.stringify ( updatedUser ) )
+                if(hook.data.devices && hook.data.deleteRegisteredDevices == true) {
+                  console.log('\n Valid registered devices : ' + JSON.stringify(hook.data.devices) + '\t\t data.deleteRegisteredDevices : ' + JSON.stringify(hook.data.deleteRegisteredDevices))
+                  const originalUser = data[ 0 ];
+                  let updatedUser = Object.assign ( {} , {...originalUser}, { devices: hook.data.devices });
+                  console.log('\n UPDATED USER AFTER DEVICES UPDATE: ' + JSON.stringify(updatedUser))
                   hook.data =  Object.assign ( {} , updatedUser );
-                  hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceAdd' , {
-                    type : 'userDeviceAdd' ,
-                    data : { subscriberId : hook.data.id , device : hook.data }
-                  } );
                   // return Promise.resolve(hook)
+                }
+                else {
+                  const originalUser = data[ 0 ];
+                  const foundDeviceIndex = originalUser.devices.findIndex( device => device.clientId ==  hook.data.clientId && device.deviceId == hook.data.deviceId && device.macAddress == hook.data.macAddress && device.class == hook.data.class);
+
+                  if(foundDeviceIndex >= 0 ) {
+                    console.log('\n Device already present.Do nothing')
+                    if(data.isRegistered == originalUser.devices[foundDeviceIndex].isRegistered) {
+                      return Promise.resolve(hook)
+                    }
+
+                    if((data.isRegistered != originalUser.devices[foundDeviceIndex].isRegistered) || (data.isRegistered == !originalUser.devices[foundDeviceIndex].isRegistered)) {
+                      let updatedDevice = Object.assign(originalUser.devices[foundDeviceIndex], {isRegistered: true, deviceLeaseStatus:"intermediary"})
+                      let updatedUser = Object.assign ( {} , originalUser , updatedDevice);
+                      hook.data =  Object.assign ( {} , updatedUser );
+                      hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceRegistered' , {
+                        type : 'userDeviceRegistered' ,
+                        data : { subscriberId : hook.data.id , device : updatedDevice }
+                      } );
+                      // return Promise.resolve(hook)
+                    }
+
+                  }
+                  if(foundDeviceIndex == -1 ) {
+                    let updatedUser = Object.assign ( {} , originalUser , originalUser.devices.push ( hook.data ) );
+                    console.log ( '\n Updated user : ' + JSON.stringify ( updatedUser ) )
+                    hook.data =  Object.assign ( {} , updatedUser );
+                    hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceAdd' , {
+                      type : 'userDeviceAdd' ,
+                      data : { subscriberId : hook.data.id , device : hook.data }
+                    } );
+                   //  return Promise.resolve(hook)
+                  }
                 }
               }
             }
           )
       }
     ] ,
-    remove : []
+    remove : [
+      hook => {
+        const { params , data , payload } = hook;
+        console.log('\n\n Users hook remove params : ' + JSON.stringify(params) + '\t\t Data : ' + JSON.stringify(data))
+
+      }
+    ]
   } ,
 
   after : {
@@ -92,7 +110,7 @@ module.exports = {
     get : [] ,
     create : [
       async(hook) => {
-       console.log('\n AFTER USER CREATE HOOK RESULT : .. ' + JSON.stringify(hook.result))
+        console.log('\n AFTER USER CREATE HOOK RESULT : .. ' + JSON.stringify(hook.result))
         const user = hook.result
         const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
           type: 'userCreate',
