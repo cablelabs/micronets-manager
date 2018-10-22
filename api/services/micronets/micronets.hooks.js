@@ -1358,6 +1358,14 @@ module.exports = {
               } )
               console.log ( '\n\n\n mock Micro-nets Delete : ' + JSON.stringify ( mockMicronetsDelete.data ) )
               // TODO : Add subnet Allocation Delete
+              // TODO: Store userId from micronet
+              let users = await hook.app.service(`/mm/v1/micronets/users`).find({})
+              users = users.data[0]
+              console.log('\n Delete all registered devices for users : ' + JSON.stringify(users.devices))
+              let updatedDevices = []
+              console.log('\n updatedDevices : ' + JSON.stringify(updatedDevices))
+              const userPatchResult = await hook.app.service('/mm/v1/micronets/users').patch(null, Object.assign({ devices:updatedDevices, deleteRegisteredDevices:true }), { query : {id:users.id} , mongoose : { upsert : true } })
+              console.log('\n Users Patch Result : ' + JSON.stringify(userPatchResult))
             }
           }
           hook.result = patchResult
