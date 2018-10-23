@@ -3,7 +3,7 @@ const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const errors = require('@feathersjs/errors')
 const mongoose = require('mongoose');
-
+const axios = require ( 'axios' );
 
 module.exports = {
   before : {
@@ -99,7 +99,6 @@ module.exports = {
       hook => {
         const { params , data , payload } = hook;
         console.log('\n\n Users hook remove params : ' + JSON.stringify(params) + '\t\t Data : ' + JSON.stringify(data))
-
       }
     ]
   } ,
@@ -110,6 +109,9 @@ module.exports = {
     get : [] ,
     create : [
       async(hook) => {
+        const { params  , payload } = hook;
+        const { headers: { Authorization }} = params
+        let axiosConfig = { headers : { 'Authorization' : Authorization , crossDomain: true } };
         console.log('\n AFTER USER CREATE HOOK RESULT : .. ' + JSON.stringify(hook.result))
         const user = hook.result
         const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
@@ -121,6 +123,22 @@ module.exports = {
             micronet : []
           } )
         }))
+
+        const registry = await hook.app.service('/mm/v1/micronets/registry').get(user.id)
+        console.log('\n Registry : ' + JSON.stringify(registry) + '\t\t for user : ' + JSON.stringify(user.id))
+        const userPostData = Object.assign({
+          id : user.id ,
+          name : user.name ,
+          ssid : user.ssid ,
+          mmUrl:registry.mmClientUrl
+        })
+        console.log('\n Creating user instance in mso-portal  ' + JSON.stringify(userPostData))
+        const msoPortalUser = await axios ( {
+          ...axiosConfig ,
+          method : 'POST' ,
+          url : `${registry.msoPortalUrl}/portal/users` ,
+          data : userPostData
+        } )
       }
     ] ,
     update : [
