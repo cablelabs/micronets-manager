@@ -1,7 +1,6 @@
 <template >
   <v-card  class="subnet-card">
     <v-card-title primary-title>
-      <!--<p>Subnet Card subnet : {{subnet}}</p>-->
       <div>
         <div class="headline">{{ subnet["class"] }}</div>
         <span v-if="!show" class="grey--text" slot="text">{{`${subnet["connected-devices"].length} Devices`}}</span>
