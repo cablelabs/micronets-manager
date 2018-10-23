@@ -26,10 +26,7 @@ module.exports = function ( app ) {
       { req : req } ,
       { params : service.hooks.params }
     )
-    // console.log ( '\n Micronets service result : ' + JSON.stringify ( result ) )
-    service.on ( 'created' , ( micronet ) => {
-      console.log ( '\n Micronets service created event : ' + JSON.stringify ( micronet ) )
-    } )
+    service.on ( 'created' , ( micronet ) => {} )
     res.json ( result )
   } );
 
@@ -41,10 +38,7 @@ module.exports = function ( app ) {
         { req : req } ,
         { params : service.hooks.params }
       )
-      // console.log ( '\n Micronets service add device to subnet result : ' + JSON.stringify ( result ) )
-      service.on ( 'created' , ( micronet ) => {
-        console.log ( '\n Micronets service add device to subnet created event  : ' + JSON.stringify ( micronet ) )
-      } )
+      service.on ( 'created' , ( micronet ) => { } )
       res.json ( result )
     }
 

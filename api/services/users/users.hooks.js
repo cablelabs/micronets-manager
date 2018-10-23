@@ -95,12 +95,7 @@ module.exports = {
           )
       }
     ] ,
-    remove : [
-      hook => {
-        const { params , data , payload } = hook;
-        console.log('\n\n Users hook remove params : ' + JSON.stringify(params) + '\t\t Data : ' + JSON.stringify(data))
-      }
-    ]
+    remove : []
   } ,
 
   after : {
@@ -123,7 +118,7 @@ module.exports = {
             micronet : []
           } )
         }))
-
+        console.log('\n Creating micronet instance ' + JSON.stringify(postMicronet))
         const registry = await hook.app.service('/mm/v1/micronets/registry').get(user.id)
         console.log('\n Registry : ' + JSON.stringify(registry) + '\t\t for user : ' + JSON.stringify(user.id))
         const userPostData = Object.assign({

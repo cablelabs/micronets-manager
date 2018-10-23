@@ -40,7 +40,7 @@ module.exports = {
           setDefaultsOnInsert: true,
           upsert : true
         }
-        console.log('\n UPDATE HOOK REGISTRY PARAMS : ' + JSON.stringify(params) + '\t\t DATA : ' + JSON.stringify(data) + '\t\t\t ID : ' + JSON.stringify(id))
+        console.log('\n UPDATE HOOK REGISTRY DATA : ' + JSON.stringify(data) + '\t\t\t ID : ' + JSON.stringify(id))
         let registryToModify = await hook.app.service('/mm/v1/micronets/registry').find(id)
         registryToModify = registryToModify.data[0]
         const patchResult = await hook.app.service('/mm/v1/micronets/registry').patch(null, Object.assign({},{...registryToModify, ...data}),{ query : { subscriberId: id }, mongoose: { upsert: true}})
