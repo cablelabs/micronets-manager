@@ -191,7 +191,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
       console.log('\n\n Port : ' + JSON.stringify(port))
       if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == PORT_WIRED ) {
         // return { subnet : port.subnet , port : port }
-         return port.subnet
+        return port.subnet
       }
     })
   })
@@ -231,7 +231,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
     return promises
   }
   else {
-   // TODO : Add Errors
+    // TODO : Add Errors
   }
 
 }
@@ -433,18 +433,17 @@ const populatePostObj = async ( hook , reqBody ) => {
 const initializeMicronets = async ( hook , postBody ) => {
   console.log ( '\n InitializeMicronets postBody: ' + JSON.stringify ( postBody ) )
   // Delete all Micronets
-   const removeAllMicronetsResponse = await hook.app.service ( '/mm/v1/micronets' ).remove ( null )
-  console.log ( '\n removeAllMicronetsResponse : ' + JSON.stringify ( removeAllMicronetsResponse ) )
+  const removeAllMicronetsResponse = await hook.app.service ( '/mm/v1/micronets' ).remove ( null )
   if ( removeAllMicronetsResponse ) {
-  /* ACTUAL ODL CALL
-  // const odlResponse = await odlOperationsForUpserts ( hook , postBody )
-  // return odlResponse
-  */
+    /* ACTUAL ODL CALL
+    // const odlResponse = await odlOperationsForUpserts ( hook , postBody )
+    // return odlResponse
+    */
 
-  // FAKE RESPONSE
-  const mockOdlResponse = await mockOdlOperationsForUpserts ( hook , postBody , "" , "" )
-  return mockOdlResponse
-   }
+    // FAKE RESPONSE
+    const mockOdlResponse = await mockOdlOperationsForUpserts ( hook , postBody , "" , "" )
+    return mockOdlResponse
+  }
 }
 
 const getMicronet = async ( hook , query ) => {
@@ -647,7 +646,7 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
     console.log ( '\n UpsertRegisteredDeviceToMicronet postBodyForODL : ' + JSON.stringify ( postBodyForODL ) + '\t\t addSubnet Flag : ' + JSON.stringify ( addSubnet ) )
 
     /* ODL API's */
-   // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
+    // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
     const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL )
     if ( odlResponse.data && odlResponse.status == 201 ) {
       console.log ( '\n UpsertRegisteredDeviceToMicronet odlResponse : ' + JSON.stringify ( odlResponse ) )
@@ -712,8 +711,8 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   //console.log ( '\n addDevicesInSubnet micronetFromDB : ' + JSON.stringify ( micronetFromDB ) )
 
   const micronetToUpdateIndex = micronetId && subnetId ? micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => {
-      return (micronetId == micronet[ 'micronet-id' ] && subnetId == micronet[ 'micronet-subnet-id' ])
-    } ) : 0
+    return (micronetId == micronet[ 'micronet-id' ] && subnetId == micronet[ 'micronet-subnet-id' ])
+  } ) : 0
   console.log ( '\n Micronet to Update Index: ' + JSON.stringify ( micronetToUpdateIndex ) )
   const micronetToUpdate = micronetFromDB.micronets.micronet[ micronetToUpdateIndex ]
   const micronetSubnet = micronetToUpdate[ 'micronet-subnet' ]
@@ -799,18 +798,18 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
             ovsPort: port.port,
             interface: port.interface
           })
-           console.log('\n Current matchedPortForSubnet : ' + JSON.stringify(matchedPortForSubnet))
-            return {
-              subnetId : dhcpSubnet.subnetId ,
-              ipv4Network : {
-                network : micronet[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
-                mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
-                gateway : micronet[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
-              },
-              ovsBridge: bridge.name,
-              ovsPort: port.port,
-              interface: port.interface
-            }
+          console.log('\n Current matchedPortForSubnet : ' + JSON.stringify(matchedPortForSubnet))
+          return {
+            subnetId : dhcpSubnet.subnetId ,
+            ipv4Network : {
+              network : micronet[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
+              mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
+              gateway : micronet[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
+            },
+            ovsBridge: bridge.name,
+            ovsPort: port.port,
+            interface: port.interface
+          }
         }
       })
     })
@@ -1006,13 +1005,13 @@ module.exports = {
       async hook => {
         const { params , id, data, path } = hook;
         const micronetFromDB = await getMicronet ( hook , {} )
-       // console.log('\n CREATE MICRO-NET HOOK PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data) + '\t\t PATH : ' + JSON.stringify(path))
+        // console.log('\n CREATE MICRO-NET HOOK PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data) + '\t\t PATH : ' + JSON.stringify(path))
         if ( micronetFromDB ) {
           hook.id = micronetFromDB._id
           console.log ( '\n Hook.id for patch : ' + JSON.stringify ( micronetFromDB._id ) )
         }
         /* User created. Initialize micronets object */
-         if ( hook.data && hook.data.type == 'userCreate' ) {
+        if ( hook.data && hook.data.type == 'userCreate' ) {
           const { type , id, ssid, name } = hook.data
           console.log ( '\n USER CREATE EVENT DETECTED . TYPE .... : ' + JSON.stringify ( type ) + '\t\t ID : ' + JSON.stringify ( id ) )
           // Create Micronets object
@@ -1027,7 +1026,7 @@ module.exports = {
           return Promise.resolve ( hook )
         }
 
-         if ( hook.data && hook.data.type == 'userDeviceRegistered' ) {
+        if ( hook.data && hook.data.type == 'userDeviceRegistered' ) {
           console.log ( '\n User Device Registered event detected.Adding device to new or existing subnet for data .. : ' + JSON.stringify ( hook.data ) )
           const { type , data } = hook.data
           const { subscriberId , device } = data
@@ -1054,16 +1053,16 @@ module.exports = {
             console.log ( '\n CREATE HOOK ADD SUBNET PATCH REQUEST RESULT : ' + JSON.stringify ( patchResult ) )
             if(patchResult) {
               console.log ( '\n MICRONET ADDED.ADDING SUBNETS TO DHCP GATEWAY ... ' )
-               const dhcpSubnetPostBody = Object.assign({},{
-                 micronets:{
-                   micronet: [ Object.assign({},{
-                       name: device.class,
-                      "micronet-subnet-id": device.class,
-                      "connected-devices":[]
-                   })
-                   ]
-                 }
-               })
+              const dhcpSubnetPostBody = Object.assign({},{
+                micronets:{
+                  micronet: [ Object.assign({},{
+                    name: device.class,
+                    "micronet-subnet-id": device.class,
+                    "connected-devices":[]
+                  })
+                  ]
+                }
+              })
               const dhcpSubnet = await addDhcpSubnets(hook,dhcpSubnetPostBody)
               console.log('\n dhcpSubnet : ' + JSON.stringify(dhcpSubnet.body))
               if(dhcpSubnet) {
@@ -1090,8 +1089,8 @@ module.exports = {
           }
         }
 
-         if ( path == `mm/v1/micronets` && !hook.data.req  ) {
-           console.log ( '\n CREATE !hook.data.req'  )
+        if ( path == `mm/v1/micronets` && !hook.data.req  ) {
+          console.log ( '\n CREATE !hook.data.req'  )
           console.log ( '\n CREATE HOOK REQ POST DATA : ' + JSON.stringify ( hook.data ) + '\t\t PATH : ' + JSON.stringify ( hook.path )  )
           hook.params.mongoose = {
             runValidators : true ,
@@ -1194,7 +1193,7 @@ module.exports = {
 
           }
 
-           if ( originalUrl.toString () == `/mm/v1/micronets/${req.params.micronetId}/subnets/${req.params.subnetId}/devices` ) {
+          if ( originalUrl.toString () == `/mm/v1/micronets/${req.params.micronetId}/subnets/${req.params.subnetId}/devices` ) {
             console.log ( '\n\n URL : ' + JSON.stringify ( originalUrl ) )
             const isGtwyAlive = await isGatewayAlive ( hook )
             const isOdlAlive = await isODLAlive ( hook )
@@ -1333,12 +1332,12 @@ module.exports = {
               users = users.data[0]
               console.log('\n Current registered devices for users : ' + JSON.stringify(users.devices))
               let updatedDevices = users.devices.map((registeredDevice, index) => {
-                  console.log('\n Current registered Device : ' + JSON.stringify(registeredDevice) + '\t\t At Index : ' + JSON.stringify(index))
-                  const deviceToDeleteIndex = registeredDevicesToDelete.findIndex((deviceFromMicronet) => registeredDevice.macAddress == deviceFromMicronet['device-mac'] && registeredDevice.deviceId == deviceFromMicronet['device-id'])
-                  console.log('\n deviceToDeleteIndex : ' + JSON.stringify(deviceToDeleteIndex))
-                  if(deviceToDeleteIndex == -1 ) {
-                      return registeredDevice
-                  }
+                console.log('\n Current registered Device : ' + JSON.stringify(registeredDevice) + '\t\t At Index : ' + JSON.stringify(index))
+                const deviceToDeleteIndex = registeredDevicesToDelete.findIndex((deviceFromMicronet) => registeredDevice.macAddress == deviceFromMicronet['device-mac'] && registeredDevice.deviceId == deviceFromMicronet['device-id'])
+                console.log('\n deviceToDeleteIndex : ' + JSON.stringify(deviceToDeleteIndex))
+                if(deviceToDeleteIndex == -1 ) {
+                  return registeredDevice
+                }
               })
               updatedDevices = updatedDevices.filter(Boolean)
               console.log('\n updatedDevices : ' + JSON.stringify(updatedDevices))
