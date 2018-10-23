@@ -5,8 +5,8 @@ const port = app.get ( 'port' );
 const server = app.listen ( port );
 const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
-const webSocketUrl = 'wss://74.207.229.106:5050/micronets/v1/ws-proxy/grandpa-gw'
-//const webSocketUrl = "wss://127.0.0.1:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z"
+// const webSocketUrl = 'wss://74.207.229.106:5050/micronets/v1/ws-proxy/grandpa-gw'
+// const webSocketUrl = "wss://127.0.0.1:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z"
 
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
@@ -14,7 +14,10 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 
 server.on ( 'listening' , async () => {
   logger.info ( 'Feathers application started on http://%s:%d' , app.get ( 'host' ) , port )
-  await dw.setAddress ( webSocketUrl );
+  let registry = await app.service('/mm/v1/micronets/registry').find({})
+  registry = registry.data[0]
+  console.log('\n Web Socket Url from registry : ' + JSON.stringify(registry.websocketUrl))
+  await dw.setAddress ( registry.websocketUrl  );
   await dw.connect().then( () => { return true } );
 } );
 
@@ -98,17 +101,3 @@ app.service ( '/mm/v1/micronets' ).on ( 'micronetUpdated' , ( data ) => {
   } );
 } );
 
-app.service ( '/mm/v1/dhcp' ).on ( 'dhcpSubnetCreated' , ( data ) => {
-  console.log ( '\n FeatherJS event dhcpSubnetCreated fired with data : ' + JSON.stringify ( data ) )
-  // io.on ( 'connection' , ( socket ) => {
-  //   logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
-  //   socket.emit ( 'dhcpSubnetCreated' , data );
-  //   socket.on ( 'disconnect' , () => {
-  //     console.log ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
-  //     socket.removeAllListeners ( 'send message' );
-  //     socket.removeAllListeners ( 'disconnect' );
-  //     socket.removeAllListeners ( 'connection' );
-  //     socket.disconnect ( true );
-  //   } );
-  // } );
-} );
