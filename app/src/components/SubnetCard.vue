@@ -40,7 +40,7 @@ export default {
   name: 'SubnetCard',
   data () {
     return {
-      show: false
+      show: true
     }
   },
   props: {
