@@ -10,7 +10,7 @@ var leaseAcquired = false
 var leaseExpired = false
 
 
-describe('Test DHCP Wrapper Promise', function () {
+describe.skip('Test DHCP Wrapper Promise', function () {
   describe('Positive Tests', function () {
     before((done) => {
       dw.eventEmitter.on('LeaseAcquired', (obj) => {
