@@ -119,7 +119,7 @@ module.exports.getSyncNewSubnet = function (vlan, requestedSubnet) {
         })
       })
       .catch((err) => {
-        console.log(err);
+        me.lock = false;
         reject(err)
       })
   })
@@ -134,10 +134,12 @@ module.exports.removeSyncNewSubnet = function (vlan, requestedSubnet) {
   return new Promise(async function (resolve, reject) {
     deAllocateSubnet(me, requestedSubnet)
       .then(() => {
-        me.lock = false
+        // console.log('deleted ' + requestedSubnet)
+        me.lock = false;
         resolve()
       })
       .catch((err) => {
+        me.lock = false;
         console.log(err);
         reject(err)
       })
@@ -172,7 +174,6 @@ module.exports.getNewIps = function (subnet, devices) {
           })
       })
       .catch(err => {
-        console.log(err)
         reject(new Error('Subnet '  + subnet + ' does not exist'))
       })
   })
@@ -264,7 +265,6 @@ function deAllocateSubnet(me, requestedSubnet) {
   return new Promise(async function (resolve, reject) {
     me.db.deleteOne({subnet: requestedSubnet}, function(err, obj) {
       if (err) reject(err);
-      console.log('Subnet ' + requestedSubnet + ' deleted');
       resolve()
     });
   })

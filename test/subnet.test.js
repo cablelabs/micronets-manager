@@ -53,7 +53,6 @@ describe('Test Subnet Allocation', function() {
     }
     Promise.all(promiseList)
       .then((snArray) => {
-        console.log(snArray)
         snArray.length.should.equal(10)
         for (let subnet = 0; subnet < 10; subnet++) {
           snArray[subnet].subnet.should.equal(12 + (2*subnet))
@@ -187,12 +186,41 @@ describe('Test Subnet Allocation', function() {
     }
     Promise.all(promiseList)
       .then((snArray) => {
-        console.log(snArray)
         snArray.length.should.equal(10)
         for (let subnet = 0; subnet < 10; subnet++) {
           snArray[subnet].subnet.should.equal(34 + subnet)
         }
       }).then(done, done)
+  })
+  it('Remove a Bunch of Allocated Subnet', (done) => {
+    let promiseList = []
+    for (let i = 0;i < 10; i ++) {
+      promiseList.push(subnet.deallocateSubnet(0, 34+i))
+    }
+    Promise.all(promiseList)
+      .then(() => {
+      }).then(done, done)
+  })
+  it('Get Removed Subnet Objects', (done) => {
+    let devices = [
+      {
+        deviceMac: "b8:27:eb:df:ae:a7",
+        deviceName: "pib",
+        deviceId: "Raspberry-Pi3-Model-B-v1.2"
+      },
+      {
+        deviceMac: "b8:27:eb:df:ae:a8",
+        deviceName: "pib2",
+        deviceId: "Raspberry-Pi3-Model-B-v1.2"
+      },
+    ]
+    subnet.getNewIps(34, devices)
+      .then((sn) => {
+        done(new('Should not have IPs on removed subnet'))
+      })
+      .catch(()=> {
+        done()
+      })
   })
   it('Ashiwinis Problem', (done) => {
 
@@ -201,11 +229,9 @@ describe('Test Subnet Allocation', function() {
       .then(mysubnet => {
         subnet.getNewIps(250, devices)
           .then((sn) => {
-            console.log(sn)
             fail('Should not create IPs for non-existant subnet')
           })
           .catch(err => {
-            console.log(err)
             done()
           })
       })
