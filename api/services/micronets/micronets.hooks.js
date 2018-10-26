@@ -952,6 +952,15 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
 
 /* Adding subnets & devices to DHCP */
 
+const deallocateIPSubnets = async(hook, ipSubnets) => {
+  const deallocateSubnetPromises = await Promise.all(ipSubnets.map(async(subnetNo)=> {
+    console.log('\n Deallocate Subnet : ' + JSON.stringify(subnetNo))
+    return await subnetAllocation.deallocateSubnet(0,parseInt(subnetNo))
+  }))
+  console.log('\n deallocateSubnetPromises : ' + JSON.stringify(deallocateSubnetPromises))
+  return deallocateSubnetPromises
+}
+
 module.exports = {
   before : {
     all : [] ,
@@ -1247,7 +1256,7 @@ module.exports = {
         const registry = await getRegistry ( hook , {} )
         const { odlUrl , mmUrl } = registry
         console.log ( '\n DELETE HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify ( id ) )
-        let postBodyForDelete = [] , micronetToDelete = {}, registeredDevicesToDelete = []
+        let postBodyForDelete = [] , micronetToDelete = {}, registeredDevicesToDelete = [] , ipSubnets = []
         // ODL and Gateway checks
         const isGtwyAlive = await isGatewayAlive ( hook )
         const isOdlAlive = await isODLAlive ( hook )
@@ -1266,6 +1275,8 @@ module.exports = {
             // Valid index. Micronet exists
             if ( micronetToDeleteIndex > -1 ) {
               micronetToDelete = micronet[ micronetToDeleteIndex ]
+              ipSubnets = [].concat(micronetToDelete['micronet-subnet'].split('.')[2])
+              console.log('\n ipSubnets : ' + JSON.stringify(ipSubnets))
               registeredDevicesToDelete = micronetToDelete['connected-devices']
               postBodyForDelete = micronet.filter ( ( micronet , index ) => index != micronetToDeleteIndex )
               console.log ( '\n POST BODY FOR DELETE : ' + JSON.stringify ( postBodyForDelete ) + '\t\t for hook.id : ' + JSON.stringify ( hook.id ) )
@@ -1275,6 +1286,10 @@ module.exports = {
 
           // Delete all micro-nets
           const micronetFromDB = await getMicronet ( hook , {} )
+          if(ipSubnets.length == 0 ) {
+            ipSubnets = micronetFromDB.micronets.micronet.map((micronet)=> {return micronet['micronet-subnet'].split('.')[2]})
+            console.log('\n Deleting all micronets . get all subnet IPs ipSubnets ' + JSON.stringify(ipSubnets))
+          }
           const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
             {
               id : micronetFromDB.id ,
@@ -1296,7 +1311,11 @@ module.exports = {
                 data : Object.assign ( {} , { micronets : { micronet : postBodyForDelete } } )
               } )
               console.log ( '\n\n\n mock Micro-nets Delete : ' + JSON.stringify ( mockMicronetsDelete.data ) )
+
               // TODO : Add subnet Allocation Delete
+               console.log('\n Deleting single micronet deallocateIPSubnets : ' + JSON.stringify(ipSubnets))
+              deallocateIPSubnets(hook,ipSubnets)
+
               // TODO: Store userId from micronet
               // Delete Registered devices from users
               // console.log('\n micronetToDelete.id : ' + JSON.stringify(micronetToDelete.id))
@@ -1326,7 +1345,10 @@ module.exports = {
                 data : Object.assign ( {} , { micronets : { micronet : [] } } )
               } )
               console.log ( '\n\n\n mock Micro-nets Delete : ' + JSON.stringify ( mockMicronetsDelete.data ) )
+
               // TODO : Add subnet Allocation Delete
+              console.log('\n Delete all micronets deallocateIPSubnets : ' + JSON.stringify(ipSubnets))
+               deallocateIPSubnets(hook,ipSubnets)
               // TODO: Store userId from micronet
               let users = await hook.app.service(`/mm/v1/micronets/users`).find({})
               users = users.data[0]
