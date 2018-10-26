@@ -588,18 +588,6 @@ const upsertSubnetsToMicronet = async ( hook , body ) => {
   }
 }
 
-const updateMicronetModel = async ( hook , response ) => {
-  // console.log ( '\n updateMicronetModel response: ' + JSON.stringify ( response ) )
-  let dbModelResponse = response.micronets.micronet.map ( ( micronet , index ) => {
-    return {
-      ...micronet ,
-      "class" : micronet.name
-    }
-  } )
-  console.log ( '\n DB Model response : ' + JSON.stringify ( dbModelResponse ) )
-  return dbModelResponse
-}
-
 /* Add Registered devices to existing or new subnet */
 const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
   const { type , data } = eventData
@@ -954,10 +942,9 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
 
 const deallocateIPSubnets = async(hook, ipSubnets) => {
   const deallocateSubnetPromises = await Promise.all(ipSubnets.map(async(subnetNo)=> {
-    console.log('\n Deallocate Subnet : ' + JSON.stringify(subnetNo))
     return await subnetAllocation.deallocateSubnet(0,parseInt(subnetNo))
   }))
-  console.log('\n deallocateSubnetPromises : ' + JSON.stringify(deallocateSubnetPromises))
+  console.log('\n deallocateIPSubnets Promises : ' + JSON.stringify(deallocateSubnetPromises))
   return deallocateSubnetPromises
 }
 
