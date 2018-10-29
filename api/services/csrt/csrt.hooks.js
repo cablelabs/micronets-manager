@@ -14,7 +14,7 @@ module.exports = {
         const { headers: { authorization }} = params
         const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
         let allHeaders = { headers : { 'Authorization' : authorization , crossDomain: true } };
-        let registry = await hook.app.service ( '/micronets/v1/mm/registry' ).get(null, {id:hook.data.subscriberId});
+        let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get(null, {id:hook.data.subscriberId});
        // let registry = await axios.get(`${hook.data.registryUrl}/micronets/v1/mm/registry/${hook.data.subscriberId}`,allHeaders)
         // Call configure url
         console.log('\n registry : ' + JSON.stringify(registry))
@@ -28,10 +28,16 @@ module.exports = {
         })
         console.log('\n configureIdentityService : ' + JSON.stringify(configureIdentityService.data))
         if(configureIdentityService.data.result) {
-          const csrTemplate = await axios.post (`${registry.identityUrl}/csrt`, ...apiInit)
+          const csrTemplate = await axios({
+            ...apiInit,
+            method: 'post',
+            url: `${registry.identityUrl}/csrt`
+          })
+          // const csrTemplate = await axios.post (`${registry.identityUrl}/csrt`, ...apiInit)
           console.log('\n csrTemplate.data : ' + JSON.stringify(csrTemplate.data))
           const subscriber = await axios.get(`${registry.msoPortalUrl}/internal/subscriber/${hook.data.subscriberId}`,allHeaders)
           console.log('\n subscriber.data : ' + JSON.stringify(subscriber.data))
+          console.log('\n\n Params payload : ' + JSON.stringify(params.payload))
           if(subscriber.data) {
             // Creating updating user information
             const sessionData = Object.assign ( {} , {
@@ -43,16 +49,21 @@ module.exports = {
                 deviceId : params.payload.deviceID ,
                 macAddress : params.payload.macAddress,
                 class: params.payload.class,
-                isRegistered : false
+                isRegistered : false,
+                deviceName: params.payload.deviceName,
+                deviceConnection:params.payload.deviceConnection,
+                deviceLeaseStatus: "intermediary"
               } )
             } )
-            const user = await hook.app.service ( 'micronets/v1/mm/users' ).find ( { query : { id : subscriber.data.id } } )
-             user.data.length == 0 ?  await hook.app.service ( 'micronets/v1/mm/users').create(sessionData , allHeaders ) :
-               await hook.app.service ( 'micronets/v1/mm/users' ).patch ( null ,{
+            const user = await hook.app.service ( '/mm/v1/micronets/users' ).find ( { query : { id : subscriber.data.id } } )
+             user.data.length == 0 ?  await hook.app.service ( '/mm/v1/micronets/users').create(sessionData , allHeaders ) :
+               await hook.app.service ( '/mm/v1/micronets/users' ).patch ( null ,{
                  clientId : params.payload.clientID ,
                  deviceId : params.payload.deviceID ,
                  macAddress : params.payload.macAddress ,
-                 class : params.payload.class
+                 class : params.payload.class,
+                 deviceName: params.payload.deviceName,
+                 deviceConnection:params.payload.deviceConnection
                }, { query : { id : subscriber.data.id }, mongoose: { upsert: true}});
 
           }

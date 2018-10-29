@@ -1,28 +1,18 @@
 <template>
   <Layout>
-    <template v-for="(micronet, index) in micronets">
-      <template v-if="micronet.id==$route.params.subscriberId">
-      <v-btn class="mt-4" @click.native="openAddMicronet(micronet._id)">Add Subnet</v-btn>
-      <template v-for="subnet in micronet.subnets">
+    <template v-for="(micronet, index) in subscriber.micronets.micronet">
+      <template v-if="micronet['micronet-id']==$route.params.micronetId">
+      <!--<template v-for="subnet in micronet.subnets">-->
         <!--<p>Device Leases from State : {{deviceLeases || []}}</p>-->
-        <SubnetCard :subnet="subnet" :key="subnet.subnetId" :micronetId="micronet._id" ></SubnetCard>
+        <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber._id" ></SubnetCard>
       </template>
-      <!--<hr class="mt-4" v-if="index < micronets.length - 1"/>-->
-      </template>
+      <!--</template>-->
     </template>
-    <template v-if="!micronets.length">
+    <template v-if="!subscriber.micronets.micronet.length">
       <v-card>
         <v-card-title class="no-subnets">No Micro-nets found</v-card-title>
-        <!--<v-card-actions>-->
-          <!--<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>-->
-        <!--</v-card-actions>-->
       </v-card>
     </template>
-    <v-dialog :value="!!editTarget" @input="setEditTargetIds({})" max-width="500px" v-model="dialog"
-              transition="dialog-bottom-transition"
-              scrollable>
-      <AddSubnetForm v-if="editTarget " :data="editTarget" @submit="addSubnet" :parentDialog="dialog" @close="close" :micronets="this.micronets"/>
-    </v-dialog>
   </Layout>
 </template>
 
@@ -30,14 +20,15 @@
   import SubnetCard from '../components/SubnetCard'
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
-  import io from 'socket.io-client'
   import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-  const socket = io(`${process.env.DHCP_SOCKET_URL}`)
+  // import io from 'socket.io-client'
+  // const socket = io(`${process.env.MM_SERVER_BASE_URL}`)
+
   export default {
     components: { SubnetCard, Layout, AddSubnetForm },
     name: 'micronets',
     computed: {
-      ...mapState(['micronets', 'leases', 'deviceLeases']),
+      ...mapState(['subscriber', 'deviceLeases', 'users']),
       ...mapGetters(['editTarget'])
     },
     data: () => ({
@@ -46,7 +37,7 @@
     }),
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertLeases', 'upsertDeviceLeases']),
+      ...mapActions(['fetchMicronets', 'fetchSubscribers', 'fetchUsers']),
       openAddMicronet (micronetId) {
         this.dialog = true
         this.setEditTargetIds({ micronetId })
@@ -55,24 +46,15 @@
         this.dialog = data
       }
     },
-    mounted () {},
-    created () {
-      this.setEditTargetIds({})
-      this.micronets.length > 0 ? this.upsertDeviceLeases({event: 'init'}) : '' // Might be problematic
-      socket.on('leaseAcquired', (data) => {
-        console.log('\n\n Micronets.vue leaseAquired event caught . Data received :  ' + JSON.stringify(data))
-        this.upsertDeviceLeases({type: data.type, data: data.data, event: 'upsert'})
+    mounted () {
+      this.fetchMicronets(this.$router.currentRoute.params.id).then(() => {
+        console.log('\n Mounted this.subscriber : ' + JSON.stringify(this.subscriber))
       })
-      socket.on('leaseExpired', (data) => {
-        console.log('\n\n Micronets.vue  leaseExpired event caught . Data received :  ' + JSON.stringify(data))
-        this.upsertDeviceLeases({type: data.type, data: data.data, event: 'upsert'})
+      this.fetchUsers().then(() => {
+        console.log('\n Mounted this.deviceLeases : ' + JSON.stringify(this.deviceLeases))
       })
-      return this.fetchMicronets(this.$router.currentRoute.params.id).then((data) => {
-        if (data.devices && this.deviceLeases.length === 0) {
-          this.upsertDeviceLeases({event: 'init'})
-        }
-      })
-    }
+    },
+    created () {}
   }
 </script>
 
@@ -99,6 +81,5 @@
   .close-btn {
     background-color white!important
     margin-left 90%
-
   }
 </style>

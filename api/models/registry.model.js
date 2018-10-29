@@ -13,7 +13,8 @@ module.exports = function (app) {
     mmClientUrl: {type: String, required: true },
     websocketUrl: { type: String, required: true },
     msoPortalUrl: { type: String, required: true },
-    boxId : {type: String, required: false }
+    odlUrl:{ type: String, required: true },
+    gatewayId : {type: String, required: true }
   }, {
     timestamps: true
   });

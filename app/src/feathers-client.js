@@ -1,0 +1,18 @@
+import feathers from '@feathersjs/feathers'
+import socketio from '@feathersjs/socketio-client'
+import io from 'socket.io-client'
+
+let API_URL = 'http://localhost:3030'
+
+if (window.location.hostname === 'localhost') {
+  API_URL = 'http://localhost:3030'
+}
+
+const socket = io(API_URL, {
+  transports: ['websocket']
+})
+
+const feathersClient = feathers()
+  .configure(socketio(socket))
+
+export default feathersClient

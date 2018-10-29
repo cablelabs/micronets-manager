@@ -297,7 +297,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  ### 8. Create subnet in micronet :
  Create subnet in micronet
    
- #### url: POST `/mm/v1/micronets/:micronetId/subnet`
+ #### url: POST `/mm/v1/micronets`
    
     Header Fields:
       

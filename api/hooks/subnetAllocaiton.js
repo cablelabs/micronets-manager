@@ -147,6 +147,7 @@ module.exports.removeSyncNewSubnet = function (vlan, requestedSubnet) {
 };
 
 module.exports.getNewIps = function (subnet, devices) {
+  console.log('\n GetNewIps method passed Subnet : ' + JSON.stringify(subnet) + '\t\t Passed Devices : ' + JSON.stringify(devices))
   let me = this;
   return new Promise(async function (resolve, reject) {
     if (!subnet) {

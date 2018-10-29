@@ -1,9 +1,9 @@
 <template>
   <Layout>
-    <template v-for="(micronet, index) in micronets">
-         <Subscriber :subscriberId=micronet.id  :subscriberName="micronet.name" :ssId="micronet.ssid" :devices=micronet.devices :index=index :id="micronet._id"/>
+    <template v-for="(micronet, index) in subscriber.micronets.micronet">
+        <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
     </template>
-    <template v-if="micronets.length == 0">
+    <template v-if="subscriber.micronets.micronet.length == 0">
       <v-card>
         <v-card-title class="no-subnets">No Micro-nets found</v-card-title>
         <v-card-actions>
@@ -25,7 +25,7 @@
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
     name: 'home',
     computed: {
-      ...mapState(['micronets', 'deviceLeases']),
+      ...mapState(['subscriber', 'deviceLeases', 'users']),
       ...mapGetters(['editTarget'])
     },
     data: () => ({
@@ -49,34 +49,24 @@
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'addSubnet', 'fetchSubscribers', 'upsertSubscribers', 'upsertDeviceLeases']),
-      openAddMicronet (micronetId) {
-        this.dialog = true
-        this.setEditTargetIds({ micronetId })
-      },
-      close (data) {
-        this.dialog = data
-      }
+      ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers'])
     },
     mounted () {
-      this.setEditTargetIds({})
-      this.fetchSubscribers().then(() => {
-        console.log('\n\n  state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
-        this.upsertDeviceLeases({event: 'init'})
+      this.fetchMicronets().then(() => {
+        console.log('\n  Home.vue Mounted state obj Subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n\n Home.vue Mounted state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
+      })
+      this.fetchUsers().then(() => {
+        console.log('\n Home.vue Mounted state obj users : ' + JSON.stringify(this.users))
       })
     },
     created () {
-      this.$socket.on('socketSessionUpdate', (data) => {
-        console.log('\n Vue socket event socketSessionUpdate caught with data in created Home.vue ' + JSON.stringify(data))
-        this.upsertSubscribers(data).then(() => {
-          this.fetchMicronets().then(() => {})
-        })
+      this.fetchMicronets().then(() => {
+        console.log('\n Home.vue Created state obj Subscriber : ' + JSON.stringify(this.subscriber))
       })
-      // this.$socket.on('socketSessionCreate', (data) => {
-      //   console.log('\n Vue socket event socketSessionCreate caught with data in created Home.vue ' + JSON.stringify(data))
-      //   this.upsertSubscribers(data).then(() => {
-      //   })
-      // })
+      this.fetchUsers().then(() => {
+        console.log('\n Home.vue Created state obj users : ' + JSON.stringify(this.users))
+      })
     }
   }
 </script>

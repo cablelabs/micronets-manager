@@ -11,7 +11,7 @@ describe.skip('Test DHCP Wrapper', function() {
   it('Verify Connection', (done) =>{
     let response1 = false;
     let response2 = false;
-    dw.connect('wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-0001', function(error, success) {
+    dw.connect('wss://74.207.229.106:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z', function(error, success) {
       console.log(success)
       if (error) done(error)
       else {

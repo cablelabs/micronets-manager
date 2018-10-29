@@ -2,11 +2,11 @@
   <v-card  class="subnet-card">
     <v-card-title primary-title>
       <div>
-        <div class="headline">{{ subnet.subnetName }}</div>
-        <span v-if="!show" class="grey--text" slot="text">{{`${subnet.deviceList.length} Devices`}}</span>
+        <div class="headline">{{ subnet["class"] }}</div>
+        <span v-if="!show" class="grey--text" slot="text">{{`${subnet["connected-devices"].length} Devices`}}</span>
       </div>
       <v-spacer></v-spacer>
-      <v-btn raised class="addDevice" @click.native.stop="configureMicronet">Configure</v-btn>
+      <v-btn raised class="addDevice" @click.native.stop="configureMicronet" :disabled="true">Configure</v-btn>
       <v-card-actions>
         <v-btn icon @click.native="show = !show">
           <v-icon>{{ show ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</v-icon>
@@ -16,14 +16,13 @@
     <v-slide-y-transition>
       <v-card-text v-show="show">
         <span>
-          <span class="numberCircle">{{subnet.deviceList.length}}</span>
+          <span class="numberCircle">{{subnet["connected-devices"].length}}</span>
           <span class="card-text-title">Devices</span>
         </span>
         <v-list class="device-list">
-          <template v-for="(device, deviceIndex) in subnet.deviceList">
-            <!--<DeviceCard :device="device" :key="device.deviceId" :subnetId="subnet.subnetId" :micronetId="micronetId" />-->
-            <DeviceCard :device="device" :subnetId="subnet.subnetId" :micronetId="micronetId" />
-            <v-divider v-if="deviceIndex + 1 < subnet.deviceList.length" :inset="false" class="list-divider"/>
+          <template v-for="(device, deviceIndex) in subnet['connected-devices']">
+            <DeviceCard :device="device" :deviceId="device['device-id']" :subnetId="subnet['micronet-subnet-id']" :micronetId="micronetId" :subscriberId="subscriberId"/>
+            <v-divider v-if="deviceIndex + 1 < subnet['connected-devices'].length" :inset="false" class="list-divider"/>
           </template>
         </v-list>
       </v-card-text>
@@ -40,12 +39,13 @@ export default {
   name: 'SubnetCard',
   data () {
     return {
-      show: false
+      show: true
     }
   },
   props: {
     subnet: Object,
-    micronetId: String
+    micronetId: String,
+    subscriberId: String
   },
   methods: {
     ...mapMutations(['setEditTargetIds']),
@@ -53,7 +53,11 @@ export default {
       this.setEditTargetIds({ micronetId: this.micronetId, subnetId: this.subnet.subnetId })
       this.$router.push(`/configure-micronet/${this.micronetId}/subnet/${this.subnet.subnetId}`)
     }
-  }
+  },
+  mounted () {
+    console.log('\n SubnetCard mounted method this.subnet : ' + JSON.stringify(this.subnet) + '\t\t micronetID : ' + JSON.stringify(this.micronetId) + '\t\t Subscriber ID : ' + JSON.stringify(this.subscriberId))
+  },
+  created () {}
 }
 </script>
 

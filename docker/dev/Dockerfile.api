@@ -3,19 +3,15 @@ FROM node:latest
 # Development packages
 RUN apt-get update;
 
-# Create app directory
-WORKDIR /usr/src/app
+# Create api directory
+WORKDIR /usr/src/micronets-manager
 
-# Install app dependencies
-COPY package.json .
-COPY package.json package-lock.json ./
+# Bundle api source
+COPY . .
+RUN ls -a
 
 ENV MONGO_URL=
-
 RUN npm install
 
-# Bundle app source
-COPY . .
-
 EXPOSE 3030
-CMD [ "npm", "start"]
+CMD [ "npm", "run", "start"]

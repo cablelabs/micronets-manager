@@ -7,7 +7,7 @@
             <v-flex xs12 md6>
             <v-card-title primary-title>
               <div>
-                <h4 class="headline mb-0">{{this.subscriberName}}</h4>
+                <h4 class="headline mb-0">{{this.micronetClass}}</h4>
                 <h1 class="headline mb-0">{{this.ssId}}</h1>
               </div>
             </v-card-title>
@@ -33,15 +33,17 @@
     },
     methods: {
       showMicronets () {
-        this.$router.push(`${this.subscriberId}/micronets/${this.id}`)
+        this.$router.push(`${this.subscriberId}/micronets/${this.micronetId}`)
       }
     },
     props: {
       subscriberId: String,
       subscriberName: String,
+      micronetClass: String,
       devices: Array,
       id: String,
-      ssId: String
+      ssId: String,
+      micronetId: String
     }
   }
 </script>

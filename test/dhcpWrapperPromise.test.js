@@ -5,8 +5,7 @@ var app = require('../api/app')
 const port = app.get('port');
 var server
 const dw = require('../api/hooks/dhcpWrapperPromise')
-
-const address = 'wss://localhost:5050/micronets/v1/ws-proxy/micronets-dhcp-7B2A-BE88-08817Z'
+const address = 'wss://74.207.229.106:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z'
 var leaseAcquired = false
 var leaseExpired = false
 
