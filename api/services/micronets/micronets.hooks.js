@@ -6,8 +6,8 @@ const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require ( '../../hooks/dhcpWrapperPromise' )
-const PORT_WIRED = "wired"
-const PORT_WIRELESS = "wifi"
+const WIRED = "wired"
+const WIRELESS = "wifi"
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
@@ -65,13 +65,13 @@ const getODLSwitchDetails = async ( hook , gatewayId ) => {
   const ovsHost = odlStaticConfig.ovsHost
   const ovsPort = odlStaticConfig.ovsPort
   let wirelessPorts = bridgeTrunk.ports.map ( ( port ) => {
-    if ( port.hasOwnProperty ( "hwtype" ) && port.hwtype == PORT_WIRELESS ) {
+    if ( port.hasOwnProperty ( "hwtype" ) && port.hwtype == WIRELESS ) {
       return port
     }
   } )
   wirelessPorts = wirelessPorts.filter ( Boolean )
   let wiredPorts = bridgeTrunk.ports.map ( ( port ) => {
-    if ( port.hasOwnProperty ( "hwtype" ) && port.hwtype == PORT_WIRED ) {
+    if ( port.hasOwnProperty ( "hwtype" ) && port.hwtype == WIRED ) {
       return port
     }
   } )
@@ -125,7 +125,8 @@ const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
     wiredPorts ,
     switchConfig ,
     ovsHost ,
-    ovsPort
+    ovsPort,
+    requestBody
   }
 }
 
@@ -160,7 +161,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
     // console.log ( '\n Current bridge : ' + JSON.stringify ( bridge.name ) )
     return bridge.ports.map ( ( port , index ) => {
      // console.log('\n\n Port : ' + JSON.stringify(port))
-      if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == PORT_WIRED ) {
+      if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == WIRED ) {
         return port.subnet
       }
     })
@@ -175,7 +176,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
     // console.log ( '\n Current bridge : ' + JSON.stringify ( bridge.name ) )
     return bridge.ports.map ( ( port , index ) => {
      // console.log('\n\n Port : ' + JSON.stringify(port))
-      if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == PORT_WIRELESS ) {
+      if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == WIRELESS ) {
         // return { subnet : port.subnet , port : port }
         return port.subnet
       }
@@ -189,9 +190,12 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
 
   console.log ( '\n GetStaticSubnetIps wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
 
-  if(wiredSwitchConfigSubnets.length > 0) {
+  // if(wiredSwitchConfigSubnets.length > 0) {
     const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
-      const subnetNo = parseInt(wiredSwitchConfigSubnets[ index ].split ( '.' )[ 2 ])
+      console.log('\n Current Subnet in subnetDetails : ' + JSON.stringify(subnet))
+      let switchConfigSubnetType = subnet.connection == WIRELESS ? wirelessSwitchConfigSubnets : wiredSwitchConfigSubnets
+      console.log('\n Available Subnets switchConfigSubnetType  : ' + JSON.stringify(switchConfigSubnetType))
+      const subnetNo = parseInt(switchConfigSubnetType[ index ].split ( '.' )[ 2 ])
       console.log ( '\n Calling IP Allocator to create subnet ' + JSON.stringify ( subnetNo ) )
       const subnets = await subnetAllocation.getNewSubnet ( index , subnetNo )
       // console.log ( '\n GET SUBNET IPs Subnets from IPAllocator : ' + JSON.stringify ( subnets ) )
@@ -199,10 +203,8 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
     } ) )
     console.log ( '\n getStaticSubnetIps Obtained subnets : ' + JSON.stringify ( promises ) )
     return promises
-  }
-  else {
-    // TODO : Add Errors
-  }
+ // }
+
 
 }
 
@@ -249,6 +251,7 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
   const subnetDetails = requestBody.map ( ( micronet , index ) => {
     return Object.assign ( {} , {
       name : micronet.name ,
+      connection: micronet['device-connection'] || 'wired',
       devices : micronet[ 'connected-devices' ]
     } )
   } )
@@ -359,7 +362,7 @@ const populatePostObj = async ( hook , reqBody ) => {
 
   /* Populate ODL Static Config */
   const config = await populateOdlConfig ( hook , reqBody , gatewayId )
-  const { reqBodyWithOdlConfig , wirelessPorts , wiredPorts } = config
+  const { reqBodyWithOdlConfig , wirelessPorts , wiredPorts, requestBody } = config
   console.log ( '\n PopulatePostObj  CONFIG : ' + JSON.stringify ( config ) )
   // console.log ( '\n\n PopulatePostObj reqBodyWithOdlConfig : ' + JSON.stringify ( reqBodyWithOdlConfig ) )
 
@@ -595,6 +598,7 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
         micronet : [ {
           "name" : device.class ,
           "micronet-subnet-id" : device.class ,
+          "device-connection":device.deviceConnection,
           "connected-devices" : []
         } ]
       }
