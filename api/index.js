@@ -44,11 +44,11 @@ async function upsertDeviceLeaseStatus(message,type) {
   console.log('\n upsertDeviceLeaseStatus message : ' + JSON.stringify(message) + '\t\t type : ' + JSON.stringify(type))
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
   const eventDeviceId = isLeaseAcquired ? message.body.leaseAcquiredEvent.deviceId : message.body.leaseExpiredEvent.deviceId
-  console.log('\n EventDeviceID : ' + JSON.stringify(eventDeviceId))
+  console.log('\n EventDeviceId : ' + JSON.stringify(eventDeviceId))
   let user = await app.service ( '/mm/v1/micronets/users' ).find ( {} )
   user = user.data[ 0 ]
   console.log ( '\n User : ' + JSON.stringify ( user ) )
-  const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId == eventDeviceId )
+  const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase() == eventDeviceId.toLocaleLowerCase() )
   console.log ( '\n deviceIndex : ' + JSON.stringify ( deviceIndex ) )
   const updatedDevice = Object.assign ( {} ,
     {

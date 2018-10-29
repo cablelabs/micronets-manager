@@ -5,7 +5,8 @@ const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application
 const axios = require ( 'axios' );
 module.exports = {
   before: {
-    all: [ authenticate('jwt') ],
+    all: [ //authenticate('jwt')
+       ],
     find: [],
     get: [
       hook => {

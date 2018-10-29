@@ -14,6 +14,7 @@ module.exports = function (app) {
     name: { type: String, required: true },
     ssid: { type: String, required: true },
     devices:[ {
+      _id:false,
       deviceId: { type: String, required: true },
       clientId: { type: String, required: true},
       macAddress: { type: String, required: true },
@@ -21,7 +22,7 @@ module.exports = function (app) {
       isRegistered: { type: Boolean , required: true , default: false },
       deviceName: {type: String, required: true, default: 'Test Device'},
       deviceConnection:{type: String, required: true, default: 'wired'},
-      deviceLeaseStatus:{ type: String, required:true }
+      deviceLeaseStatus:{ type: String, required:true, default: 'intermediary' }
     }]
   }, {
     timestamps: true
