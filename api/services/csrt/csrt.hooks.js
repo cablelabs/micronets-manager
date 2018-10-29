@@ -37,6 +37,7 @@ module.exports = {
           console.log('\n csrTemplate.data : ' + JSON.stringify(csrTemplate.data))
           const subscriber = await axios.get(`${registry.msoPortalUrl}/internal/subscriber/${hook.data.subscriberId}`,allHeaders)
           console.log('\n subscriber.data : ' + JSON.stringify(subscriber.data))
+          console.log('\n\n Params payload : ' + JSON.stringify(params.payload))
           if(subscriber.data) {
             // Creating updating user information
             const sessionData = Object.assign ( {} , {
@@ -49,6 +50,7 @@ module.exports = {
                 macAddress : params.payload.macAddress,
                 class: params.payload.class,
                 isRegistered : false,
+                deviceName: params.payload.deviceName,
                 deviceLeaseStatus: "intermediary"
               } )
             } )
@@ -58,7 +60,8 @@ module.exports = {
                  clientId : params.payload.clientID ,
                  deviceId : params.payload.deviceID ,
                  macAddress : params.payload.macAddress ,
-                 class : params.payload.class
+                 class : params.payload.class,
+                 deviceName: params.payload.deviceName
                }, { query : { id : subscriber.data.id }, mongoose: { upsert: true}});
 
           }

@@ -19,6 +19,7 @@ module.exports = function (app) {
       macAddress: { type: String, required: true },
       class: { type: String, required: false },
       isRegistered: { type: Boolean , required: true , default: false },
+      deviceName: {type: String, required: true, default: 'Test Device'},
       deviceLeaseStatus:{ type: String, required:true }
     }]
   }, {
