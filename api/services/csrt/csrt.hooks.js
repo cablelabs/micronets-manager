@@ -51,6 +51,7 @@ module.exports = {
                 class: params.payload.class,
                 isRegistered : false,
                 deviceName: params.payload.deviceName,
+                deviceConnection:params.payload.deviceConnection,
                 deviceLeaseStatus: "intermediary"
               } )
             } )
@@ -61,7 +62,8 @@ module.exports = {
                  deviceId : params.payload.deviceID ,
                  macAddress : params.payload.macAddress ,
                  class : params.payload.class,
-                 deviceName: params.payload.deviceName
+                 deviceName: params.payload.deviceName,
+                 deviceConnection:params.payload.deviceConnection
                }, { query : { id : subscriber.data.id }, mongoose: { upsert: true}});
 
           }

@@ -20,6 +20,7 @@ module.exports = function (app) {
       class: { type: String, required: false },
       isRegistered: { type: Boolean , required: true , default: false },
       deviceName: {type: String, required: true, default: 'Test Device'},
+      deviceConnection:{type: String, required: true, default: 'wired'},
       deviceLeaseStatus:{ type: String, required:true }
     }]
   }, {
