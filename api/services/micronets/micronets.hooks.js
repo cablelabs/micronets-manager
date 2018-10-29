@@ -1332,7 +1332,6 @@ module.exports = {
     patch : [
       async ( hook ) => {
         const { data , id , params } = hook
-        console.log ( '\n PATCH AFTER HOOK DATA : ' + JSON.stringify ( data ) + '\t\t ID : ' + JSON.stringify ( id ) + '\t\t PARAMS : ' + JSON.stringify ( params ) )
         hook.app.service ( '/mm/v1/micronets' ).emit ( 'micronetUpdated' , {
           type : 'micronetUpdated' ,
           data : data
