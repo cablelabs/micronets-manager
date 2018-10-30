@@ -72,7 +72,7 @@
     "moment": "^2.22.2",
     "mongodb": "^3.0.10",
     "mongoose": "^5.2.1",
-    "nodemon": "^1.17.5",
+    "nodemon": "^1.18.5",
     "ramda": "^0.25.0",
     "random-number": "0.0.9",
     "serve-favicon": "^2.5.0",
