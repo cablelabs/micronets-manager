@@ -122,28 +122,30 @@ module.exports.connect = function() {
 
       wsp.onClose.addListener(event => {
         console.log('Connections closed: ' + event.reason)
-        me.connect()
-          .then(() => {
-            console.log('Reconnected')
-          })
-          .catch((error => {
-            console.err("ERROR: Could not reconnect")
-            throw new Error('Could not reconnect to the Web Socket at ' + me.address)
-          }))
+        setTimeout(()=> {
+          me.connect()
+            .then(() => { console.log('Reconnected') })
+            .catch((error => {
+              console.err("ERROR: Could not reconnect")
+              throw new Error('Could not reconnect to the Web Socket at ' + me.address)
+            }))
+        }, 20000) // Try every 20 secs
       });
 
-      wsp.onError.addListener(event => {
-        console.error('Connection Error: ' + event)
-        me.connect()
-          .then(() => {
-            console.log('Reconnected')
-          })
-          .catch((error => {
-            console.err("ERROR: Could not reconnect")
-            console.err(error)
-            throw new Error('Could not reconnect to the Web Socket at ' + me.address)
-          }))
-      });
+      // wsp.onError.addListener(event => {
+      //   console.error('Connection Error: ' + event)
+      //   setTimeout(()=> {
+      //   me.connect()
+      //     .then(() => {
+      //       console.log('Reconnected')
+      //     })
+      //     .catch((error => {
+      //       console.err("ERROR: Could not reconnect")
+      //       console.err(error)
+      //       throw new Error('Could not reconnect to the Web Socket at ' + me.address)
+      //     }))
+      //   }, 2000)
+      // });
     }
   })
 };
