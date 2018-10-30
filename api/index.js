@@ -14,11 +14,13 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 
 server.on ( 'listening' , async () => {
   logger.info ( 'Feathers application started on http://%s:%d' , app.get ( 'host' ) , port )
-  let registry = await app.service('/mm/v1/micronets/registry').find({})
-  registry = registry.data[0]
-  console.log('\n Web Socket Url from registry : ' + JSON.stringify(registry.websocketUrl))
-  await dw.setAddress ( registry.websocketUrl  );
-  await dw.connect().then( () => { return true } );
+  let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
+  registry = registry.data[ 0 ]
+  if ( registry && registry.hasOwnProperty ( 'websocketUrl' ) ) {
+    console.log ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.websocketUrl ) )
+    await dw.setAddress ( registry.websocketUrl );
+    await dw.connect ().then ( () => { return true } );
+  }
 } );
 
 io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )
@@ -38,17 +40,15 @@ app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceAdd' , ( data ) => {
   } );
 } );
 
-
-
-async function upsertDeviceLeaseStatus(message,type) {
-  console.log('\n upsertDeviceLeaseStatus message : ' + JSON.stringify(message) + '\t\t type : ' + JSON.stringify(type))
+async function upsertDeviceLeaseStatus ( message , type ) {
+  console.log ( '\n upsertDeviceLeaseStatus message : ' + JSON.stringify ( message ) + '\t\t type : ' + JSON.stringify ( type ) )
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
   const eventDeviceId = isLeaseAcquired ? message.body.leaseAcquiredEvent.deviceId : message.body.leaseExpiredEvent.deviceId
-  console.log('\n EventDeviceId : ' + JSON.stringify(eventDeviceId))
+  console.log ( '\n EventDeviceId : ' + JSON.stringify ( eventDeviceId ) )
   let user = await app.service ( '/mm/v1/micronets/users' ).find ( {} )
   user = user.data[ 0 ]
   console.log ( '\n User : ' + JSON.stringify ( user ) )
-  const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase() == eventDeviceId.toLocaleLowerCase() )
+  const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
   console.log ( '\n deviceIndex : ' + JSON.stringify ( deviceIndex ) )
   const updatedDevice = Object.assign ( {} ,
     {
@@ -67,9 +67,13 @@ async function upsertDeviceLeaseStatus(message,type) {
   return updateResult
 }
 
-dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => { await upsertDeviceLeaseStatus(message,'leaseAcquiredEvent') })
+dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
+  await upsertDeviceLeaseStatus ( message , 'leaseAcquiredEvent' )
+} )
 
-dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => { await upsertDeviceLeaseStatus(message,'leaseExpiredEvent') } )
+dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => {
+  await upsertDeviceLeaseStatus ( message , 'leaseExpiredEvent' )
+} )
 
 app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceUpdate' , ( data ) => {
   console.log ( '\n FeatherJS event userDeviceUpdate fired with data : ' + JSON.stringify ( data ) )
