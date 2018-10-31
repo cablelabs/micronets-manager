@@ -20,14 +20,14 @@ module.exports = {
         console.log('\n registry : ' + JSON.stringify(registry))
         const data = { subcriberId : hook.data.subscriberId }
         const jwtToken = params.headers.authorization.split ( ' ' )[ 1 ]
-        const configureIdentityService =  await axios({
-          // ...apiInit,
-          method: 'post',
-          url: `${registry.identityUrl}/configure`,
-          data: data
-        })
-        console.log('\n configureIdentityService : ' + JSON.stringify(configureIdentityService.data))
-        if(configureIdentityService.data.result) {
+        // const configureIdentityService =  await axios({
+        //   // ...apiInit,
+        //   method: 'post',
+        //   url: `${registry.identityUrl}/configure`,
+        //   data: data
+        // })
+        //console.log('\n configureIdentityService : ' + JSON.stringify(configureIdentityService.data))
+        // if(configureIdentityService.data.result) {
           const csrTemplate = await axios({
             ...apiInit,
             method: 'post',
@@ -81,7 +81,7 @@ module.exports = {
                 }
               }
             } );
-        }
+       // }
       }
     ],
     update: [],
