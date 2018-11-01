@@ -52,6 +52,7 @@ module.exports = {
                 if(hook.data.devices && hook.data.deleteRegisteredDevices == true) {
                   console.log('\n Valid registered devices : ' + JSON.stringify(hook.data.devices) + '\t\t data.deleteRegisteredDevices : ' + JSON.stringify(hook.data.deleteRegisteredDevices))
                   const originalUser = data[ 0 ];
+                  console.log('\n Original User : ' + JSON.stringify(originalUser))
                   let updatedUser = Object.assign ( {} , {...originalUser}, { devices: hook.data.devices });
                   console.log('\n UPDATED USER AFTER DEVICES UPDATE: ' + JSON.stringify(updatedUser))
                   hook.data =  Object.assign ( {} , updatedUser );
@@ -63,11 +64,16 @@ module.exports = {
 
                   if(foundDeviceIndex >= 0 ) {
                     console.log('\n Device already present.Do nothing')
-                    if(data.isRegistered == originalUser.devices[foundDeviceIndex].isRegistered) {
-                      return Promise.resolve(hook)
+                    if(hook.data.isRegistered == true && originalUser.devices[foundDeviceIndex].isRegistered == true) {
+                      console.log('\n Device already registered hook.data.isRegistered : ' + JSON.stringify(hook.data.isRegistered))
+                      console.log('\n Device already registered originalUser.devices[foundDeviceIndex].isRegistered  : ' + JSON.stringify(originalUser.devices[foundDeviceIndex].isRegistered ))
+                       // return Promise.resolve(hook)
                     }
 
-                    if((data.isRegistered != originalUser.devices[foundDeviceIndex].isRegistered) || (data.isRegistered == !originalUser.devices[foundDeviceIndex].isRegistered)) {
+                    //if((hook.data.isRegistered != originalUser.devices[foundDeviceIndex].isRegistered) || (data.isRegistered == !originalUser.devices[foundDeviceIndex].isRegistered)) {
+
+                    if(hook.data.isRegistered == true && originalUser.devices[foundDeviceIndex].isRegistered == false) {
+                      console.log('\n Device completed registration process.Update is registered property ')
                       let updatedDevice = Object.assign(originalUser.devices[foundDeviceIndex], {isRegistered: true, deviceLeaseStatus:"intermediary"})
                       let updatedUser = Object.assign ( {} , originalUser , updatedDevice);
                       hook.data =  Object.assign ( {} , updatedUser );

@@ -10,10 +10,10 @@ module.exports = function (app) {
     _id:false,
     'device-name': { type: String, required: true },
     class: { type: String, required: false },
-    'device-mac': { type: String, required: true },
+    'device-mac': { type: String, required: true, unique:true },
     'device-ip': { type: String, required: true },
     'device-openflow-port': { type: String, required: false },
-    'device-id': { type: String, required: true  }
+    'device-id': { type: String, required: true , unique:true }
   });
 
   const subnet = new Schema({
