@@ -8,26 +8,15 @@ module.exports = {
     get: [
       hook => {
         const {params, headers, data, id} = hook
-        console.log('\n ODL GET HOOK id : ' + JSON.stringify(id))
         return hook.app.service ( 'mm/v1/micronets/odl' ).find ( { query : { gatewayId : id } } )
           .then ( ( { data } ) => {
             data = omitMeta(data[0])
-            console.log('\n GET hook.result : ' + JSON.stringify(data))
             hook.result = Object.assign({}, data)
           })
       }
     ],
     create: [],
-    update: [
-      async(hook) => {
-        const { data, id, params } = hook;
-        hook.params.mongoose = {
-          runValidators : true ,
-          setDefaultsOnInsert : true
-        }
-        console.log('\n ODL UPDATE HOOK DATA : ' + JSON.stringify(data) + '\t\t ID : ' + JSON.stringify(id) + '\t\t PARAMS : ' + JSON.stringify(params))
-      }
-    ],
+    update: [],
     patch: [
       async(hook) => {
        const { data, id, params } = hook;
@@ -35,12 +24,9 @@ module.exports = {
           runValidators : true ,
           setDefaultsOnInsert : true
         }
-       console.log('\n ODL PATCH HOOK DATA : ' + JSON.stringify(data) + '\t\t ID : ' + JSON.stringify(id) + '\t\t PARAMS : ' + JSON.stringify(params))
        const odl =  await hook.app.service('/mm/v1/micronets/odl').get({})
-       console.log('\n ODL PATCH HOOK ODL OBJECT FROM GET : ' + JSON.stringify(odl.data))
         if(!hook.id) {
          hook.id = odl.data._id
-         console.log('\n ODL PATCH HOOK SET HOOK.ID : ' + JSON.stringify(hook.id))
         }
       }
     ],

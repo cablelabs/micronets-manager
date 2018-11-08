@@ -11,16 +11,13 @@ module.exports = {
     get: [
       hook => {
       const {params, data, id} = hook
-        console.log('\n REGISTRY GET HOOK headers : ' + JSON.stringify(params.headers) + '\t\t params.id : ' + JSON.stringify(params.id) + '\t\t hook.params.query : ' + JSON.stringify(hook.params.query))
         const query = Object.assign({ subscriberId: id ? id : params.id }, hook.params.query);
-        console.log('\n REGISTRY GET HOOK Query : ' + JSON.stringify(query))
         hook.params.mongoose = {
           runValidators: true,
           setDefaultsOnInsert: true
         }
         return hook.app.service('/mm/v1/micronets/registry').find({ query })
           .then(({data}) => {
-            console.log('\n Registry get service data : ' + JSON.stringify(data))
             if(data.length === 1) {
               hook.result = omitMeta(data[0]);
             }
@@ -41,7 +38,6 @@ module.exports = {
           setDefaultsOnInsert: true,
           upsert : true
         }
-        console.log('\n UPDATE HOOK REGISTRY DATA : ' + JSON.stringify(data) + '\t\t\t ID : ' + JSON.stringify(id))
         let registryToModify = await hook.app.service('/mm/v1/micronets/registry').find(id)
         registryToModify = registryToModify.data[0]
         const patchResult = await hook.app.service('/mm/v1/micronets/registry').patch(null, Object.assign({},{...registryToModify, ...data}),{ query : { subscriberId: id }, mongoose: { upsert: true}})

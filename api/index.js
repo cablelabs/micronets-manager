@@ -5,8 +5,7 @@ const port = app.get ( 'port' );
 const server = app.listen ( port );
 const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
-// const webSocketUrl = 'wss://74.207.229.106:5050/micronets/v1/ws-proxy/grandpa-gw'
-// const webSocketUrl = "wss://127.0.0.1:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z"
+
 
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
@@ -44,20 +43,15 @@ async function upsertDeviceLeaseStatus ( message , type ) {
   console.log ( '\n upsertDeviceLeaseStatus message : ' + JSON.stringify ( message ) + '\t\t type : ' + JSON.stringify ( type ) )
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
   const eventDeviceId = isLeaseAcquired ? message.body.leaseAcquiredEvent.deviceId : message.body.leaseExpiredEvent.deviceId
-  console.log ( '\n EventDeviceId : ' + JSON.stringify ( eventDeviceId ) )
   let user = await app.service ( '/mm/v1/micronets/users' ).find ( {} )
   user = user.data[ 0 ]
-  console.log ( '\n User : ' + JSON.stringify ( user ) )
   const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
-  console.log ( '\n deviceIndex : ' + JSON.stringify ( deviceIndex ) )
   const updatedDevice = Object.assign ( {} ,
     {
       ...user.devices[ deviceIndex ] ,
       deviceLeaseStatus : isLeaseAcquired ? 'positive' : 'intermediary'
     } )
-  console.log ( '\n updateDevice : ' + JSON.stringify ( updatedDevice ) )
   user.devices[ deviceIndex ] = updatedDevice
-  console.log ( '\n Updated user devices : ' + JSON.stringify ( user.devices ) )
   const updateResult = await app.service ( '/mm/v1/micronets/users' ).update ( user._id , Object.assign ( {} , {
     id : user.id ,
     name : user.name ,

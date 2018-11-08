@@ -9,11 +9,9 @@ module.exports = {
     get: [
       hook => {
         const {params, headers, data, id} = hook
-        console.log('\n Gateway get hook id : ' + JSON.stringify(id))
         return hook.app.service ( 'mm/v1/micronets/gateway' ).find ( { query : { gatewayId : id } } )
           .then ( ( { data } ) => {
             data = omitMeta(data[0])
-            console.log('\n GET hook.result : ' + JSON.stringify(data))
             hook.result = Object.assign({}, data)
           })
       }

@@ -91,7 +91,6 @@ const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
       "ovs-manager-ip" : ovsHost
     }
   } );
-  console.log ( '\n\n populateOdlConfig reqBodyWithOdlConfig : ' + JSON.stringify ( reqBodyWithOdlConfig ) )
   return {
     reqBodyWithOdlConfig ,
     bridgeTrunkIndex ,

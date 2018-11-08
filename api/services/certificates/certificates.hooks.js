@@ -15,21 +15,6 @@ module.exports = {
        let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get ( null, { id : data.subscriberId }  );
        const subscriber = await axios.get(`${registry.msoPortalUrl}/internal/subscriber/${data.subscriberId}`,axiosConfig)
        const certificates =  await axios.post (`${registry.identityUrl}/certificates` ,  data , axiosConfig)
-       console.log('\n Certificates from identity server : ' + JSON.stringify(certificates.data))
-       // if(certificates.data) {
-       //   hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : data.subscriberId } } )
-       //     .then ( ( { data } ) => {
-       //        hook.app.service ( 'mm/v1/micronets/users' ).patch ( null ,{
-       //         clientId : params.payload.clientID ,
-       //         deviceId : params.payload.deviceID ,
-       //         macAddress : params.payload.macAddress ,
-       //         class : params.payload.class,
-       //         isRegistered : true,
-       //         deviceLeaseStatus: 'intermediary'
-       //       }, { query : { id : data[0].id }, mongoose: { upsert: true}});
-       //     })
-       //
-       // }
        hook.data = Object.assign ( {} ,
          {
            wifiCert : certificates.data.wifiCert ,
@@ -52,9 +37,6 @@ module.exports = {
     create: [
        hook  => {
         const { params  , payload, data } = hook;
-         console.log('\n Certificates after create hook params : ' + JSON.stringify(params) + '\t\t data : ' + JSON.stringify(data) )
-         console.log('\n Certificates after create hook payload : ' + JSON.stringify(payload) )
-         console.log('\n\n Certificates hook result : ' + JSON.stringify(hook.result))
          if(hook.result) {
            hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : data.subscriber.id } } )
              .then ( ( { data } ) => {

@@ -34,10 +34,7 @@ module.exports = {
             url: `${registry.identityUrl}/csrt`
           })
           // const csrTemplate = await axios.post (`${registry.identityUrl}/csrt`, ...apiInit)
-          console.log('\n csrTemplate.data : ' + JSON.stringify(csrTemplate.data))
           const subscriber = await axios.get(`${registry.msoPortalUrl}/internal/subscriber/${hook.data.subscriberId}`,allHeaders)
-          console.log('\n subscriber.data : ' + JSON.stringify(subscriber.data))
-          console.log('\n\n Params payload : ' + JSON.stringify(params.payload))
           if(subscriber.data) {
             // Creating updating user information
             const sessionData = Object.assign ( {} , {
@@ -97,7 +94,6 @@ module.exports = {
       async function ( hook ) {
         const { params , data , payload } = hook
         hook.result = omitMeta ( hook.data )
-        console.log ( '\n CSRT hook result :' + JSON.stringify ( hook.result ) )
         return hook;
       }
     ],
