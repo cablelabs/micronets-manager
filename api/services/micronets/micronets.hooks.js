@@ -8,6 +8,7 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require ( '../../hooks/dhcpWrapperPromise' )
 const WIRED = "wired"
 const WIRELESS = "wifi"
+const MUD_URL = "http://10.70.50.157:8888/getFlowRules"
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
@@ -652,7 +653,7 @@ const upsertDhcpDevicesWithMUD = async (hook , dhcpDevicesToUpsert) => {
     // Make MUD Post call
     let mudParserRes = await axios ( {
       method : 'POST' ,
-      url : `http://10.70.50.157:8888/getFlowRules` ,
+      url : MUD_URL ,
       data : mudParserPost
     } )
     mudParserRes = mudParserRes.data
