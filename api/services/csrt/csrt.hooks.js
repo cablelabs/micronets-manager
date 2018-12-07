@@ -49,7 +49,8 @@ module.exports = {
                 isRegistered : false,
                 deviceName: params.payload.deviceName,
                 deviceConnection:params.payload.deviceConnection,
-                deviceLeaseStatus: "intermediary"
+                deviceLeaseStatus: "intermediary",
+                mudUrl: params.payload.mudURL
               } )
             } )
             const user = await hook.app.service ( '/mm/v1/micronets/users' ).find ( { query : { id : subscriber.data.id } } )
@@ -60,7 +61,8 @@ module.exports = {
                  macAddress : params.payload.macAddress ,
                  class : params.payload.class,
                  deviceName: params.payload.deviceName,
-                 deviceConnection:params.payload.deviceConnection
+                 deviceConnection:params.payload.deviceConnection,
+                 mudUrl: params.payload.mudURL
                }, { query : { id : subscriber.data.id }, mongoose: { upsert: true}});
 
           }
