@@ -52,7 +52,6 @@ module.exports = function (app) {
 
     if(method == 'POST'){
       const subnet = await service.get(params.subnetId,params)
-      console.log('\n Subnet to add device to : ' + JSON.stringify(subnet))
       const result =  await service.create({...req.body},{ query : { subnetId:params.subnetId, url:originalUrl }, mongoose: { upsert: true}})
       res.json(result)
     }
