@@ -8,7 +8,7 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require ( '../../hooks/dhcpWrapperPromise' )
 const WIRED = "wired"
 const WIRELESS = "wifi"
-const MUD_URL = "http://10.70.50.157:8888/getFlowRules"
+const MUD_URL = "http://45.79.13.192:8888/getFlowRules"
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
