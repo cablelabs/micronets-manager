@@ -637,7 +637,7 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   } ) )
   return dhcpSubnetPromises
 }
-const upsertDhcpDevicesWithMUD = async (hook , dhcpDevicesToUpsert) => {
+const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
   // Get MUD Url from users
   let user = await hook.app.service('/mm/v1/micronets/users').find({})
   user = user.data[0]
@@ -658,7 +658,12 @@ const upsertDhcpDevicesWithMUD = async (hook , dhcpDevicesToUpsert) => {
     } )
     mudParserRes = mudParserRes.data
     // return {... dhcpDevicesToUpsert, ['allowHosts']: mudParserRes.device.allowHosts }
-    dhcpDeviceToUpsert['allowHosts'] = mudParserRes.device.allowHosts
+    if(mudParserRes.device.allowHosts.length > 0) {
+      dhcpDeviceToUpsert['allowHosts'] = mudParserRes.device.allowHosts
+    }
+    if(mudParserRes.device.denyHosts.length > 0) {
+      dhcpDeviceToUpsert['denyHosts'] = mudParserRes.device.denyHosts
+    }
     return dhcpDeviceToUpsert
   }))
   dhcpDevicesWithMudConfig = flattenArray(dhcpDevicesWithMudConfig)
@@ -694,9 +699,9 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
     } )
   } )
   dhcpDevicesPostBody = [].concat.apply ( [] , dhcpDevicesPostBody )
-  console.log('\n\n\n  dhcpDevicesPostBody without MUD : ' + JSON.stringify(dhcpDevicesPostBody))
-  dhcpDevicesPostBody = await upsertDhcpDevicesWithMUD(hook, dhcpDevicesPostBody)
-  console.log('\n\n\n  dhcpDevicesPostBody with MUD : ' + JSON.stringify(dhcpDevicesPostBody))
+  console.log('\n\n\n  Dhcp devices post body without MUD : ' + JSON.stringify(dhcpDevicesPostBody))
+  dhcpDevicesPostBody = await upsertDhcpDevicesWithMudConfig(hook, dhcpDevicesPostBody)
+  console.log('\n\n\n  Dhcp devices post body with MUD : ' + JSON.stringify(dhcpDevicesPostBody))
   if ( micronetIndex > -1 ) {
     // Check if subnet exists in DHCP Gateway
     const dhcpSubnet = await axios ( {
