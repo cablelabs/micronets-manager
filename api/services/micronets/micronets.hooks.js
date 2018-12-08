@@ -645,26 +645,31 @@ const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
   let dhcpDevicesWithMudConfig = await Promise.all(dhcpDevicesToUpsert.map(async (dhcpDeviceToUpsert , index) => {
     let userDeviceIndex = userDevices.findIndex((userDevice) => userDevice.macAddress == dhcpDeviceToUpsert.macAddress.eui48 && userDevice.deviceId == dhcpDeviceToUpsert.deviceId)
     let mudUrlForDevice = userDevices[userDeviceIndex].mudUrl
-    let mudParserPost = Object.assign({},{
-      url:mudUrlForDevice,
-      version:"1.1",
-      ip:dhcpDeviceToUpsert.networkAddress.ipv4
-    })
-    // Make MUD Post call
-    let mudParserRes = await axios ( {
-      method : 'POST' ,
-      url : MUD_URL ,
-      data : mudParserPost
-    } )
-    mudParserRes = mudParserRes.data
-    // return {... dhcpDevicesToUpsert, ['allowHosts']: mudParserRes.device.allowHosts }
-    if(mudParserRes.device.allowHosts.length > 0) {
-      dhcpDeviceToUpsert['allowHosts'] = mudParserRes.device.allowHosts
+    if(mudUrlForDevice && mudUrlForDevice!='') {
+      let mudParserPost = Object.assign ( {} , {
+        url : mudUrlForDevice ,
+        version : "1.1" ,
+        ip : dhcpDeviceToUpsert.networkAddress.ipv4
+      } )
+      // Make MUD Post call
+      let mudParserRes = await axios ( {
+        method : 'POST' ,
+        url : MUD_URL ,
+        data : mudParserPost
+      } )
+      mudParserRes = mudParserRes.data
+      // return {... dhcpDevicesToUpsert, ['allowHosts']: mudParserRes.device.allowHosts }
+      if ( mudParserRes.device.allowHosts.length > 0 ) {
+        dhcpDeviceToUpsert[ 'allowHosts' ] = mudParserRes.device.allowHosts
+      }
+      if ( mudParserRes.device.denyHosts.length > 0 ) {
+        dhcpDeviceToUpsert[ 'denyHosts' ] = mudParserRes.device.denyHosts
+      }
+      return dhcpDeviceToUpsert
+    } else {
+      console.log('\n Empty MUD url.' + JSON.stringify(mudUrlForDevice) + ' Do nothing')
+      return dhcpDeviceToUpsert
     }
-    if(mudParserRes.device.denyHosts.length > 0) {
-      dhcpDeviceToUpsert['denyHosts'] = mudParserRes.device.denyHosts
-    }
-    return dhcpDeviceToUpsert
   }))
   dhcpDevicesWithMudConfig = flattenArray(dhcpDevicesWithMudConfig)
   return dhcpDevicesWithMudConfig
