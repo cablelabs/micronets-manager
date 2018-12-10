@@ -121,7 +121,8 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                 "clientId": "https://kaiser-healthcare.org/",
                 "deviceId": "y2h0y79789yt1y248wfkf4k8996fb92427ae41e4649q934pa495991b7852q989",
                 "macAddress": "72:77:42:ge:1r:94",
-                "class": "Medical"
+                "class": "Medical",
+                "mudUrl":""
             }
         ]
     }
@@ -197,11 +198,79 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
     
  POST Data:
     
-        { TBD }
+        {
+          "gatewayId": "grandma-gw",
+          "hwModelId": "123456-789",
+          "ovsVersion": "2.9.2",
+          "ovsPort": "8181",
+          "switchConfig": {
+            "bridges": [
+              {
+                "name": "brmn001",
+                "macAddress": "80:ee:73:d9:dc:3f",
+                "trunkIp": "192.168.250.0/24",
+                "trunkPort": "2",
+                "ports": [
+                  {
+                    "port": "3",
+                    "interface": "enp0s31f6",
+                    "hwtype": "wired",
+                    "subnet": "192.168.250.0/24",
+                    "macAddress": "80:ee:73:d9:dc:3f",
+                    "vlanId": "0"
+                  },
+                  {
+                     "port": 4,
+                     "interface": "wlp2s0",
+                     "hwtype": "wifi",
+                     "subnet": "192.168.252.0/24",
+                     "macAddress": "24:f5:aa:71:9c:fb",
+                     "vlanId": "0"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+
    
  #### Response:
      
-      { TBD }
+      {
+          "gatewayId": "auntbetty-gw",
+          "hwModelId": "123456-789",
+          "ovsVersion": "2.9.2",
+          "ovsHost": "10.36.32.121",
+          "ovsPort": "8181",
+          "switchConfig": {
+              "bridges": [
+                  {
+                      "name": "brmn001",
+                      "macAddress": "80:ee:73:d9:dc:3f",
+                      "trunkIp": "192.168.250.0/24",
+                      "trunkPort": "2",
+                      "ports": [
+                          {
+                              "port": 3,
+                              "interface": "enp0s31f6",
+                              "hwtype": "wired",
+                              "subnet": "192.168.250.0/24",
+                              "macAddress": "80:ee:73:d9:dc:3f",
+                              "vlanId": "0"
+                          },
+                          {
+                              "port": 4,
+                              "interface": "wlp2s0",
+                              "hwtype": "wifi",
+                              "subnet": "192.168.252.0/24",
+                              "macAddress": "24:f5:aa:71:9c:fb",
+                              "vlanId": "0"
+                          }
+                      ]
+                  }
+              ]
+          }
+      }
       
      
  ### 7. Initialize Micronet :
@@ -254,7 +323,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                 "id" : "7B2A-BE88-08817Z",
                 "name" : "Grandma's LINKSYS 1900",
                 "ssid" : "grandma-gw",
-                "devices" : [],
                 "micronets": {
                     "subnets": [
                         {
@@ -344,7 +412,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
       {   "id" : "7B2A-BE88-08817Z",
           "name" : "Grandma's LINKSYS 1900",
           "ssid" : "grandma-gw",
-          "devices" : [],
           "micronets": {
               "subnets": [
                   {
@@ -399,26 +466,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
         {      "id" : "7B2A-BE88-08817Z",
                "name" : "Grandma's LINKSYS 1900",
                "ssid" : "grandma-gw",
-               "devices" : [ 
-                   {
-                       "clientId" : "https://ST-healthcare.org/",
-                       "deviceId" : "h2h0h43188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
-                       "macAddress" : "b8:27:eb:8d:30:27",
-                       "class" : "Medical"
-                   },
-                   {
-                        "clientId" : "https://ST-healthcare.org/",
-                        "deviceId" : "j2h0j42188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
-                        "macAddress" : "b8:27:eb:df:ae:a7",
-                        "class" : "CableLabs"
-                   },
-                   {
-                        "clientId" : "https://ST-healthcare.org/",
-                        "deviceId" : "e2h0e52188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
-                        "macAddress" : "b8:27:eb:ab:41:12",
-                        "class" : "Entertainment"
-                   }
-               ],
                     "micronets": {
                         "subnets": [
                             {
@@ -566,26 +613,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
            {      "id" : "7B2A-BE88-08817Z",
                   "name" : "Grandma's LINKSYS 1900",
                   "ssid" : "grandma-gw",
-                  "devices" : [ 
-                      {
-                          "clientId" : "https://ST-healthcare.org/",
-                          "deviceId" : "h2h0h43188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
-                          "macAddress" : "b8:27:eb:8d:30:27",
-                          "class" : "Wired_250"
-                      },
-                      {
-                           "clientId" : "https://ST-healthcare.org/",
-                           "deviceId" : "j2h0j42188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
-                           "macAddress" : "b8:27:eb:df:ae:a7",
-                           "class" : "Wireless_252"
-                      },
-                      {
-                           "clientId" : "https://ST-healthcare.org/",
-                           "deviceId" : "e2h0e52188fh1h148pfbf4c8996fb92427ae41e4649b934ca495991b7852b842",
-                           "macAddress" : "b8:27:eb:ab:41:12",
-                           "class" : "Wireless_252"
-                      }
-                  ],
                           "micronets": {
                               "subnets": [
                                   {
