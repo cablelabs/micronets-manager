@@ -8,5 +8,5 @@ module.exports = merge(prodEnv, {
   CLIENT_BASE_URL: '"https://nccoe-mm.micronets.in"',
   MSO_PORTAL_BASE_URL: '"https:/nccoe-mso.micronets.in"',
   DHCP_BASE_URL: '"http://10.36.32.127:5001"',
-  DHCP_SOCKET_URL: '"wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/auntbetty-gw"'
+  DHCP_SOCKET_URL: '"wss://nccoe-mso:5050/micronets/v1/ws-proxy/nccoe-gw"'
 })
