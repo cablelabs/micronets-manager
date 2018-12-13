@@ -15,6 +15,7 @@ services:
       - NODE_ENV=development
       - PORT=3030
       - MONGO_URL=mongodb://mongo:27017/micronets
+    network: host
     links:
       - mongo
 #    volumes:
@@ -31,6 +32,7 @@ services:
       - NODE_ENV=development
       - PORT=8080
       - MONGO_URL=mongodb://mongo:27017/micronets
+    network: host
     links:
       - mongo
       - api
