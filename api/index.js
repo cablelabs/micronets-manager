@@ -24,7 +24,7 @@ server.on ( 'listening' , async () => {
   }
 
   if(mano && mano.hasOwnProperty('webSocketUrl')) {
-    console.log('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + '\t\t from mano configuration ' )
+    console.log('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
     await dw.setAddress ( mano.webSocketUrl );
     await dw.connect ().then ( () => { return true } );
   }
