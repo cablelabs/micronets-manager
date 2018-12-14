@@ -4,18 +4,19 @@ services:
      image: mongo
      volumes:
        - /tmp/mongodb:/data/db
+     network_mode: "host"
      ports:
        - "27017:27017"
   api:
     build:
       context: ./../..
       dockerfile: docker/dev/Dockerfile.api
-      network: host
     image: micronets-manager-api-dev
+    network_mode: "host"
     environment:
       - NODE_ENV=development
       - PORT=3030
-      - MONGO_URL=mongodb://mongo:27017/micronets
+      - MONGO_URL=mongodb://127.0.0.1:27017/micronets
     links:
       - mongo
 #    volumes:
@@ -27,12 +28,12 @@ services:
     build:
       context: ./../..
       dockerfile: docker/dev/Dockerfile.app
-      network: host
     image: micronets-manager-client-dev
+    network_mode: "host"
     environment:
       - NODE_ENV=development
       - PORT=8080
-      - MONGO_URL=mongodb://mongo:27017/micronets
+      - MONGO_URL=mongodb://127.0.0.1:27017/micronets
     links:
       - mongo
       - api
