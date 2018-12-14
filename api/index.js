@@ -23,7 +23,7 @@ server.on ( 'listening' , async () => {
     await dw.connect ().then ( () => { return true } );
   }
 
-  if(mano && mano.hasOwnProperty('webSocketUrl')) {
+  if ( mano && mano.hasOwnProperty('webSocketUrl') && !(registry && registry.hasOwnProperty ( 'websocketUrl' ))) {
     console.log('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
     await dw.setAddress ( mano.webSocketUrl );
     await dw.connect ().then ( () => { return true } );
