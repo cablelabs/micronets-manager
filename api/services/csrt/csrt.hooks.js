@@ -17,7 +17,7 @@ module.exports = {
         let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get(null, {id:hook.data.subscriberId});
        // let registry = await axios.get(`${hook.data.registryUrl}/micronets/v1/mm/registry/${hook.data.subscriberId}`,allHeaders)
         // Call configure url
-        console.log('\n registry : ' + JSON.stringify(registry))
+        // console.log('\n registry : ' + JSON.stringify(registry))
         const data = { subcriberId : hook.data.subscriberId }
         const jwtToken = params.headers.authorization.split ( ' ' )[ 1 ]
         // const configureIdentityService =  await axios({

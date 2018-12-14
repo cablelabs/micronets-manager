@@ -21,7 +21,7 @@ module.exports = function ( app ) {
 
   app.use ( '/mm/v1/micronets/init' , async ( req , res , next ) => {
     const { path , originalUrl , method } = req
-    console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path ) + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl ) + '\t\t METHOD : ' + JSON.stringify ( method ) )
+    // console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path ) + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl ) + '\t\t METHOD : ' + JSON.stringify ( method ) )
     const result = await service.create (
       { req : req } ,
       { params : service.hooks.params }
@@ -32,7 +32,7 @@ module.exports = function ( app ) {
 
   app.use ( `/mm/v1/micronets/:micronetId/subnets/:subnetId/devices` , async ( req , res , next ) => {
     const { path , originalUrl , method , params } = req
-    console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path ) + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl ) + '\t\t METHOD : ' + JSON.stringify ( method ) + '\t\t PARAMS : ' + JSON.stringify ( params ) )
+    // console.log ( '\n REQUEST PATH : ' + JSON.stringify ( path ) + '\t\t ORIGINAL URL : ' + JSON.stringify ( originalUrl ) + '\t\t METHOD : ' + JSON.stringify ( method ) + '\t\t PARAMS : ' + JSON.stringify ( params ) )
     if ( method == 'POST' ) {
       const result = await service.create (
         { req : req } ,
@@ -45,7 +45,7 @@ module.exports = function ( app ) {
   } );
 
   app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceRegistered' , ( data ) => {
-    console.log ( '\n Micronets service userDeviceRegistered event detected with data : ' + JSON.stringify ( data ) )
+    // console.log ( '\n Micronets service userDeviceRegistered event detected with data : ' + JSON.stringify ( data ) )
     service.create ( { ...data } , { params : service.hooks.params } )
   } )
 };

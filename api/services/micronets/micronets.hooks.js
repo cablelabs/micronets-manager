@@ -667,7 +667,7 @@ const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
       }
       return dhcpDeviceToUpsert
     } else {
-      console.log('\n Empty MUD url.' + JSON.stringify(mudUrlForDevice) + ' Do nothing')
+      // console.log('\n Empty MUD url.' + JSON.stringify(mudUrlForDevice) + ' Do nothing')
       return dhcpDeviceToUpsert
     }
   }))
@@ -690,7 +690,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
      return connectedDevices.map ( ( device , index ) => {
       const deviceFromDbIndex = micronetFromDB.micronets.micronet[ micronetIndex ][ "connected-devices" ].findIndex ( ( deviceFromDB ) => deviceFromDB[ 'device-mac' ] == device[ 'device-mac' ] )
       const deviceFromDb = micronetFromDB.micronets.micronet[ micronetIndex ][ "connected-devices" ][ deviceFromDbIndex ]
-      console.log('\n\n Device from micronets database : ' + JSON.stringify(deviceFromDb))
+      // console.log('\n\n Device from micronets database : ' + JSON.stringify(deviceFromDb))
       const dhcpDeviceIp = deviceFromDb[ 'device-ip' ]
         return {
           deviceId : device[ "device-id" ] ,
@@ -704,9 +704,9 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
     } )
   } )
   dhcpDevicesPostBody = [].concat.apply ( [] , dhcpDevicesPostBody )
-  console.log('\n\n\n  Dhcp devices post body without MUD : ' + JSON.stringify(dhcpDevicesPostBody))
+  // console.log('\n\n\n  Dhcp devices post body without MUD : ' + JSON.stringify(dhcpDevicesPostBody))
   dhcpDevicesPostBody = await upsertDhcpDevicesWithMudConfig(hook, dhcpDevicesPostBody)
-  console.log('\n\n\n  Dhcp devices post body with MUD : ' + JSON.stringify(dhcpDevicesPostBody))
+  // console.log('\n\n\n  Dhcp devices post body with MUD : ' + JSON.stringify(dhcpDevicesPostBody))
   if ( micronetIndex > -1 ) {
     // Check if subnet exists in DHCP Gateway
     const dhcpSubnet = await axios ( {
@@ -836,7 +836,6 @@ module.exports = {
           // const odlResponse = await odlOperationsForUpserts ( hook , odlPostBody )
           // FAKE ODL API's
           const odlResponse = await mockOdlOperationsForUpserts( hook , odlPostBody )
-          console.log('\n ')
           if ( odlResponse.data ) {
             const odlResponseData =  odlResponse.data
             const patchRequestData =  (odlResponseData.hasOwnProperty('id') && odlResponseData.hasOwnProperty('name') && odlResponseData.hasOwnProperty('micronets')) ? odlResponseData.micronets.micronet.micronets.micronet
