@@ -40,5 +40,8 @@
     "offset": 2,
     "ipMin": 2,
     "ipMax": 254
+  },
+  "mano":{
+    "webSocketUrl":"wss://nccoe-mso:5050/micronets/v1/ws-proxy/nccoe-gw"
   }
 }

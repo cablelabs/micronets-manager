@@ -3,6 +3,7 @@ const logger = require ( './logger' );
 const app = require ( './app' );
 const port = app.get ( 'port' );
 const server = app.listen ( port );
+const mano = app.get('mano')
 const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
 
@@ -15,11 +16,19 @@ server.on ( 'listening' , async () => {
   logger.info ( 'Feathers application started on http://%s:%d' , app.get ( 'host' ) , port )
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   registry = registry.data[ 0 ]
+
   if ( registry && registry.hasOwnProperty ( 'websocketUrl' ) ) {
     console.log ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.websocketUrl ) )
     await dw.setAddress ( registry.websocketUrl );
     await dw.connect ().then ( () => { return true } );
   }
+
+  if(mano && mano.hasOwnProperty('webSocketUrl')) {
+    console.log('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + '\t\t from mano configuration ' )
+    await dw.setAddress ( mano.webSocketUrl );
+    await dw.connect ().then ( () => { return true } );
+  }
+
 } );
 
 io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )
