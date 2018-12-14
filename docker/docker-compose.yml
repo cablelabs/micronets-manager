@@ -35,7 +35,7 @@ services:
       - NODE_ENV=production
       - PORT=8080
       - MONGO_URL=mongodb://127.0.0.1:27017/micronets
-    links:
+    depends_on:
       - mongo
       - api
     volumes:
