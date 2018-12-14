@@ -42,24 +42,17 @@ Please follow the instructions ( https://community.cablelabs.com/wiki/display/~m
 4. Start your server in dev mode
 
     ```
-    npm run server
+    npm run dev
     ```
 
-5. Start your client in dev mode
-
-    ```
-    npm run client
-    ```
-
-
-6. Build for production with minification
+5. Build for production with minification
 
     ```
     npm run build
     ```
 
 
-7. Build for production and view the bundle analyzer report
+6. Build for production and view the bundle analyzer report
 
     ```
     npm run build --report
