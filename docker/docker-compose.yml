@@ -30,11 +30,11 @@ services:
       context: ./../..
       dockerfile: docker/dev/Dockerfile.app
     image: micronets-manager-client-dev
+    network_mode: "host"
     environment:
       - NODE_ENV=production
       - PORT=8080
       - MONGO_URL=mongodb://127.0.0.1:27017/micronets
-    network: host
     links:
       - mongo
       - api
