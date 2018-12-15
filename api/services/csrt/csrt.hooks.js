@@ -10,8 +10,9 @@ module.exports = {
     get: [],
     create: [
       async (hook) => {
-        const { params  , payload } = hook;
+        const { params  , data, payload } = hook;
         const { headers: { authorization }} = params
+        console.log('\n CSRT hook data : ' + JSON.stringify(data))
         const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
         console.log('\n SubscriberId : ' + JSON.stringify(hook.data.subscriberId))
         let allHeaders = { headers : { 'Authorization' : authorization , crossDomain: true } };
