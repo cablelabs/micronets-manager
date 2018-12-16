@@ -13,7 +13,7 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 );
 
 server.on ( 'listening' , async () => {
-  logger.info ( 'Feathers application started on http://%s:%d' , app.get ( 'host' ) , port )
+  console.log ( 'Feathers application started on http://%s:%d in env' , app.get ( 'host' ) , port, process.env.NODE_ENV )
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   registry = registry.data[ 0 ]
 

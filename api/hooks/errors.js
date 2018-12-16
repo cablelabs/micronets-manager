@@ -1,5 +1,5 @@
 const errors = require("@feathersjs/errors");
-const errorHandler = ctx => {
+module.exports = ctx => {
   if (ctx.error) {
     const error = ctx.error;
     if (!error.code) {
@@ -13,3 +13,4 @@ const errorHandler = ctx => {
     return ctx;
   }
 };
+

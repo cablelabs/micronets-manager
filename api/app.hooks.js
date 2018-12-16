@@ -1,10 +1,10 @@
 // Application hooks that run for every service
-const log = require('./hooks/log');
+const logger = require('./hooks/log');
 const dw = require('./hooks/dhcpWrapperPromise')
 
 module.exports = {
   before: {
-    all: [ log()],
+    all: [ logger()],
     find: [],
     get: [],
     create: [],
@@ -14,7 +14,7 @@ module.exports = {
   },
 
   after: {
-    all: [ log() ],
+    all: [ logger() ],
     find: [],
     get: [],
     create: [],
@@ -24,7 +24,7 @@ module.exports = {
   },
 
   error: {
-    all: [ log() ],
+    all: [ logger() ],
     find: [],
     get: [],
     create: [],
