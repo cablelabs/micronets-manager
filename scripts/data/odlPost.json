@@ -1,0 +1,35 @@
+{
+  "gatewayId": "nccoe-gw",
+  "hwModelId": "123456-789",
+  "ovsVersion": "2.9.2",
+  "ovsHost": "10.36.32.136",
+  "ovsPort": "8181",
+  "switchConfig": {
+    "bridges": [
+      {
+        "name": "brmn001",
+        "macAddress": "80:ee:73:dc:64:1c",
+        "trunkIp": "10.36.32.136/24",
+        "trunkPort": "2",
+        "ports": [
+          {
+            "port": 3,
+            "interface": "enp1s0",
+            "hwtype": "wired",
+            "subnet": "192.168.250.0/24",
+            "macAddress": "80:ee:73:dc:64:1d",
+            "vlanId": "0"
+          },
+          {
+            "port": 5,
+            "interface": "wlp2s0",
+            "hwtype": "wifi",
+            "subnet": "192.168.252.0/24",
+            "macAddress": "20:16:d8:2b:4b:41",
+            "vlanId": "0"
+          }
+        ]
+      }
+    ]
+  }
+}
