@@ -10,6 +10,13 @@ JWT_TOKEN="Bearer ${TOKEN}"
 
 echo ' JWT Token : ' $JWT_TOKEN
 
+#! DELETE REGISTRY CURL
+
+echo ' Delete existing registry on ' $MM_HOSTNAME
+
+REGISTRIES=$(curl -s -X DELETE -H "Authorization: ${JWT_TOKEN}" -H 'Accept: application/json' -H 'Content-Type: application/json'  http://${MM_HOSTNAME}/mm/v1/micronets/registry )
+
+
 #! POST REGISTRY CURL
 
 echo ' Populating registry on ' $MM_HOSTNAME
@@ -18,9 +25,17 @@ REGISTRY=$(curl -s -X POST -H "Authorization: ${JWT_TOKEN}" -H 'Accept: applicat
 
 echo ' Registry : ' ${REGISTRY}
 
-echo ' Populating switch config on ' $MM_HOSTNAME
+
+#! DELETE REGISTRY CURL
+
+echo ' Delete existing switch config on ' $MM_HOSTNAME
+
+SWITCH_CONFIGS=$(curl -s -X DELETE -H "Authorization: ${JWT_TOKEN}" -H 'Accept: application/json' -H 'Content-Type: application/json'  http://${MM_HOSTNAME}/mm/v1/micronets/odl )
+
 
 #! POST SWITCH CONFIG CURL
+
+echo ' Populating switch config on ' $MM_HOSTNAME
 
 SWITCH_CONFIG=$(curl -s -X POST -H "Authorization: ${JWT_TOKEN}" -H 'Accept: application/json' -H 'Content-Type: application/json' --data-binary @./data/odlPost.json http://${MM_HOSTNAME}/mm/v1/micronets/odl )
 
