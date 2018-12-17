@@ -1,0 +1,11 @@
+{
+  "subscriberId": "7B2A-BE88-08817Z",
+  "identityUrl": "http://nccoe-ca.micronets.in",
+  "dhcpUrl": "http://127.0.0.1:5000",
+  "mmUrl": "http://nccoe-mm-api.micronets.in",
+  "mmClientUrl": "http://nccoe-mm.micronets.in",
+  "websocketUrl": "wss://nccoe-mso:5050/micronets/v1/ws-proxy/nccoe-gw",
+  "msoPortalUrl": "http://nccoe-mso-api.micronets.in",
+  "odlUrl": "http://127.0.0.1:18080",
+  "gatewayId":"nccoe-gw"
+}
