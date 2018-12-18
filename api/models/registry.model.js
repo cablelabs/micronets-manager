@@ -8,12 +8,12 @@ module.exports = function (app) {
   const registry = new Schema({
     subscriberId: {type: String, required: true, unique: true, primaryKey: true},
     identityUrl: { type: String, required: true },
-    dhcpUrl: { type: String, required: true },
+    dhcpUrl: { type: String, required: false },
     mmUrl: { type: String, required: true },
     mmClientUrl: {type: String, required: true },
     websocketUrl: { type: String, required: true },
     msoPortalUrl: { type: String, required: true },
-    odlUrl:{ type: String, required: true },
+    odlUrl:{ type: String, required: false },
     gatewayId : {type: String, required: true }
   }, {
     timestamps: true
