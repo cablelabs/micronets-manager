@@ -92,6 +92,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  		"name": "Grandma",
  		"ssid": "Grandma's WiFi"
  	  },
+ 	  "passphrase": "testphrase",
  	  "wifiCert": "<base64 encoded WiFi Certificate>",
  	  "caCert": "<base64 encoded CA Certificate>"
      }
@@ -288,30 +289,12 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                      "micronets" : {
                        "micronet" : [
                          {
-                           "name" : "Micronet_Medical",
-                           "micronet-subnet-id": "WIRED_enp4s0",
-                           "micronet-subnet" : "192.168.250.0/24",
-                           "micronet-gateway-ip" : "192.168.250.1",
-                           "trunk-gateway-port" : "{{port_trunk}}",
-                           "trunk-gateway-ip" : "{{ovshost}}",
-                           "dhcp-server-port" : "{{port_bridge}}",
-                           "dhcp-zone" : "192.168.250.0/24",
-                           "ovs-bridge-name" : "{{bridge}}",
-                           "ovs-manager-ip" : "{{ovshost}}",
-                           "connected-devices" : []
+                           "name" : "Medical",
+                           "micronet-subnet-id": "WIRED_enp4s0"
                          },
                          {
-                           "name" : "Micronet_CableLabs",
-                           "micronet-subnet-id": "WIRELESS_wlp2s0",
-                           "micronet-subnet" : "192.168.251.0/24",
-                           "micronet-gateway-ip" : "192.168.251.1",
-                           "trunk-gateway-port" : "{{port_trunk}}",
-                           "trunk-gateway-ip" : "{{ovshost}}",
-                           "dhcp-server-port" : "{{port_bridge}}",
-                           "dhcp-zone" : "192.168.251.0/24",
-                           "ovs-bridge-name" : "{{bridge}}",
-                           "ovs-manager-ip" : "{{ovshost}}",
-                           "connected-devices" : []
+                           "name" : "CableLabs",
+                           "micronet-subnet-id": "WIRELESS_wlp2s0"
                          }
                        ]
                      }
@@ -326,7 +309,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                 "micronets": {
                     "subnets": [
                         {
-                            "name": "Micronet_Medical",
+                            "name": "Medical",
                             "class": "Medical",
                             "trunk-gateway-port": "1",
                             "micronet-bridge-openflow-node-id": "openflow:2945788526319",
@@ -342,7 +325,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                             "trunk-gateway-ip": "10.36.32.55"
                         },
                         {
-                            "name": "Micronet_CableLabs",
+                            "name": "CableLabs",
                             "class": "CableLabs",
                             "trunk-gateway-port": "1",
                             "micronet-bridge-openflow-node-id": "openflow:2945788526319",
@@ -377,30 +360,12 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
             "micronets" : {
               "micronet" : [
                 {
-                  "name" : "Micronet_Wired",
-                  "micronet-subnet-id": "WIRED_enp4s0",
-                  "micronet-subnet" : "192.168.250.0/24",
-                  "micronet-gateway-ip" : "192.168.250.1",
-                  "trunk-gateway-port" : "{{port_trunk}}",
-                  "trunk-gateway-ip" : "{{ovshost}}",
-                  "dhcp-server-port" : "{{port_bridge}}",
-                  "dhcp-zone" : "192.168.250.0/24",
-                  "ovs-bridge-name" : "{{bridge}}",
-                  "ovs-manager-ip" : "{{ovshost}}",
-                  "connected-devices" : []
+                  "name" : "Wired",
+                  "micronet-subnet-id": "WIRED_enp4s0"
                 },
                 {
-                  "name" : "Micronet_Wireless",
-                  "micronet-subnet-id": "WIRELESS_wlp2s0",
-                  "micronet-subnet" : "192.168.251.0/24",
-                  "micronet-gateway-ip" : "192.168.251.1",
-                  "trunk-gateway-port" : "{{port_trunk}}",
-                  "trunk-gateway-ip" : "{{ovshost}}",
-                  "dhcp-server-port" : "{{port_bridge}}",
-                  "dhcp-zone" : "192.168.251.0/24",
-                  "ovs-bridge-name" : "{{bridge}}",
-                  "ovs-manager-ip" : "{{ovshost}}",
-                  "connected-devices" : []
+                  "name" : "Wireless",
+                  "micronet-subnet-id": "WIRELESS_wlp2s0"
                 }
               ]
             }
@@ -415,7 +380,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
           "micronets": {
               "subnets": [
                   {
-                      "name": "Micronet_Wired",
+                      "name": "Wired",
                       "class": "Wired",
                       "trunk-gateway-port": "1",
                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
@@ -431,7 +396,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                       "trunk-gateway-ip": "10.36.32.55"
                   },
                   {
-                      "name": "Micronet_Wireless",
+                      "name": "Wireless",
                       "class": "Wireless",
                       "trunk-gateway-port": "1",
                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
@@ -469,7 +434,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                     "micronets": {
                         "subnets": [
                             {
-                                "name": "Micronet_Medical",
+                                "name": "Medical",
                                 "class" : "Medical"
                                 "trunk-gateway-port": "1",
                                 "connected-devices": [
@@ -491,7 +456,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                 "trunk-gateway-ip": "10.36.32.55"
                             },
                             {
-                                "name": "Micronet_CableLabs",
+                                "name": "CableLabs",
                                 "class" : "CableLabs"
                                 "trunk-gateway-port": "1",
                                 "connected-devices": [
@@ -513,7 +478,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                 "trunk-gateway-ip": "10.36.32.55"
                             },
                             {
-                                "name": "Micronet_Entertainment",
+                                "name": "Entertainment",
                                 "class" : "Entertainment"
                                 "trunk-gateway-port": "1",
                                 "connected-devices": [
@@ -558,14 +523,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                     {
                       "name" : "Micronet_Wired_250",
                       "micronet-subnet-id": "WIRED_enp4s0",
-                      "micronet-subnet" : "192.168.250.0/24",
-                      "micronet-gateway-ip" : "192.168.250.1",
-                      "trunk-gateway-port" : "{{port_trunk}}",
-                      "trunk-gateway-ip" : "{{ovshost}}",
-                      "dhcp-server-port" : "{{port_bridge}}",
-                      "dhcp-zone" : "10.36.32.0/24",
-                      "ovs-bridge-name" : "{{bridge}}",
-                      "ovs-manager-ip" : "{{ovshost}}",
                       "connected-devices" : [
                           {
                             "device-name": "pia",
@@ -579,14 +536,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                     {
                       "name" : "Micronet_Wireless_252",
                       "micronet-subnet-id": "WIRELESS_wlp2s0",
-                      "micronet-subnet" : "192.168.252.0/24",
-                      "micronet-gateway-ip" : "192.168.252.1",
-                      "trunk-gateway-port" : "{{port_trunk}}",
-                      "trunk-gateway-ip" : "{{ovshost}}",
-                      "dhcp-server-port" : "{{port_bridge}}",
-                      "dhcp-zone" : "10.36.32.0/24",
-                      "ovs-bridge-name" : "{{bridge}}",
-                      "ovs-manager-ip" : "{{ovshost}}",
                         "connected-devices" : [
                           {
                             "device-name": "picw",
