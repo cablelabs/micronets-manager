@@ -2,7 +2,8 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const axios = require ( 'axios' );
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ,'registry'] );
-
+const errors = require('@feathersjs/errors');
+const registry = require('../registry/registry.service.js')
 module.exports = {
   before: {
     all: [ authenticate('jwt') ],
