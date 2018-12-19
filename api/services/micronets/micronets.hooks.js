@@ -205,7 +205,7 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
     return Object.assign ( {} , {
       name : micronet.name ,
       connection: micronet['device-connection'] || 'wired',
-      devices : micronet[ 'connected-devices' ]
+      devices : micronet[ 'connected-devices' ] || []
     } )
   } )
 
@@ -217,7 +217,7 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
 
   /* Add check for devices length in subnetDetails array */
   let subnetDetailsWithDevices = subnetDetails.map ( ( subnetDetail , index ) => {
-    if ( subnetDetail.devices.length >= 1 ) {
+    if ( subnetDetail.hasOwnProperty('devices') && subnetDetail.devices.length >= 1 ) {
       return subnetDetail
     }
   } )
