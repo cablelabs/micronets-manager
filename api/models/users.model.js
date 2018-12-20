@@ -16,14 +16,14 @@ module.exports = function (app) {
     devices:[ {
       _id:false,
       deviceId: { type: String, required: true },
-      clientId: { type: String, required: true},
       macAddress: { type: String, required: true },
-      class: { type: String, required: false },
       isRegistered: { type: Boolean , required: true , default: false },
       deviceName: {type: String, required: true, default: 'Test Device'},
+      clientId: { type: String, required: false },
+      class: { type: String, required: false },
       deviceConnection:{type: String, required: true, default: 'wired'},
       deviceLeaseStatus:{ type: String, required:true, default: 'intermediary' },
-      mudUrl: { type: String, required:false, default:'' }
+      mudUrl: { type: String, required:false, default: '' }
     }]
   }, {
     timestamps: true

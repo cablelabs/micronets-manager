@@ -7,7 +7,7 @@ const logger = createLogger({
   // To see more detailed errors, change this to 'debug'
   level: 'info',
   format: format.combine(
-    format.label({ label: path.basename(module.parent.filename) }),
+    format.label({ label: path.basename(module.filename) }),
     format.colorize(),
     format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss'
