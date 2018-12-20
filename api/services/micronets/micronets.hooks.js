@@ -188,16 +188,19 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
 
   logger.debug( '\n Static Subnet IPs wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
 
-  // if(wiredSwitchConfigSubnets.length > 0) {
     const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
       let switchConfigSubnetType = subnet.connection == WIRELESS ? wirelessSwitchConfigSubnets : wiredSwitchConfigSubnets
+      if(isEmpty(switchConfigSubnetType) && isEmpty(wiredSwitchConfigSubnets)) {
+        return Promise.reject(new errors.GeneralError(new Error('Micronet cannot be created.No wired subnet available')))
+      }
+      else if(isEmpty(switchConfigSubnetType) && isEmpty(wirelessSwitchConfigSubnets)) {
+        return Promise.reject(new errors.GeneralError(new Error('Micronet cannot be created.No wireless subnet available')))
+      }
       const subnetNo = parseInt(switchConfigSubnetType[ index ].split ( '.' )[ 2 ])
       const subnets = await subnetAllocation.getNewSubnet ( index , subnetNo )
       return Object.assign ( {} , subnets )
     } ) )
     return promises
- // }
-
 
 }
 

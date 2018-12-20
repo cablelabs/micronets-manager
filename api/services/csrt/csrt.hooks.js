@@ -13,9 +13,7 @@ module.exports = {
       async (hook) => {
         const { params  , data, payload } = hook;
         const { headers: { authorization }} = params
-        console.log('\n CSRT hook data : ' + JSON.stringify(data))
         const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
-        console.log('\n SubscriberId : ' + JSON.stringify(hook.data.subscriberId))
         let allHeaders = { headers : { 'Authorization' : authorization , crossDomain: true } };
         let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get(null, {id:hook.data.subscriberId});
        // let registry = await axios.get(`${hook.data.registryUrl}/micronets/v1/mm/registry/${hook.data.subscriberId}`,allHeaders)

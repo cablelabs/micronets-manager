@@ -2,6 +2,7 @@
 const createService = require ( 'feathers-mongoose' );
 const createModel = require ( '../../models/micronets.model' );
 const hooks = require ( './micronets.hooks' );
+const logger = require ( './../../logger' );
 
 module.exports = function ( app ) {
   const Model = createModel ( app );
@@ -43,7 +44,6 @@ module.exports = function ( app ) {
   } );
 
   app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceRegistered' , ( data ) => {
-    logger.debug ( '\n Micronets service userDeviceRegistered event detected with data : ' + JSON.stringify ( data ) )
     service.create ( { ...data } , { params : service.hooks.params } )
   } )
 };
