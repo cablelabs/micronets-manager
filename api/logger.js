@@ -5,7 +5,7 @@ const env = process.env.NODE_ENV || 'development';
 
 const logger = createLogger({
   // To see more detailed errors, change this to 'debug'
-  level: 'debug',
+  level: 'info',
   format: format.combine(
     format.label({ label: path.basename(module.parent.filename) }),
     format.colorize(),
