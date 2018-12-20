@@ -4,6 +4,7 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const errors = require('@feathersjs/errors')
 const mongoose = require('mongoose');
 const axios = require ( 'axios' );
+const logger = require ( './../../logger' );
 
 module.exports = {
   before : {
