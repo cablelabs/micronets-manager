@@ -2,6 +2,9 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 var axios = require ( 'axios' );
+const errors = require('@feathersjs/errors');
+const logger = require ( './../../logger' );
+
 module.exports = {
   before: {
     all: [ authenticate('jwt') ],
@@ -14,7 +17,9 @@ module.exports = {
        const user = await hook.app.service ( 'mm/v1/micronets/users' ).find()
        let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get ( null, { id : data.subscriberId }  );
        const subscriber = await axios.get(`${registry.msoPortalUrl}/internal/subscriber/${data.subscriberId}`,axiosConfig)
+       logger.debug( '\n MSO URL  :' + JSON.stringify ( registry.msoPortalUrl )  + '\n\n Subscriber : ' + JSON.stringify(subscriber.data))
        const certificates =  await axios.post (`${registry.identityUrl}/certificates` ,  data , axiosConfig)
+       logger.debug( '\n Identity URL  :' + JSON.stringify ( registry.identityUrl )  + '\n\n Certificates : ' + JSON.stringify(certificates.data))
        hook.data = Object.assign ( {} ,
          {
            wifiCert : certificates.data.wifiCert ,
