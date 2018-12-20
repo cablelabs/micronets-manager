@@ -13,18 +13,18 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 );
 
 server.on ( 'listening' , async () => {
-  logger.info ( 'Feathers application started on http://%s:%d' , app.get ( 'host' ) , port )
+  logger.info ( 'Feathers application started on Host : ' +  JSON.stringify(app.get ( 'host' )) + '\t Port : '+ JSON.stringify(port))
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   registry = registry.data[ 0 ]
 
   if ( registry && registry.hasOwnProperty ( 'websocketUrl' ) ) {
-    console.log ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.websocketUrl ) )
+    logger.info ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.websocketUrl ) )
     await dw.setAddress ( registry.websocketUrl );
     await dw.connect ().then ( () => { return true } );
   }
 
   if ( mano && mano.hasOwnProperty('webSocketUrl') && !(registry && registry.hasOwnProperty ( 'websocketUrl' ))) {
-    console.log('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
+    logger.info('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
     await dw.setAddress ( mano.webSocketUrl );
     await dw.connect ().then ( () => { return true } );
   }
@@ -49,7 +49,7 @@ app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceAdd' , ( data ) => {
 } );
 
 async function upsertDeviceLeaseStatus ( message , type ) {
-  console.log ( '\n upsertDeviceLeaseStatus message : ' + JSON.stringify ( message ) + '\t\t type : ' + JSON.stringify ( type ) )
+  logger.info ( '\n DeviceLease message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
   const eventDeviceId = isLeaseAcquired ? message.body.leaseAcquiredEvent.deviceId : message.body.leaseExpiredEvent.deviceId
   let user = await app.service ( '/mm/v1/micronets/users' ).find ( {} )
@@ -79,12 +79,12 @@ dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => {
 } )
 
 app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceUpdate' , ( data ) => {
-  console.log ( '\n FeatherJS event userDeviceUpdate fired with data : ' + JSON.stringify ( data ) )
+  logger.debug ( '\n FeatherJS event userDeviceUpdate fired with data : ' + JSON.stringify ( data ) )
   io.on ( 'connection' , ( socket ) => {
     logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
     socket.emit ( 'userDeviceUpdate' , data );
     socket.on ( 'disconnect' , () => {
-      console.log ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
+      logger.debug ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
       socket.removeAllListeners ( 'send message' );
       socket.removeAllListeners ( 'disconnect' );
       socket.removeAllListeners ( 'connection' );
@@ -94,12 +94,12 @@ app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceUpdate' , ( data ) => {
 } );
 
 app.service ( '/mm/v1/micronets' ).on ( 'micronetUpdated' , ( data ) => {
-  console.log ( '\n FeatherJS event micronetUpdated fired with data : ' + JSON.stringify ( data ) )
+  logger.debug ( '\n FeatherJS event micronetUpdated fired with data : ' + JSON.stringify ( data ) )
   io.on ( 'connection' , ( socket ) => {
     logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
     socket.emit ( 'micronetUpdated' , data );
     socket.on ( 'disconnect' , () => {
-      console.log ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
+      logger.debug ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
       socket.removeAllListeners ( 'send message' );
       socket.removeAllListeners ( 'disconnect' );
       socket.removeAllListeners ( 'connection' );

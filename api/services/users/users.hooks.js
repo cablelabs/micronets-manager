@@ -4,6 +4,7 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const errors = require('@feathersjs/errors')
 const mongoose = require('mongoose');
 const axios = require ( 'axios' );
+const logger = require ( './../../logger' );
 
 module.exports = {
   before : {
@@ -21,14 +22,14 @@ module.exports = {
           })
       }
     ] ,
-    create : [ authenticate ( 'jwt' ),
+    create : [
       ( hook ) => {
         const {data } = hook;
         hook.data = Object.assign({}, {
           id: data.id,
           name: data.name,
           ssid: data.ssid,
-          devices : [data.devices]
+          devices : Array.isArray(data.devices) ? data.devices: [data.devices]
         })
         // hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userCreate' , {
         //   type : 'userCreate' ,
@@ -40,6 +41,7 @@ module.exports = {
     patch : [ authenticate ( 'jwt' ),
       (hook) => {
         const { params, data, id } = hook;
+        const postData = hook.data
         hook.params.mongoose = {
           runValidators: true,
           setDefaultsOnInsert: true
@@ -67,6 +69,7 @@ module.exports = {
                       let updatedDevice = Object.assign(originalUser.devices[foundDeviceIndex], {isRegistered: true, deviceLeaseStatus:"intermediary"})
                       let updatedUser = Object.assign ( {} , originalUser , updatedDevice);
                       hook.data =  Object.assign ( {} , updatedUser );
+                      logger.debug('\n Device Registered. Updated user : ' + JSON.stringify(hook.data))
                       hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceRegistered' , {
                         type : 'userDeviceRegistered' ,
                         data : { subscriberId : hook.data.id , device : updatedDevice }
@@ -77,6 +80,7 @@ module.exports = {
                   }
                   if(foundDeviceIndex == -1 ) {
                     let updatedUser = Object.assign ( {} , originalUser , originalUser.devices.push ( hook.data ) );
+                    logger.debug('\n Added device to user' + JSON.stringify(updatedUser))
                     hook.data =  Object.assign ( {} , updatedUser );
                     hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceAdd' , {
                       type : 'userDeviceAdd' ,
@@ -100,18 +104,20 @@ module.exports = {
     create : [
       async(hook) => {
         const { params  , payload } = hook;
-        const { headers: { Authorization }} = params
-        let axiosConfig = { headers : { 'Authorization' : Authorization , crossDomain: true } };
+
+        // const { headers: { Authorization }} = params
+       //  let axiosConfig = { headers : { 'Authorization' : Authorization , crossDomain: true } };
         const user = hook.result
-        const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
-          type: 'userCreate',
-          id : user.id ,
-          name : user.name ,
-          ssid : user.ssid ,
-          micronets : Object.assign ( {} , {
-            micronet : []
-          } )
-        }))
+        const micronet = await hook.app.service('/mm/v1/micronets').get({id:user.id})
+        // const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
+        //   type: 'userCreate',
+        //   id : user.id ,
+        //   name : user.name ,
+        //   ssid : user.ssid ,
+        //   micronets : Object.assign ( {} , {
+        //     micronet : []
+        //   } )
+        // }))
         const registry = await hook.app.service('/mm/v1/micronets/registry').get(user.id)
         const userPostData = Object.assign({
           id : user.id ,
@@ -119,12 +125,12 @@ module.exports = {
           ssid : user.ssid ,
           mmUrl:registry.mmClientUrl
         })
-        const msoPortalUser = await axios ( {
-          ...axiosConfig ,
-          method : 'POST' ,
-          url : `${registry.msoPortalUrl}/portal/users` ,
-          data : userPostData
-        } )
+        // const msoPortalUser = await axios ( {
+        //   ...axiosConfig ,
+        //   method : 'POST' ,
+        //   url : `${registry.msoPortalUrl}/portal/users` ,
+        //   data : userPostData
+        // } )
       }
     ] ,
     update : [

@@ -42,6 +42,7 @@
     "ipMax": 254
   },
   "mano":{
-    "webSocketUrl":"wss://nccoe-mso:5050/micronets/v1/ws-proxy/nccoe-gw"
-  }
+    "webSocketUrl":"wss://127.0.0.1:5050/micronets/v1/ws-proxy/micronets-gw-7B2A-BE88-08817Z"
+  },
+  "mudUrl": "http://45.79.13.134:8888/getFlowRules"
 }
