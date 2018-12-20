@@ -13,18 +13,18 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 );
 
 server.on ( 'listening' , async () => {
-  console.log ( 'Feathers application started on http://%s:%d in env' , app.get ( 'host' ) , port, process.env.NODE_ENV )
+  logger.info ( 'Feathers application started on ' +  JSON.stringify(app.get ( 'host' )) + JSON.stringify(port))
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   registry = registry.data[ 0 ]
 
   if ( registry && registry.hasOwnProperty ( 'websocketUrl' ) ) {
-    console.log ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.websocketUrl ) )
+    logger.info ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.websocketUrl ) )
     await dw.setAddress ( registry.websocketUrl );
     await dw.connect ().then ( () => { return true } );
   }
 
   if ( mano && mano.hasOwnProperty('webSocketUrl') && !(registry && registry.hasOwnProperty ( 'websocketUrl' ))) {
-    console.log('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
+    logger.info('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
     await dw.setAddress ( mano.webSocketUrl );
     await dw.connect ().then ( () => { return true } );
   }
