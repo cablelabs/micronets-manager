@@ -1,7 +1,7 @@
 version: '3'
 services:
   micronets-manager:
-    image: code.cablelabs.com:4567/micronets/micronets-manager-backend
+    image: code.cablelabs.com:4567/micronets/micronets-manager
     ports:
       - "3030:3030"
     links:
