@@ -51,16 +51,16 @@ This project uses MongoDB, a NoSQL document store, for persisting data. In order
     ```
   To install web-client please follow the README in https://github.com/cablelabs/micronets-manager/tree/micronets-manager-integration/app.git   
     
-  #### 1.2 Running the Micronets Manager using Docker
+#### 1.2 Running the Micronets Manager using Docker
 
 The Micronets Manager distro includes a Dockerfile that can be used to construct Docker images.
 
 To build the Docker images for api and client and start the container :
 
-    ```
+   ```
     cd micronets-manager/docker/dev
     docker-compose up --build
-    ```
+   ```
 
 
 For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
