@@ -55,7 +55,7 @@ This project uses MongoDB, a NoSQL document store, for persisting data. In order
 
 The Micronets Manager distro includes a Dockerfile that can be used to construct Docker images.
 
-To build the Docker images for api and client:
+To build the Docker images for api and client and start the container :
 
     ```
     cd micronets-manager/docker/dev
