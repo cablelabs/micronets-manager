@@ -16,6 +16,8 @@ This project uses MongoDB, a NoSQL document store, for persisting data. In order
 
 ### Getting Started
 
+#### 1.1 Running the Micronets Manager manually
+
 1. Make sure you have [NodeJS](https://nodejs.org/) and [npm](https://www.npmjs.com/) installed.
 
 2. Clone the repository
@@ -48,6 +50,8 @@ This project uses MongoDB, a NoSQL document store, for persisting data. In order
     ```
     npm run build --report
     ```
+    
+  #### 1.2 Running the Micronets Manager using Docker
 
 To install web-client please follow the README in https://github.com/cablelabs/micronets-manager/tree/micronets-manager-integration/app.git 
 
