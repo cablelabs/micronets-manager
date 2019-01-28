@@ -32,8 +32,8 @@
     "lint": "eslint-if-supported semistandard --fix",
     "dev": "set NODE_ENV=development && npm install && nodemon api/",
     "start": "npm install && node api/",
-    "docker-build": "docker build -t code.cablelabs.com:4567/micronets/micronets-manager .",
-    "docker-publish": "docker login code.cablelabs.com:4567; docker push code.cablelabs.com:4567/micronets/micronets-manager",
+    "docker-build": "docker build -t  community.cablelabs.com:4567/micronets-docker/micronets-manager .",
+    "docker-publish": "docker login community.cablelabs.com:4567; docker push community.cablelabs.com:4567/micronets-docker/micronets-manager",
     "mocha": "mocha test/ --recursive --exit",
     "test": "npm run clean --silent && npm run lint --silent && npm run mocha --silent",
     "watch": "npm run clean --silent && cross-env NODE_ENV=development babel-node src/"
