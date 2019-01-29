@@ -9,9 +9,7 @@
     "start": "node build/dev-server.js",
     "build": "node build/build.js",
     "server": "npm install && node services/",
-    "client": "npm install && npm run dev",
-    "docker-build": "docker build -t code.cablelabs.com:4567/micronets/micronets-manager .",
-    "docker-publish": "docker login code.cablelabs.com:4567; docker push code.cablelabs.com:4567/micronets/micronets-manager"
+    "client": "npm install && npm run dev"
   },
   "dependencies": {
     "@feathersjs/socketio-client": "^1.1.4",
@@ -23,7 +21,6 @@
     "moment": "^2.20.1",
     "mongoose": "^5.2.4",
     "morgan": "^1.9.0",
-    "node-redis-pubsub": "^3.0.0",
     "nodemon": "^1.18.5",
     "ramda": "^0.25.0",
     "serve-favicon": "^2.5.0",
@@ -80,7 +77,7 @@
     "webpack": "^2.6.1",
     "webpack-bundle-analyzer": "^2.10.0",
     "webpack-dev-middleware": "^1.10.0",
-    "webpack-dev-server": "^2.11.1",
+    "webpack-dev-server": "^3.1.14",
     "webpack-hot-middleware": "^2.18.0",
     "webpack-merge": "^4.1.0"
   },
