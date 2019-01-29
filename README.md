@@ -50,6 +50,9 @@ This project uses MongoDB, a NoSQL document store, for persisting data. In order
     npm run build --report
     ```
   To install web-client please follow the README in https://github.com/cablelabs/micronets-manager/tree/micronets-manager-integration/app.git   
+  
+Note : Make sure your connected to the respective Micronets websocket proxy before booting Micronets Manager up.
+Detailed instructions to start the the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)  
     
 #### 1.2 Running the Micronets Manager using Docker
 
@@ -61,6 +64,48 @@ To build the Docker images for api and client and start the container :
     cd micronets-manager/docker/dev
     docker-compose up --build
    ```
+Note : Make sure your connected to the respective Micronets websocket proxy before booting Micronets Manager up.
+Detailed instructions to start the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)
+   
+#### 1.3 Deploying a Docker image to Artifactory
+
+A `Makefile` is provided to generate the Docker image and upload it to the configured artifact repository. 
+
+Both can be accomplished by running:
+
+```make docker-push```
+
+Note that the destination repository , path and tag is configured in the `Makefile` and that Docker will request 
+credentials in order to perform the push.
+
+#### 1.4 Retrieving the latest docker image from Artifactory
+
+The commands to retrieve the latest Docker image(s) for the Micronets Manager are also contained in the included Makefile. 
+
+To pull the latest Docker(s) run:
+
+```make docker-pull```
+
+Note that the source repository and path is configured in the `Makefile`.
+No credential should be required to pull the Docker image.
+
+#### 1.5 Running the Micronets Manager
+
+The Micronets Manager distro includes database population scripts that can be used for the initial setup.
+
+The scripts/data folder contain examples to populate the switch config and registry database associated with subscriber.
+
+Before running the populate_db script make sure MSO Portal is up and running along with identity server.
+Detailed instructions to start the MSO Portal can be found at [here](https://github.com/cablelabs/micronets-mso-portal/blob/master/README.md#getting-started)
+Detailed instructions to start the Identity server can be found at [here](https://github.com/cablelabs/micronets-mso-portal/blob/master/README.md#getting-started)
+
+To populate the database please run the following command :
+
+ ```make populate_db```
+
+Note the json files in scripts/data used to populate the database are samples.Please changed according.Having a valid switch config, registry database is mandatory.
+
+   
 
 
 For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
