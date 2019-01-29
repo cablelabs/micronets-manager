@@ -19,8 +19,6 @@ services:
       - MONGO_URL=mongodb://127.0.0.1:27017/micronets
     depends_on:
       - mongo
-#    volumes:
-#      - ./../../api:/usr/src/api
     ports:
       - '3030:3030'
 
@@ -37,8 +35,6 @@ services:
     depends_on:
       - mongo
       - api
-#    volumes:
-#      - ./../../app:/usr/src/app
     ports:
       - '8080:8080'
 

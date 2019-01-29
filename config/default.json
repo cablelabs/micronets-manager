@@ -42,7 +42,7 @@
     "ipMax": 254
   },
   "mano":{
-    "webSocketUrl":"wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/grandpa-gw"
+    "webSocketUrl":"wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/micronets-gw-0001"
   },
   "mudUrl": "http://45.79.13.134:8888/getFlowRules"
 }
