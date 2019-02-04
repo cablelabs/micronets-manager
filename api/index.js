@@ -18,8 +18,8 @@ server.on ( 'listening' , async () => {
   registry = registry.data[ 0 ]
 
   if ( registry && registry.hasOwnProperty ( 'websocketUrl' ) ) {
-    logger.info ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.websocketUrl ) )
-    await dw.setAddress ( registry.websocketUrl );
+    logger.info ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.webSocketUrl ) )
+    await dw.setAddress ( registry.webSocketUrl );
     await dw.connect ().then ( () => { return true } );
   }
 

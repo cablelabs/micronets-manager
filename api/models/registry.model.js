@@ -11,7 +11,7 @@ module.exports = function (app) {
     dhcpUrl: { type: String, required: false },
     mmUrl: { type: String, required: true },
     mmClientUrl: {type: String, required: true },
-    websocketUrl: { type: String, required: true },
+    webSocketUrl: { type: String, required: true },
     msoPortalUrl: { type: String, required: true },
     odlUrl:{ type: String, required: false },
     gatewayId : {type: String, required: true }
