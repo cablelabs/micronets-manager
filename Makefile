@@ -5,7 +5,7 @@ DOCKER_IMAGE_TAG := latest
 docker-compose-build:
 	docker-compose build
 
-docker-push: docker-compose push
+docker-push: docker-compose-build
 	docker login $(DOCKER_REGISTRY)
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_API_PATH):${DOCKER_IMAGE_TAG}
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_CLIENT_PATH):${DOCKER_IMAGE_TAG}
