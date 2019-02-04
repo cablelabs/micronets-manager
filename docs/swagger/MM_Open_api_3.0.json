@@ -474,12 +474,10 @@
         "required": [
           "subscriberId",
           "identityUrl",
-          "dhcpUrl",
           "mmUrl",
           "mmClientUrl",
-          "websocketUrl",
+          "webSocketUrl",
           "msoPortalUrl",
-          "odlUrl",
           "gatewayId"
         ],
         "properties": {
@@ -503,7 +501,7 @@
             "type": "string",
             "example": "http://45.56.76.21:8080"
           },
-          "websocketUrl": {
+          "webSocketUrl": {
             "type": "string",
             "example": "wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/auntbetty-gw"
           },
