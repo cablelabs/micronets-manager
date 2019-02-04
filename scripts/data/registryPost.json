@@ -3,7 +3,7 @@
   "identityUrl": "http://127.0.0.1:3230",
   "mmUrl": "http://127.0.0.1:3030",
   "mmClientUrl": "http://127.0.0.1:8080",
-  "websocketUrl": "wss://127.0.0.1:5050/micronets/v1/ws-proxy/micronets-gw-0001",
+  "webSocketUrl": "wss://10.200.30.112:5050/micronets/v1/ws-proxy/micronets-gw-0001",
   "msoPortalUrl": "http://127.0.0.1:3210",
   "gatewayId":"micronets-gw-0001"
 }
