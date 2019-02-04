@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Swagger UI</title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.2.2/swagger-ui.css" >
+  <style>
+    html
+    {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+    *,
+    *:before,
+    *:after
+    {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin:0;
+      background: #fafafa;
+    }
+  </style>
+</head>
+<body>
+
+<div id="swagger-ui"></div>
+ <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0">
+  <defs>
+    <symbol viewBox="0 0 20 20" id="unlocked">
+          <path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V6h2v-.801C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8z"></path>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="locked">
+      <path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8zM12 8H8V5.199C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="close">
+      <path d="M14.348 14.849c-.469.469-1.229.469-1.697 0L10 11.819l-2.651 3.029c-.469.469-1.229.469-1.697 0-.469-.469-.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-.469-.469-.469-1.228 0-1.697.469-.469 1.228-.469 1.697 0L10 8.183l2.651-3.031c.469-.469 1.228-.469 1.697 0 .469.469.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c.469.469.469 1.229 0 1.698z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="large-arrow">
+      <path d="M13.25 10L6.109 2.58c-.268-.27-.268-.707 0-.979.268-.27.701-.27.969 0l7.83 7.908c.268.271.268.709 0 .979l-7.83 7.908c-.268.271-.701.27-.969 0-.268-.269-.268-.707 0-.979L13.25 10z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="large-arrow-down">
+      <path d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"/>
+    </symbol>
+
+
+    <symbol viewBox="0 0 24 24" id="jump-to">
+      <path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 24 24" id="expand">
+      <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+    </symbol>
+  </defs>
+ </svg>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.2.2/swagger-ui-bundle.js"> </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.2.2/swagger-ui-standalone-preset.js"> </script>
+<script>
+window.onload = function() {
+
+  var spec = {"openapi": "3.0.0", "info": {"title": "Micronets Manager API's", "description": "Micronets Manager API's", "version": "0.1.1"}, "paths": {"/registry": {"post": {"tags": ["registry"], "summary": "Associated registry for each subscriber/user.", "operationId": "addRegistry", "requestBody": {"$ref": "#/components/requestBodies/RegistryBody"}, "responses": {"201": {"description": "successful operation"}}}}, "/registry/{subscriberId}": {"get": {"tags": ["registry"], "summary": "Find registry by Subscriber ID", "description": "Returns registry associated with subscriber", "operationId": "getRegistryBySubscriberId", "parameters": [{"in": "path", "name": "subscriberId", "schema": {"type": "string"}, "required": true, "description": "Registry associated with subscriber to return"}], "responses": {"200": {"description": "Successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Registry"}}}}, "400": {"description": "Invalid SubscriberID supplied"}, "404": {"description": "Subscriber not found"}, "401": {"$ref": "#/components/responses/UnauthorizedError"}}}, "delete": {"tags": ["registry"], "summary": "Deletes a registry for associated subscriber", "description": "", "operationId": "deleteRegistry", "parameters": [{"in": "path", "name": "subscriberId", "schema": {"type": "string"}, "required": true, "description": "Registry to delete with associated subscriberId."}], "responses": {"204": {"description": "Content Deleted"}, "400": {"description": "Invalid ID supplied"}, "404": {"description": "Registry not found"}}}}, "/": {"post": {"tags": ["micronets"], "summary": "Request to create single / multiple micronets.", "operationId": "createMicronet", "requestBody": {"$ref": "#/components/requestBodies/MicronetsBody"}, "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Micronets"}}}}, "400": {"description": "Bad Request"}, "500": {"description": "Internal Server error"}}}, "get": {"tags": ["micronets"], "summary": "Retreive information for all existing micronets", "description": "", "operationId": "getMicronets", "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Micronets"}}}}, "400": {"description": "Invalid ID supplied"}, "404": {"description": "Micronet not found"}}}, "delete": {"tags": ["micronets"], "summary": "Deletes all micronets", "description": "", "operationId": "deleteMicronets", "responses": {"204": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Micronets"}}}}, "400": {"description": "Invalid ID supplied"}, "404": {"description": "Micronet not found"}}}}, "/{micronetId}": {"delete": {"tags": ["micronets"], "summary": "Deletes a micronet with micronetId", "description": "", "operationId": "deleteMicronet", "parameters": [{"in": "path", "name": "micronetId", "schema": {"type": "string"}, "required": true, "description": "ID associated with micronet to delete."}], "responses": {"204": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Micronets"}}}}, "400": {"description": "Invalid ID supplied"}, "404": {"description": "Micronet not found"}}}, "get": {"tags": ["micronets"], "summary": "Retreive information for specific micronet", "description": "", "operationId": "getMicronetById", "parameters": [{"in": "path", "name": "micronetId", "schema": {"type": "integer"}, "required": true, "description": "Retreive information for specific micronet with associated micronetId."}], "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Micronets"}}}}, "400": {"description": "Invalid ID supplied"}, "404": {"description": "Micronet not found"}}}}, "/{micronetId}/subnets/{subnetId}/device": {"post": {"tags": ["micronets"], "summary": "Request to add devices in a micronet.", "description": "", "operationId": "createDeviceInMicronet", "parameters": [{"in": "path", "name": "micronetId", "schema": {"type": "string"}, "required": true, "description": "Micronet to add device to"}, {"in": "path", "name": "subnetId", "required": true, "schema": {"type": "string"}, "description": "Subnet to add device to"}], "requestBody": {"$ref": "#/components/requestBodies/MicronetsDeviceBody"}, "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Micronets"}}}}, "400": {"description": "Bad Request"}, "500": {"description": "Internal Server error"}}}}, "/users": {"post": {"tags": ["users"], "security": [{"bearerAuth": []}], "summary": "Create user", "operationId": "createUsers", "requestBody": {"$ref": "#/components/requestBodies/UserBody"}, "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Users"}}}}}}}, "/users/{userId}": {"get": {"tags": ["users"], "security": [{"bearerAuth": []}], "summary": "Get user information associated with userId", "description": "User information associated with ID.", "operationId": "getUsersById", "parameters": [{"in": "path", "name": "userId", "schema": {"type": "string"}, "required": true, "description": "Retreive information for specific user with associated userId."}], "responses": {"200": {"description": "Successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Users"}}}}}}, "delete": {"tags": ["users"], "summary": "Delete user information associated with userId", "description": "User information associated with ID.", "operationId": "deleteUsersById", "parameters": [{"in": "path", "name": "userId", "schema": {"type": "string"}, "required": true, "description": "Retreive information for specific user with associated userId."}], "responses": {"200": {"description": "Successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Users"}}}}}}}, "/odl/{gatewayId}": {"get": {"tags": ["odl"], "summary": "Get switch config information associated with gateway", "operationId": "getOdlById", "parameters": [{"in": "path", "name": "gatewayId", "schema": {"type": "string"}, "required": true, "description": "Retreive information for specific switch  with associated gateway."}], "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Odl"}}}}}}}, "/odl": {"post": {"tags": ["odl"], "summary": "Create switch config information associated with gateway", "description": "Get switch config information associated with gateway", "operationId": "createOdl", "requestBody": {"$ref": "#/components/requestBodies/OdlBody"}, "responses": {"200": {"description": "successful operation", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Odl"}}}}}}}}, "components": {"securitySchemes": {"bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}}, "schemas": {"Registry": {"type": "object", "required": ["subscriberId", "identityUrl", "dhcpUrl", "mmUrl", "mmClientUrl", "websocketUrl", "msoPortalUrl", "odlUrl", "gatewayId"], "properties": {"subscriberId": {"type": "string", "example": "7B2A-BE88-08817Z"}, "identityUrl": {"type": "string", "example": "http://198.58.114.200:3230"}, "dhcpUrl": {"type": "string", "example": "http://127.0.0.1:5000"}, "mmUrl": {"type": "string", "example": "http://45.56.76.21:3030"}, "mmClientUrl": {"type": "string", "example": "http://45.56.76.21:8080"}, "websocketUrl": {"type": "string", "example": "wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/auntbetty-gw"}, "msoPortalUrl": {"type": "string", "example": "http://45.79.13.192:3210"}, "odlUrl": {"type": "string", "example": "http://127.0.0.1:18080"}, "gatewayId": {"type": "string", "example": "auntbetty-gw"}}, "xml": {"name": "Registry"}}, "Micronets": {"type": "object", "properties": {"data": {"type": "object", "properties": {"id": {"type": "string", "example": "7B2A-BE88-08817Z"}, "name": {"type": "string", "example": "Grandma\u2019s LINKSYS 1900"}, "ssid": {"type": "string", "example": "Grandma"}, "micronets": {"type": "object", "properties": {"micronet": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string", "example": "Medical"}, "micronet-subnet-id": {"type": "string", "example": "Medical"}, "trunk-gateway-port": {"type": "string", "example": "2"}, "trunk-gateway-ip": {"type": "string", "example": "10.36.32.121"}, "dhcp-server-port": {"type": "string", "example": "LOCAL"}, "dhcp-zone": {"type": "string", "example": "192.168.252.0/24"}, "ovs-bridge-name": {"type": "string", "example": "brmn001"}, "ovs-manager-ip": {"type": "string", "example": "10.36.32.121"}, "micronet-subnet": {"type": "string", "example": "192.168.252.0/24"}, "micronet-gateway-ip": {"type": "string", "example": "192.168.252.1"}, "class": {"type": "string", "example": "Medical"}, "micronet-id": {"type": "string", "example": "1987357293"}, "connected-devices": {"type": "array", "items": {"type": "object", "properties": {"device-mac": {"type": "string", "example": "B8:27:EB:D8:DF:30"}, "device-name": {"type": "string", "example": "ProtoMed 1"}, "device-id": {"type": "string", "example": "sdfew32123"}, "device-openflow-port": {"type": "string", "example": "2"}, "device-ip": {"type": "string", "example": "192.168.252.2"}}}}}}}}}}}}}, "Users": {"type": "object", "properties": {"id": {"type": "string", "example": "9XE3-JI34-00132A"}, "name": {"type": "string", "example": "Grandma"}, "ssid": {"type": "string", "example": "Grandma's WiFi"}, "devices": {"type": "array", "items": {"type": "object", "properties": {"isRegistered": {"type": "boolean"}, "clientId": {"type": "string", "example": "https://kaiser-healthcare.org/"}, "deviceId": {"type": "string", "example": "y2h0y79789yt1y248wf4pa495991b7852q989"}, "macAddress": {"type": "string", "example": "72:77:42:ge:1r:94"}, "class": {"type": "string", "example": "Medical"}}}}}}, "Odl": {"type": "object", "properties": {"gatewayId": {"type": "string", "example": "grandma-gw"}, "hwModelId": {"type": "string", "example": "123456-789"}, "ovsVersion": {"type": "string", "example": "2.9.2"}, "ovsPort": {"type": "string", "example": "8181"}, "switchConfig": {"type": "object", "properties": {"bridges": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string", "example": "brmn001"}, "macAddress": {"type": "string", "example": "80:ee:73:d9:dc:3f"}, "trunkIp": {"type": "string", "example": "192.168.250.0/24"}, "trunkPort": {"type": "string", "example": "2"}, "ports": {"type": "array", "items": {"type": "object", "properties": {"port": {"type": "string", "example": "3"}, "interface": {"type": "string", "example": "enp0s31f6"}, "hwtype": {"type": "string", "example": "wired"}, "subnet": {"type": "string", "example": "192.168.250.0/24"}, "macAddress": {"type": "string", "example": "80:ee:73:d9:dc:3f"}, "vlanId": {"type": "string", "example": "0"}}}}}}}}}}}}, "requestBodies": {"RegistryBody": {"description": "A JSON object containing registry information", "required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Registry"}}}}, "MicronetsBody": {"required": true, "description": "A JSON object containing micronets information", "content": {"application/json": {"schema": {"type": "object", "properties": {"micronets": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string", "example": "Heart Monitor"}, "class": {"type": "string", "example": "Medical"}, "micronet-subnet-id": {"type": "string", "example": "Wired"}}}}}}}}}, "MicronetsDeviceBody": {"description": "A JSON object containing information regarding adding a device", "required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"micronets": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string", "example": "Medical"}, "micronet-subnet-id": {"type": "string", "example": "Wired"}, "connected-devices": {"type": "array", "items": {"type": "object", "properties": {"device-mac": {"type": "string", "example": "B8:27:EB:D8:DF:30"}, "device-name": {"type": "string", "example": "ProtoMed 1"}, "device-id": {"type": "string", "example": "sdfew32123"}, "device-openflow-port": {"type": "string", "example": "2"}, "device-ip": {"type": "string", "example": "192.168.252.2"}}}}}}}}}}}}, "UserBody": {"description": "A JSON object containing registry information", "required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Users"}}}}, "OdlBody": {"description": "A JSON object containing odl information", "required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Odl"}}}}}, "responses": {"UnauthorizedError": {"description": "Access token is missing or invalid"}}}};
+
+  // Build a system
+  const ui = SwaggerUIBundle({
+    spec: spec,
+    dom_id: '#swagger-ui',
+    deepLinking: true,
+    presets: [
+      SwaggerUIBundle.presets.apis,
+      SwaggerUIStandalonePreset
+    ],
+    plugins: [
+      SwaggerUIBundle.plugins.DownloadUrl
+    ],
+    layout: "StandaloneLayout"
+  })
+
+  window.ui = ui
+}
+</script>
+</body>
+
+</html>
