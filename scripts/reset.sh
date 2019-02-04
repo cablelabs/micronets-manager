@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MM_HOSTNAME='nccoe-mm-api.micronets.in'
+MM_HOSTNAME='127.0.0.1:3030'
 
 #! DELETE MICRONETS CURL
 

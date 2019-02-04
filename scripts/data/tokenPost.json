@@ -2,12 +2,12 @@
   "clientID": "www.stanford.org",
   "deviceID": "c3c0c32c12dd3d454dtdt4y8296cs91427q41q4649c934ba495991b6852b531",
   "vendor": "Stanford",
-  "type": "HA",
-  "model": "HA",
-  "serial": "HA",
+  "type": "Home-Automation",
+  "model": "Home-Automation",
+  "serial": "Home-Automation",
   "macAddress": "77:80:ae:e2:09:61",
   "class":"Home-Automation",
   "deviceName":"Baby monitor",
   "deviceConnection":"wired",
-  "mudURL":"http://nccoe.alpineseniorcare.com/micronets-mud/BQ0LDQsMDAM"
+  "mudURL":"https://alpineseniorcare.com/micronets-mud/CQQPBgMCCwk"
 }

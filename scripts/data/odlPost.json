@@ -1,5 +1,5 @@
 {
-  "gatewayId": "nccoe-gw",
+  "gatewayId": "micronets-gw-0001",
   "hwModelId": "123456-789",
   "ovsVersion": "2.9.2",
   "ovsHost": "10.36.32.136",

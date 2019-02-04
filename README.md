@@ -72,7 +72,7 @@ To build the Docker images for api and client and start the container :
 
 ###### By default the Micronets Manager is configured to connect to wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/micronets-gw-0001 websocket proxy. 
 ###### To change this configuration please update the websockrtUrl parameter in default.json file present in config directory.When the micronets manager boots up and registry associated with respective subscriber is not populated its uses config.json to locate the corresponding websocket proxy.
-###### Registry api associated with subscriber once populated is used to derive the respective websocket proxy configuration.   
+###### Registry api associated with subscriber once populated is used to derive the respective websocket proxy configuration.Websocket proxy configuration in registry api and in config/default.json should match.   
    
 #### 1.3 Deploying a Docker image to Artifactory
 

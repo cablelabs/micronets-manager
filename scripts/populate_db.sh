@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-MSO_PORTAL_HOST='nccoe-mso-api.micronets.in'
-MM_HOST='nccoe-mm-api.micronets.in'
+MSO_PORTAL_HOST='127.0.0.1:3210'
+MM_HOST='127.0.0.1:3030'
 
 echo 'Getting Authorization token from ' $MSO_PORTAL_HOST
 
