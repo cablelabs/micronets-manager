@@ -18,7 +18,7 @@ This project uses MongoDB, a NoSQL document store, for persisting data. In order
 
 #### 1.1 Running the Micronets Manager manually
 
-1. Make sure you have [NodeJS](https://nodejs.org/) and [npm](https://www.npmjs.com/) installed.
+1. Make sure you have [NodeJS](https://nodejs.org/) , [npm](https://www.npmjs.com/) and [mongoDB](https://www.mongodb.com/) installed and running.
 
 2. Clone the repository
     ```
@@ -31,32 +31,40 @@ This project uses MongoDB, a NoSQL document store, for persisting data. In order
     cd micronets-manager
     npm install
     ```
+4. Start your server 
 
-4. Start your server in dev mode
+    ```
+    npm run start
+    ```
+    
+5. Start your server in dev mode
 
     ```
     npm run dev
     ```
 
-5. Build for production with minification
+6. Build for production with minification
 
     ```
     npm run build
     ```
 
-6. Build for production and view the bundle analyzer report
+7. Build for production and view the bundle analyzer report
 
     ```
     npm run build --report
     ```
+    
   To install web-client please follow the README in https://github.com/cablelabs/micronets-manager/tree/micronets-manager-integration/app.git   
   
-###### Note : Make sure your connected to the respective Micronets websocket proxy before booting Micronets Manager up.
-###### Detailed instructions to start the the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)  
-
+###### Note : Make sure your connected to respective Micronets websocket proxy , Identity Server and MSO Portal before booting Micronets Manager up.
+###### Detailed instructions to start the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)  
 ###### By default the Micronets Manager is configured to connect to wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/micronets-gw-0001 websocket proxy. 
 ###### To change this configuration please update the websockrtUrl parameter in default.json file present in config directory.When the micronets manager boots up and registry associated with respective subscriber is not populated its uses config.json to locate the corresponding websocket proxy.
-###### Registry api associated with subscriber once populated is used to derive the respective websocket proxy configuration.    
+###### Registry api associated with subscriber once populated is used to derive the respective websocket proxy configuration.Websocket proxy configuration in registry api and in config/default.json should match.
+###### Detailed instructions to start the MSO Portal can be found [here](https://github.com/cablelabs/micronets-mso-portal#getting-started)  
+###### Detailed instructions to start the Identity Server can be found [here](https://github.com/cablelabs/identity-service#getting-started)  
+   
 #### 1.2 Running the Micronets Manager using Docker
 
 The Micronets Manager distro includes a Dockerfile that can be used to construct Docker images.
@@ -67,12 +75,13 @@ To build the Docker images for api and client and start the container :
     cd micronets-manager/docker/dev
     docker-compose up --build
    ```
-###### Note : Make sure your connected to the respective Micronets websocket proxy before booting Micronets Manager up.
-###### Detailed instructions to start the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)
-
+###### Note : Make sure your connected to respective Micronets websocket proxy , Identity Server and MSO Portal before booting Micronets Manager up.
+###### Detailed instructions to start the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)  
 ###### By default the Micronets Manager is configured to connect to wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/micronets-gw-0001 websocket proxy. 
 ###### To change this configuration please update the websockrtUrl parameter in default.json file present in config directory.When the micronets manager boots up and registry associated with respective subscriber is not populated its uses config.json to locate the corresponding websocket proxy.
-###### Registry api associated with subscriber once populated is used to derive the respective websocket proxy configuration.Websocket proxy configuration in registry api and in config/default.json should match.   
+###### Registry api associated with subscriber once populated is used to derive the respective websocket proxy configuration.Websocket proxy configuration in registry api and in config/default.json should match.
+###### Detailed instructions to start the MSO Portal can be found [here](https://github.com/cablelabs/micronets-mso-portal#getting-started)  
+###### Detailed instructions to start the Identity Server can be found [here](https://github.com/cablelabs/identity-service#getting-started)  
    
 #### 1.3 Deploying a Docker image to Artifactory
 
@@ -102,16 +111,31 @@ The Micronets Manager distro includes database population scripts that can be us
 
 The scripts/data folder contain examples to populate the switch config and registry database associated with subscriber.
 
-Before running the populate_db script make sure MSO Portal is up and running along with identity server.
+Before running the populate_db script make sure Micronets Manager is up and running along with MSO Portal and Identity server.
 ###### Detailed instructions to start the MSO Portal can be found at [here](https://github.com/cablelabs/micronets-mso-portal/blob/master/README.md#getting-started)
 ###### Detailed instructions to start the Identity server can be found at [here](https://github.com/cablelabs/identity-service)
 
+To change permissions of the scripts directory please run the following command :
+
+```chmod -R +x .```
+
 To populate the database please run the following command :
 
- ```make populate_db```
-
-###### Note the json files in scripts/data used to populate the database are samples.Please changed according.Having a valid switch config, registry database with respect to associated subscriber is mandatory.
-
+ ```./populate_db.sh```
+ 
+   OR
+    
+ ```sh populate_db.sh```
    
+   OR
+      
+ ```bash populate_db.sh```
+
+###### Note : The json files in scripts/data used to populate the database are samples.Please change accordingly.Having a valid switch config, registry database with respect to associated subscriber is mandatory.
+###### Note : The MSO_PORTAL_HOSTNAME and MM_HOSTNAME in populate_db.sh script are samples.Please change to point to respective instances.
+###### Note : Before consuming Micronets Manager API's it is mandatory to have respective MSO Portal , Identity server and Micronets websocket proxy for the associated subscriber running.
+###### Detailed instructions to start the MSO Portal can be found at [here](https://github.com/cablelabs/micronets-mso-portal/blob/master/README.md#getting-started)
+###### Detailed instructions to start the Identity server can be found at [here](https://github.com/cablelabs/identity-service)
+###### Detailed instructions to start the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)    
 
 
