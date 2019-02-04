@@ -3,11 +3,6 @@ info:
   title: Micronets Manager API's
   description: Micronets Manager API's
   version: 0.1.1
-  
-servers:
-   - url: https://mm-api.micronets.in/mm/v1/micronets
-     description: Main (production) server
-     
 paths:
  /registry:
    post:
