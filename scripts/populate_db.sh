@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#! The MSO_PORTAL_HOSTNAME and MM_HOSTNAME in the script are samples.Please change to point to respective instances.
+#! The json files in scripts/data used to populate the database are samples.Please change accordingly.Having a valid switch config, registry database with respect to associated subscriber is mandatory.
 
 MSO_PORTAL_HOST='127.0.0.1:3210'
 MM_HOST='127.0.0.1:3030'

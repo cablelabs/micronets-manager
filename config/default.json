@@ -31,6 +31,7 @@
     }
   },
   "mongodb": "mongodb://127.0.0.1:27017/micronets",
+  "mongodbDocker": "mongodb://mongo:27017/micronets",
   "subnets": {
     "subnetMin": 10,
     "subnetMax": 254,

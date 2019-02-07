@@ -4,7 +4,6 @@ services:
      image: mongo
      volumes:
        - /tmp/mongodb:/data/db
-     network_mode: "host"
      ports:
        - "27017:27017"
   api:
@@ -12,11 +11,11 @@ services:
       context: ./../..
       dockerfile: docker/dev/Dockerfile.api
     image: micronets-manager-api-dev
-    network_mode: "host"
     environment:
       - NODE_ENV=development
       - PORT=3030
-      - MONGO_URL=mongodb://127.0.0.1:27017/micronets
+      - NETWORK_MODE=false
+      - MONGO_URL=mongodb://mongo:27017/micronets
     depends_on:
       - mongo
     ports:
@@ -27,11 +26,11 @@ services:
       context: ./../..
       dockerfile: docker/dev/Dockerfile.app
     image: micronets-manager-client-dev
-    network_mode: "host"
     environment:
       - NODE_ENV=development
       - PORT=8080
-      - MONGO_URL=mongodb://127.0.0.1:27017/micronets
+      - NETWORK_MODE=false
+      - MONGO_URL=mongodb://mongo:27017/micronets
     depends_on:
       - mongo
       - api

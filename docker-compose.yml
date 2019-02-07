@@ -14,8 +14,9 @@ services:
     image: community.cablelabs.com:4567/micronets-docker/micronets-manager-api:latest
     network_mode: "host"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3030
+      - NETWORK_MODE=true
       - MONGO_URL=mongodb://127.0.0.1:27017/micronets
     depends_on:
       - mongo
@@ -29,8 +30,9 @@ services:
     image: community.cablelabs.com:4567/micronets-docker/micronets-manager-client:latest
     network_mode: "host"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=8080
+      - NETWORK_MODE=true
       - MONGO_URL=mongodb://127.0.0.1:27017/micronets
     depends_on:
       - mongo
