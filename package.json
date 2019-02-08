@@ -30,7 +30,7 @@
   },
   "scripts": {
     "lint": "eslint-if-supported semistandard --fix",
-    "dev": "NODE_ENV=development && npm install && nodemon api/",
+    "dev": "export NODE_ENV=development || set NODE_ENV=development && npm install && nodemon api/",
     "start": "npm install && node api/",
     "docker-build": "docker build -t  community.cablelabs.com:4567/micronets-docker/micronets-manager .",
     "docker-publish": "docker login community.cablelabs.com:4567; docker push community.cablelabs.com:4567/micronets-docker/micronets-manager",
@@ -87,7 +87,7 @@
     "babel-loader": "^6.2.10",
     "browser-sync": "^2.18.6",
     "browser-sync-webpack-plugin": "^1.1.3",
-    "cross-env": "^3.1.4",
+    "cross-env": "^3.2.4",
     "css-loader": "^0.25.0",
     "del-cli": "^0.2.1",
     "eslint-if-supported": "^1.0.1",
