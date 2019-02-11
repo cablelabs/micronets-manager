@@ -29,8 +29,8 @@ module.exports = {
     all: [
        async(hook) => {
          const registry = await getRegistry(hook,{})
-         const { websocketUrl } = registry
-         const dhcpAddress = await dw.setAddress(websocketUrl)
+         const { webSocketUrl } = registry
+         const dhcpAddress = await dw.setAddress(webSocketUrl)
          const dhcpConnection = await dw.connect().then(()=> {return true})
     }
     ],

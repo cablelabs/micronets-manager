@@ -14,8 +14,8 @@ const logger = require ( './../../logger' );
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
   const registry = await getRegistry ( hook , {} )
-  const { websocketUrl } = registry
-  await dw.setAddress(websocketUrl)
+  const { webSocketUrl } = registry
+  await dw.setAddress(webSocketUrl)
   const dhcpConnection = await dw.connect().then ( () => { return true } )
   return dhcpConnection
 }
@@ -786,7 +786,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
 /* Delete DHCP Subnets */
 const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
   const registry = await getRegistry ( hook , {} )
-  const { websocketUrl } = registry
+  const { webSocketUrl } = registry
 
   // Single micronet was deleted
   if ( micronetId != undefined && Object.keys ( micronet ).length > 0 ) {
@@ -796,7 +796,7 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
     const subnetId = micronet[ "micronet-subnet-id" ]
 
     // Delete DHCP Subnet
-    dw.connect ( websocketUrl ).then ( async () => {
+    dw.connect ( webSocketUrl ).then ( async () => {
       let dhcpSubnet = await dw.send ( {} , "GET" , "subnet" , subnetId )
       // Dhcp Subnet Present check
       if ( dhcpSubnet.status == 200 ) {
@@ -808,7 +808,7 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
 
   // All micronets were deleted
   if ( Object.keys ( micronet ).length == 0 && micronetId == undefined ) {
-    dw.connect ( websocketUrl ).then ( async () => {
+    dw.connect ( webSocketUrl ).then ( async () => {
       let dhcpSubnets = await dw.send ( {} , "GET" , "subnet" )
       // Dhcp Subnets Present check
       if ( dhcpSubnets.status == 200 ) {
