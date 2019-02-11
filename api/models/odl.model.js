@@ -37,7 +37,7 @@ module.exports = function (app) {
   });
 
   const odl = new Schema({
-    gatewayId: { type: String, required: true , unique: true, primaryKey: true },
+    gatewayId: { type: String, required: true , unique: true, primaryKey: true, sparse: true },
     hwModelId: { type: String, required: true },
     ovsVersion: { type: String, required: true },
     ovsHost: { type: String, required: true },
