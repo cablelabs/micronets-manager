@@ -64,6 +64,7 @@ const odlNotifications = await axios ( {
 /* BootStrap Sequence */
 
 const getOdlConfig = async ( hook , id ) => {
+  console.log('\n getODLConfig : ' + JSON.stringify(id))
   return hook.app.service ( '/mm/v1/micronets/odl' ).get ( id )
     .then ( ( data ) => { return data } )
 }
@@ -295,11 +296,16 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
 }
 
 const getRegistryForSubscriber = async ( hook , subscriberId ) => {
-  const query = Object.assign ( {} , { subscriberId : subscriberId } , hook.params.query );
-  return hook.app.service ( '/mm/v1/micronets/registry' ).find ( query )
-    .then ( ( { data } ) => {
-      if ( data.length === 1 ) {
-        return omitMeta ( data[ 0 ] );
+  const id =  subscriberId ? subscriberId  : hook.params.query ;
+  console.log('\n Find registry for subscriber : ' + JSON.stringify(id))
+  return hook.app.service ( '/mm/v1/micronets/registry' ).get ( id )
+    .then ( (  data  ) => {
+      console.log('\n Registry for subscriber : ' + JSON.stringify(data))
+      if ( data.hasOwnProperty('mmUrl') && data.hasOwnProperty('subscriberId') ) {
+        return omitMeta(data)
+      }
+      else {
+        return Promise.reject(new errors.GeneralError(new Error(`Registry not found for subscriber ${id}`)))
       }
     } )
 }
@@ -1152,7 +1158,7 @@ module.exports = {
       async ( hook ) => {
         const { data , id , params } = hook;
         const registry = await getRegistry ( hook , {} )
-        const { odlUrl , mmUrl } = registry
+        const {  mmUrl } = registry
         let postBodyForDelete = [] , micronetToDelete = {}, registeredDevicesToDelete = [] , ipSubnets = []
         // ODL and Gateway checks
         const isGtwyAlive = await isGatewayAlive ( hook )
