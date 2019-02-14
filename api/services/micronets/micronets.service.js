@@ -30,7 +30,7 @@ module.exports = function ( app ) {
     res.json ( result )
   } );
 
-  app.use ( `/mm/v1/micronets/:micronetId/subnets/:subnetId/devices` , async ( req , res , next ) => {
+  app.use ( `/mm/v1/micronets/:micronetId/devices` , async ( req , res , next ) => {
     const { path , originalUrl , method , params } = req
     if ( method == 'POST' ) {
       const result = await service.create (

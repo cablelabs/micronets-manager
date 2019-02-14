@@ -66,7 +66,10 @@ const odlNotifications = await axios ( {
 const getOdlConfig = async ( hook , id ) => {
   console.log('\n getODLConfig : ' + JSON.stringify(id))
   return hook.app.service ( '/mm/v1/micronets/odl' ).get ( id )
-    .then ( ( data ) => { return data } )
+    .then ( ( data ) => {
+      console.log('\n ODL SWITCH CONFIG data : ' + JSON.stringify(data))
+      return data
+    } )
 }
 /* Get Switch Config */
 const getODLSwitchDetails = async ( hook , gatewayId ) => {
@@ -190,6 +193,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   logger.debug( '\n Static Subnet IPs wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
 
     const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
+      logger.debug('\n Subnet : ' + JSON.stringify(subnet))
       let switchConfigSubnetType = subnet.connection == WIRELESS ? wirelessSwitchConfigSubnets : wiredSwitchConfigSubnets
       if(isEmpty(switchConfigSubnetType) && isEmpty(wiredSwitchConfigSubnets)) {
         return Promise.reject(new errors.GeneralError(new Error('Micronet cannot be created.No wired subnet available')))
@@ -575,7 +579,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   } )
   const micronetFromDB = await getMicronet ( hook , {} )
   const micronetToUpdateIndex = micronetId && subnetId ? micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => {
-    return (micronetId == micronet[ 'micronet-id' ] && subnetId == micronet[ 'micronet-subnet-id' ])
+    return (micronetId == micronet[ 'micronet-id' ] )
   } ) : 0
 
   const micronetToUpdate = micronetFromDB.micronets.micronet[ micronetToUpdateIndex ]
@@ -621,7 +625,7 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   const micronetFromDB = await getMicronet ( hook , {} )
   const { micronet } = micronetFromDB.micronets
   const registry = await getRegistry ( hook , {} )
-  const { websocketUrl , mmUrl, gatewayId } = registry
+  const { webSocketUrl , mmUrl, gatewayId } = registry
   const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
   const { bridges } = odlStaticConfig.switchConfig
   const bridge = bridges.map((bridge) => {return bridge})
@@ -729,8 +733,12 @@ const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
 
 // Add DHCP Devices with or without MUD configuration
 const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
+  logger.debug('\n addDhcpDevices requestBody : ' + JSON.stringify(requestBody))
+  logger.debug('\n addDhcpDevices micronetId : ' + JSON.stringify(micronetId))
+  logger.debug('\n addDhcpDevices subnetId : ' + JSON.stringify(subnetId))
+
   const registry = await getRegistry ( hook , {} )
-  const { websocketUrl , mmUrl } = registry
+  const { webSocketUrl , mmUrl } = registry
   // Check if micronet exists in DB
   const micronetFromDB = await getMicronet ( hook , {} )
   // Original check with class property in request body
@@ -884,7 +892,7 @@ module.exports = {
 
         // Create subnet and add device through device registration process
         if ( hook.data && hook.data.type == 'userDeviceRegistered' ) {
-          logger.debug('\n  Event Type ' + JSON.stringify( hook.data.type) +'\t\t Event data : ' + JSON.stringify(hook.data))
+          logger.debug('\n  Device registration process.Event Type ' + JSON.stringify( hook.data.type) +'\t\t Event data : ' + JSON.stringify(hook.data))
           const { type , data } = hook.data
           const { subscriberId , device } = data
           const micronetFromDB = await getMicronet ( hook , {} )
@@ -1027,8 +1035,9 @@ module.exports = {
           }
 
           // Add device to existing subnet
-          if ( originalUrl.toString () == `/mm/v1/micronets/${req.params.micronetId}/subnets/${req.params.subnetId}/devices` ) {
-            logger.debug('\n Add device to Micronet ID ' + JSON.stringify(req.params.micronetId) + '\t\t Subnet ID : ' + JSON.stringify(req.params.subnetId))
+          if ( originalUrl.toString () == `/mm/v1/micronets/${req.params.micronetId}/devices` ) {
+            logger.debug('\n Add device to Micronet ID ' + JSON.stringify(req.params.micronetId))
+
             const isGtwyAlive = await isGatewayAlive ( hook )
             const isOdlAlive = await isODLAlive ( hook )
             const isGatewayConnected = await connectToGateway ( hook )
@@ -1037,9 +1046,10 @@ module.exports = {
 
               // Retrieve all devices in micronet
               const micronetFromDB = await getMicronet ( hook , {} )
-              const micronetToUpdateIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => (micronet[ "micronet-id" ] == req.params.micronetId && micronet[ "micronet-subnet-id" ] == req.params.subnetId) )
+              const micronetToUpdateIndex = micronetFromDB.micronets.micronet.findIndex ( ( micronet ) => (micronet[ "micronet-id" ] == req.params.micronetId) )
               logger.debug('Micronet To Update Index : ' + JSON.stringify(micronetToUpdateIndex))
-
+              const associatedSubnetId = micronetFromDB.micronets.micronet[micronetToUpdateIndex]['micronet-subnet-id']
+              logger.debug('Associated Subnet ID : ' + JSON.stringify(associatedSubnetId))
               if(micronetToUpdateIndex == -1){
                 return Promise.reject(new errors.GeneralError(new Error('Micronet not found')))
               }
@@ -1088,7 +1098,9 @@ module.exports = {
                   const userDevices = users.data[0].devices
                   const postBodyMicronet = postBody.micronets.micronet[ 0 ]
                   const userDevicesToAdd = devicesToAdd.map((deviceToAdd)=> {
+                    logger.debug('\n DeviceToAdd : ' + JSON.stringify(deviceToAdd))
                     const userDeviceIndex = userDevices.findIndex((userDevice)=> userDevice.macAddress == deviceToAdd['device-mac'] && userDevice.deviceId == deviceToAdd['device-id'] )
+                    logger.debug('\n userDeviceIndex : ' + JSON.stringify(userDeviceIndex))
                     if(userDeviceIndex == -1) {
                       logger.debug('\n Device not present in users.Add device to users ..')
                       return  Object.assign ( {} , {
@@ -1100,6 +1112,7 @@ module.exports = {
                       } )
                     }
                   })
+                  logger.debug('\n User Devices To Add : ' + JSON.stringify(userDevicesToAdd))
                   const updatedUserPromises = await Promise.all(userDevicesToAdd.map(async(userDeviceToAdd)=> {
                     const updatedUser = await hook.app.service ( '/mm/v1/micronets/users').patch ( null ,  {
                       isRegistered: userDeviceToAdd.isRegistered,
@@ -1113,10 +1126,10 @@ module.exports = {
                   logger.debug('\n UpdatedUser  : ' + JSON.stringify(updatedUserPromises))
                 }
               }
-                const postBodyForODL = await addDevicesInSubnet ( hook , req.params.micronetId , req.params.subnetId , devicesToAdd )
+                const postBodyForODL = await addDevicesInSubnet ( hook , req.params.micronetId , associatedSubnetId , devicesToAdd )
                 logger.debug('\n Post Body for ODL : ' + JSON.stringify(postBodyForODL))
                 // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-                const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL , req.params.micronetId , req.params.subnetId )
+                const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL , req.params.micronetId , associatedSubnetId )
                 logger.debug('\n ODL Response : ' + JSON.stringify(odlResponse))
                 if ( odlResponse.status == 201 && odlResponse.data ) {
                   // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )
@@ -1130,7 +1143,7 @@ module.exports = {
                     } ,
                     { query : {} , mongoose : { upsert : true } } );
                   if ( patchResult ) {
-                    const addedDhcpDevices = await addDhcpDevices ( hook , body , req.params.micronetId , req.params.subnetId )
+                    const addedDhcpDevices = await addDhcpDevices ( hook , body , req.params.micronetId , associatedSubnetId )
                     logger.debug('\n Added DHCP Devices : ' + JSON.stringify(addedDhcpDevices))
                   }
                   hook.result = patchResult
@@ -1175,6 +1188,7 @@ module.exports = {
             if ( micronetToDeleteIndex > -1 ) {
               micronetToDelete = micronet[ micronetToDeleteIndex ]
               ipSubnets = [].concat(micronetToDelete['micronet-subnet'].split('.')[2])
+              logger.debug('\n ipSubnets to delete : ' + JSON.stringify(ipSubnets))
               registeredDevicesToDelete = micronetToDelete['connected-devices']
               postBodyForDelete = micronet.filter ( ( micronet , index ) => index != micronetToDeleteIndex )
             }
@@ -1184,6 +1198,7 @@ module.exports = {
           const micronetFromDB = await getMicronet ( hook , {} )
           if(ipSubnets.length == 0 ) {
             ipSubnets = micronetFromDB.micronets.micronet.map((micronet)=> {return micronet['micronet-subnet'].split('.')[2]})
+            logger.debug('\n ipSubnets to delete : ' + JSON.stringify(ipSubnets))
           }
           const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
             {
@@ -1206,6 +1221,7 @@ module.exports = {
 
               // Deallocate subnets
               if(ipSubnets.length > 0) {
+                logger.debug('\n Deleting ipSubnets : ' + JSON.stringify(ipSubnets))
                 deallocateIPSubnets(hook,ipSubnets)
               }
 
