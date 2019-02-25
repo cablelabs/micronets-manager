@@ -1,6 +1,6 @@
 # micronets-manager
 
-> A webapp to view/manage Micro-nets
+> A webapp to view Micro-nets
 
 ## Build Setup
 
