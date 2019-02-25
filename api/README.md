@@ -274,79 +274,9 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
       }
       
      
- ### 7. Initialize Micronet :
- Create default micronets
-   
- #### url: POST `/mm/v1/micronets/init`
-   
-    Header Fields:
-      
-      content-type: "application/json"
-      
- POST Data:
-      
-          {
-                     "micronets" : {
-                       "micronet" : [
-                         {
-                           "name" : "Medical",
-                           "micronet-subnet-id": "WIRED_enp4s0"
-                         },
-                         {
-                           "name" : "CableLabs",
-                           "micronet-subnet-id": "WIRELESS_wlp2s0"
-                         }
-                       ]
-                     }
-                   }
-   
- #### Response:
-   
-      {  
-                "id" : "7B2A-BE88-08817Z",
-                "name" : "Grandma's LINKSYS 1900",
-                "ssid" : "grandma-gw",
-                "micronets": {
-                    "subnets": [
-                        {
-                            "name": "Medical",
-                            "class": "Medical",
-                            "trunk-gateway-port": "1",
-                            "micronet-bridge-openflow-node-id": "openflow:2945788526319",
-                            "ovs-manager-ip": "10.36.32.55",
-                            "dhcp-server-port": "LOCAL",
-                            "micronet-subnet-id": "WIRED_enp4s0",
-                            "dhcp-zone": "192.168.250.0/24",
-                            "micronet-id": 1534270984,
-                            "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
-                            "micronet-subnet": "192.168.250.0/24",
-                            "micronet-gateway-ip": "192.168.250.1",
-                            "ovs-bridge-name": "brmn001",
-                            "trunk-gateway-ip": "10.36.32.55"
-                        },
-                        {
-                            "name": "CableLabs",
-                            "class": "CableLabs",
-                            "trunk-gateway-port": "1",
-                            "micronet-bridge-openflow-node-id": "openflow:2945788526319",
-                            "ovs-manager-ip": "10.36.32.55",
-                            "dhcp-server-port": "LOCAL",
-                            "micronet-subnet-id": "WIRELESS_wlp2s0",
-                            "dhcp-zone": "192.168.251.0/24",
-                            "micronet-id": 1534270985,
-                            "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
-                            "micronet-subnet": "192.168.251.0/24",
-                            "micronet-gateway-ip": "192.168.251.1",
-                            "ovs-bridge-name": "brmn001",
-                            "trunk-gateway-ip": "10.36.32.55"
-                        }
-                    ]
-                }
-      }
-      
-      
- ### 8. Create subnet in micronet :
- Create subnet in micronet
+
+ ### 7. Create a micronet :
+ Create a micronet
    
  #### url: POST `/mm/v1/micronets`
    
@@ -360,12 +290,9 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
             "micronets" : {
               "micronet" : [
                 {
-                  "name" : "Wired",
-                  "micronet-subnet-id": "WIRED_enp4s0"
-                },
-                {
-                  "name" : "Wireless",
-                  "micronet-subnet-id": "WIRELESS_wlp2s0"
+                  "name" : "Heart Rate Monitor",
+                  "class": "Medical"
+                  "micronet-subnet-id": "Medical"
                 }
               ]
             }
@@ -378,36 +305,19 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
           "name" : "Grandma's LINKSYS 1900",
           "ssid" : "grandma-gw",
           "micronets": {
-              "subnets": [
+              "micronet": [
                   {
-                      "name": "Wired",
-                      "class": "Wired",
+                      "name": "Heart Rate Monitor",
+                      "class": "Medical",
                       "trunk-gateway-port": "1",
                       "micronet-bridge-openflow-node-id": "openflow:2945788526319",
                       "ovs-manager-ip": "10.36.32.55",
                       "dhcp-server-port": "LOCAL",
-                      "micronet-subnet-id": "WIRED_enp4s0",
+                      "micronet-subnet-id": "Medical",
                       "dhcp-zone": "192.168.250.0/24",
                       "micronet-id": 1534270984,
-                      "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
                       "micronet-subnet": "192.168.250.0/24",
                       "micronet-gateway-ip": "192.168.250.1",
-                      "ovs-bridge-name": "brmn001",
-                      "trunk-gateway-ip": "10.36.32.55"
-                  },
-                  {
-                      "name": "Wireless",
-                      "class": "Wireless",
-                      "trunk-gateway-port": "1",
-                      "micronet-bridge-openflow-node-id": "openflow:2945788526319",
-                      "ovs-manager-ip": "10.36.32.55",
-                      "dhcp-server-port": "LOCAL",
-                      "micronet-subnet-id": "WIRELESS_wlp2s0",
-                      "dhcp-zone": "192.168.251.0/24",
-                      "micronet-id": 1534270985,
-                      "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
-                      "micronet-subnet": "192.168.251.0/24",
-                      "micronet-gateway-ip": "192.168.251.1",
                       "ovs-bridge-name": "brmn001",
                       "trunk-gateway-ip": "10.36.32.55"
                   }
@@ -416,11 +326,11 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
       }
       
      
- ### 9. Retrieve subnets :
+ ### 8. Retrieve micronet :
   
- Retrieves subnets in a micronet
+ Retrieves a micronet
   
- #### url: GET `/mm/v1/micronets/:micronetId/subnets`
+ #### url: GET `/mm/v1/micronets/:micronetId`
   
     Header Fields:
      
@@ -432,7 +342,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                "name" : "Grandma's LINKSYS 1900",
                "ssid" : "grandma-gw",
                     "micronets": {
-                        "subnets": [
+                        "micronet": [
                             {
                                 "name": "Medical",
                                 "class" : "Medical"
@@ -505,11 +415,11 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
         
    
    
- ### 10. Add devices in micronet :
+ ### 9. Add devices in micronet :
    
  Add devices to an existing micronet
    
- #### url: POST `/mm/v1/micronets/:micronetId/subnets/:subnetId/device`
+ #### url: POST `/mm/v1/micronets/:micronetId/device`
    
     Header Fields:
       
@@ -521,21 +431,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                 "micronets" : {
                   "micronet" : [
                     {
-                      "name" : "Micronet_Wired_250",
-                      "micronet-subnet-id": "WIRED_enp4s0",
-                      "connected-devices" : [
-                          {
-                            "device-name": "pia",
-                            "device-id": "Raspberry-Pi3-Model-B-v1.2",
-                            "device-mac" : "b8:27:eb:8d:30:27",
-                            "device-ip" : "192.168.250.2",
-                            "device-openflow-port" : "{{port_wired}}"
-                          }
-                      ]
-                    },
-                    {
-                      "name" : "Micronet_Wireless_252",
-                      "micronet-subnet-id": "WIRELESS_wlp2s0",
                         "connected-devices" : [
                           {
                             "device-name": "picw",
@@ -563,32 +458,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                   "name" : "Grandma's LINKSYS 1900",
                   "ssid" : "grandma-gw",
                           "micronets": {
-                              "subnets": [
-                                  {
-                                      "name": "Micronet_Wired_250",
-                                      "class" : "Wired_250",                       
-                                      "trunk-gateway-port": "1",
-                                      "micronet-bridge-openflow-node-id": "openflow:2945788526319",
-                                      "ovs-manager-ip": "10.36.32.55",
-                                      "dhcp-server-port": "LOCAL",
-                                      "micronet-subnet-id": "WIRED_enp4s0",
-                                      "dhcp-zone": "10.36.32.0/24",
-                                      "micronet-id": 1533936267,
-                                      "micronet-bridge-nodeid": "ovsdb://uuid/686dcad0-9517-4471-b3a1-efc8a204130b/bridge/brmn001",
-                                      "connected-devices": [
-                                          {
-                                              "device-mac": "b8:27:eb:8d:30:27",
-                                              "device-ip": "192.168.250.2",
-                                              "device-openflow-port": "2",
-                                              "device-name": "pia",
-                                              "device-id": "Raspberry-Pi3-Model-B-v1.2"
-                                          }
-                                      ],
-                                      "micronet-subnet": "192.168.250.0/24",
-                                      "micronet-gateway-ip": "192.168.250.1",
-                                      "ovs-bridge-name": "brmn001",
-                                      "trunk-gateway-ip": "10.36.32.55"
-                                  },
+                              "micronet": [
                                   {
                                       "name": "Micronet_Wireless_252",
                                       "class" : "Wireless_252",    
