@@ -10,7 +10,7 @@ module.exports = function (app) {
   const mongooseClient = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const users = new Schema({
-    id: { type: String, required: true, primaryKey: true },
+    id: { type: String, required: true, primaryKey: true, sparse: true },
     name: { type: String, required: true },
     ssid: { type: String, required: true },
     devices:[ {
