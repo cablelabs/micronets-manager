@@ -253,7 +253,7 @@
         }
       }
     },
-    "/{micronetId}/subnets/{subnetId}/device": {
+    "/{micronetId}/device": {
       "post": {
         "tags": [
           "micronets"
@@ -270,15 +270,6 @@
             },
             "required": true,
             "description": "Micronet to add device to"
-          },
-          {
-            "in": "path",
-            "name": "subnetId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Subnet to add device to"
           }
         ],
         "requestBody": {
@@ -781,21 +772,26 @@
               "type": "object",
               "properties": {
                 "micronets": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "example": "Heart Monitor"
-                      },
-                      "class": {
-                        "type": "string",
-                        "example": "Medical"
-                      },
-                      "micronet-subnet-id": {
-                        "type": "string",
-                        "example": "Wired"
+                  "type": "object",
+                  "properties": {
+                    "micronet": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "example": "Heart Monitor"
+                          },
+                          "class": {
+                            "type": "string",
+                            "example": "Medical"
+                          },
+                          "micronet-subnet-id": {
+                            "type": "string",
+                            "example": "Medical"
+                          }
+                        }
                       }
                     }
                   }
@@ -814,42 +810,35 @@
               "type": "object",
               "properties": {
                 "micronets": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "example": "Medical"
-                      },
-                      "micronet-subnet-id": {
-                        "type": "string",
-                        "example": "Wired"
-                      },
-                      "connected-devices": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "device-mac": {
-                              "type": "string",
-                              "example": "B8:27:EB:D8:DF:30"
-                            },
-                            "device-name": {
-                              "type": "string",
-                              "example": "ProtoMed 1"
-                            },
-                            "device-id": {
-                              "type": "string",
-                              "example": "sdfew32123"
-                            },
-                            "device-openflow-port": {
-                              "type": "string",
-                              "example": "2"
-                            },
-                            "device-ip": {
-                              "type": "string",
-                              "example": "192.168.252.2"
+                  "type": "object",
+                  "properties": {
+                    "micronet": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "connected-devices": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "device-mac": {
+                                  "type": "string",
+                                  "example": "B8:27:EB:D8:DF:30"
+                                },
+                                "device-name": {
+                                  "type": "string",
+                                  "example": "ProtoMed 1"
+                                },
+                                "device-id": {
+                                  "type": "string",
+                                  "example": "sdfew32123"
+                                },
+                                "device-openflow-port": {
+                                  "type": "string",
+                                  "example": "2"
+                                }
+                              }
                             }
                           }
                         }
