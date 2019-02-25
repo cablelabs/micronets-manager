@@ -68,7 +68,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  
  The CSR is submitted to the CA. A wifi certificate is created and signed. The wifi certificate, CA certificate are base64 encoded and returned as JSON along with subscriber metadata.
  
- #### url: POST `/mm/v1/micronets/cert`
+ #### url: POST `/mm/v1/micronets/certificates`
  
  Header Fields:
  
@@ -166,29 +166,8 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
     }
     
     
- ### 5. Gateway Status :
- Reflects if the associated gateway is online or offline
-  
- #### url: POST `/mm/v1/micronets/gwty/status`
-  
- Header Fields:
-   
-       content-type: "application/json"
-   
- POST Data:
-   
-       { TBD }
-   
- #### Response:
-  
-     
-     { 
-       gatewayId: '123',
-       status: 'online'
-     }
-    
-     
- ### 6. Micronets Static Config :
+
+ ### 5. Micronets Static Config :
  Reflects the associated static configuration required to create a micronet
    
  #### url: POST `/mm/v1/micronets/config`
@@ -275,7 +254,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
       
      
 
- ### 7. Create a micronet :
+ ### 6. Create a micronet :
  Create a micronet
    
  #### url: POST `/mm/v1/micronets`
@@ -326,7 +305,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
       }
       
      
- ### 8. Retrieve micronet :
+ ### 7. Retrieve micronet :
   
  Retrieves a micronet
   
@@ -415,11 +394,11 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
         
    
    
- ### 9. Add devices in micronet :
+ ### 8. Add devices in micronet :
    
  Add devices to an existing micronet
    
- #### url: POST `/mm/v1/micronets/:micronetId/device`
+ #### url: POST `/mm/v1/micronets/:micronetId/devices`
    
     Header Fields:
       
