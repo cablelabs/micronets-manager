@@ -2,11 +2,10 @@ const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application/json' } }
 const axios = require ( 'axios' );
-let apiHeaders = { headers : { crossDomain : true } };
 const errors = require ( '@feathersjs/errors' );
 const logger = require ( './../../logger' );
 const app = require ( './../../app' );
-
+const odlPost = require('./../../../scripts/data/odlPost')
 module.exports = {
   before : {
     all : [ //authenticate('jwt')
@@ -42,6 +41,8 @@ module.exports = {
     create : [
       async ( hook ) => {
         hook.result = omitMeta ( hook.data )
+
+        // Update registry to include mano configuration parameters
         if(!hook.result.hasOwnProperty('identityUrl') && !hook.result.hasOwnProperty('webSocketUrl')) {
         const mano = hook.app.get('mano')
         logger.debug ( '\n Registry created : ' + JSON.stringify ( hook.result ) )
@@ -51,11 +52,13 @@ module.exports = {
         })
         logger.debug('\n Updated registry : ' + JSON.stringify(updatedRegistry.data))
         }
+
+        // Create Empty micronet
         const registry = hook.result
         let subscriber = await axios.get ( `${registry.msoPortalUrl}/internal/subscriber/${registry.subscriberId}`)
         subscriber = subscriber.data
         logger.debug ( '\n Associated subscriber with registry : ' + JSON.stringify ( subscriber ) )
-        const micronet = await hook.app.service ( '/mm/v1/micronets' ).create ( Object.assign ( {} , {
+         await hook.app.service ( '/mm/v1/micronets' ).create ( Object.assign ( {} , {
           type : 'userCreate' ,
           id : subscriber.id ,
           name : subscriber.name ,
@@ -64,10 +67,19 @@ module.exports = {
             micronet : []
           } )
         } ) )
-        const getmicronet = await hook.app.service ( '/mm/v1/micronets' ).find ()
-        logger.debug ( '\n Empty micronet for subscriber  : ' + JSON.stringify ( getmicronet ) )
-        return hook
+        const micronet = await hook.app.service ( '/mm/v1/micronets' ).find ()
+        logger.debug ( '\n Empty micronet for subscriber  : ' + JSON.stringify ( micronet ) )
 
+        // Create default ODL Config
+
+        const switchConfigPost = Object.assign({}, odlPost, {gatewayId:  hook.result.gatewayId})
+        logger.debug('Default ODL Post body : ' + JSON.stringify(switchConfigPost))
+        const switchConfig = await hook.app.service ( '/mm/v1/micronets/odl' ).find({})
+        const odlIndex = switchConfig.data.length > 0  ? switchConfig.data.findIndex((swConfig) => swConfig.gatewayId == hook.result.gatewayId) : -1
+        if(switchConfig.data.length == 0 || odlIndex == -1)  {
+          await hook.app.service ( '/mm/v1/micronets/odl').create({...switchConfigPost}, apiInit)
+          return hook
+        }
       }
     ] ,
     update : [] ,
