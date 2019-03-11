@@ -42,24 +42,19 @@ module.exports = {
     create : [
       async ( hook ) => {
         hook.result = omitMeta ( hook.data )
-        console.log('\n AFTER CREATE HOOK HOOK.DATA : ' + JSON.stringify(hook.data))
-        console.log('\n AFTER CREATE HOOK HOOK.RESULT : ' + JSON.stringify(hook.result))
         if(!hook.result.hasOwnProperty('identityUrl') && !hook.result.hasOwnProperty('webSocketUrl')) {
         const mano = hook.app.get('mano')
         logger.debug ( '\n Registry created : ' + JSON.stringify ( hook.result ) )
-        logger.debug('\n Calling patch to add identity url and web socket url from config....')
         const updatedRegistry = await hook.app.service ( '/mm/v1/micronets/registry' ).patch ( hook.result.subscriberId ,{
           webSocketUrl: mano.webSocketUrl,
           identityUrl:  mano.identityUrl
         })
-        console.log('\n Updated registry with identity url and web socket url : ' + JSON.stringify(updatedRegistry.data))
+        logger.debug('\n Updated registry : ' + JSON.stringify(updatedRegistry.data))
         }
-
         const registry = hook.result
         let subscriber = await axios.get ( `${registry.msoPortalUrl}/internal/subscriber/${registry.subscriberId}`)
         subscriber = subscriber.data
         logger.debug ( '\n Associated subscriber with registry : ' + JSON.stringify ( subscriber ) )
-
         const micronet = await hook.app.service ( '/mm/v1/micronets' ).create ( Object.assign ( {} , {
           type : 'userCreate' ,
           id : subscriber.id ,
