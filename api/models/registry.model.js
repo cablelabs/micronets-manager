@@ -7,11 +7,11 @@ module.exports = function (app) {
   const { Schema } = mongooseClient;
   const registry = new Schema({
     subscriberId: {type: String, required: true, unique: true, primaryKey: true, sparse: true },
-    identityUrl: { type: String, required: true },
+    identityUrl: { type: String, required: false },
     dhcpUrl: { type: String, required: false },
     mmUrl: { type: String, required: true },
     mmClientUrl: {type: String, required: true },
-    webSocketUrl: { type: String, required: true },
+    webSocketUrl: { type: String, required: false },
     msoPortalUrl: { type: String, required: true },
     odlUrl:{ type: String, required: false },
     gatewayId : {type: String, required: true }
