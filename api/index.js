@@ -23,11 +23,11 @@ server.on ( 'listening' , async () => {
     await dw.connect ().then ( () => { return true } );
   }
 
-  if ( mano && mano.hasOwnProperty('webSocketUrl') && !(registry && registry.hasOwnProperty ( 'websocketUrl' ))) {
-    logger.info('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
-    await dw.setAddress ( mano.webSocketUrl );
-    await dw.connect ().then ( () => { return true } );
-  }
+  // if ( mano && mano.hasOwnProperty('webSocketUrl') && !(registry && registry.hasOwnProperty ( 'websocketUrl' ))) {
+  //   logger.info('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
+  //   await dw.setAddress ( mano.webSocketUrl );
+  //   await dw.connect ().then ( () => { return true } );
+  // }
 
 } );
 

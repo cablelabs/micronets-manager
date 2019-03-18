@@ -4,8 +4,8 @@ const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application
 const axios = require ( 'axios' );
 const errors = require ( '@feathersjs/errors' );
 const logger = require ( './../../logger' );
-const app = require ( './../../app' );
 const odlPost = require('./../../../scripts/data/odlPost')
+
 module.exports = {
   before : {
     all : [ //authenticate('jwt')
@@ -43,14 +43,14 @@ module.exports = {
         hook.result = omitMeta ( hook.data )
 
         // Update registry to include mano configuration parameters
-        if(!hook.result.hasOwnProperty('identityUrl') && !hook.result.hasOwnProperty('webSocketUrl')) {
+        if(!hook.result.hasOwnProperty('identityUrl')) {
         const mano = hook.app.get('mano')
         logger.debug ( '\n Registry created : ' + JSON.stringify ( hook.result ) )
+        logger.debug('\n\n MANO CONFIG FOR IDENTITY SERVER : ' + JSON.stringify(mano.identityUrl))
         const updatedRegistry = await hook.app.service ( '/mm/v1/micronets/registry' ).patch ( hook.result.subscriberId ,{
-          webSocketUrl: mano.webSocketUrl,
           identityUrl:  mano.identityUrl
         })
-        logger.debug('\n Updated registry : ' + JSON.stringify(updatedRegistry.data))
+        logger.debug('\n Updated registry : ' + JSON.stringify(updatedRegistry))
         }
 
         // Create Empty micronet

@@ -43,7 +43,6 @@
     "ipMax": 254
   },
   "mano":{
-    "webSocketUrl":"wss://127.0.0.1:5050/micronets/v1/ws-proxy/micronets-gw-0001",
     "identityUrl": "http://127.0.0.1:3230"
   },
   "mudUrl": "http://45.79.13.134:8888/getFlowRules"
