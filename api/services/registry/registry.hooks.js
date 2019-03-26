@@ -16,7 +16,7 @@ module.exports = {
       async ( hook ) => {
         const { data , params } = hook
         if ( data.msoPortalUrl ) {
-          let subscriber = await axios.get ( `${data.msoPortalUrl}/internal/subscriber/${data.subscriberId}` )
+          let subscriber = await axios.get ( `${data.msoPortalUrl}/portal/v1/subscriber/${data.subscriberId}` )
           subscriber = subscriber.data
           logger.debug ( '\n Subscriber found : ' + JSON.stringify ( subscriber ) + '\t\t data.subscriberId : ' + JSON.stringify ( data.subscriberId ) )
           if ( !subscriber.id && subscriber.id != data.subscriberId ) {
@@ -55,7 +55,7 @@ module.exports = {
 
         // Create Empty micronet
         const registry = hook.result
-        let subscriber = await axios.get ( `${registry.msoPortalUrl}/internal/subscriber/${registry.subscriberId}`)
+        let subscriber = await axios.get ( `${registry.msoPortalUrl}/portal/v1/subscriber/${registry.subscriberId}`)
         subscriber = subscriber.data
         logger.debug ( '\n Associated subscriber with registry : ' + JSON.stringify ( subscriber ) )
          await hook.app.service ( '/mm/v1/micronets' ).create ( Object.assign ( {} , {
