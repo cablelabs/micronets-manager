@@ -16,8 +16,6 @@ module.exports = function (app) {
     macAddress: {type: String, required: true}
   });
 
-
-
   const bridge = new Schema({
     _id:false,
     name: { type: String, required: true },
@@ -26,10 +24,6 @@ module.exports = function (app) {
     trunkPort: { type: String, required: true },
     ports: [{ type:ports, required: true }]
   });
-
-  // const bridges = new Schema({
-  //   bridges: [{ type: bridge, required: true }],
-  // });
 
   const bridges = new Schema({
     _id:false,

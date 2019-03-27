@@ -80,6 +80,8 @@ module.exports = {
           await hook.app.service ( '/mm/v1/micronets/odl').create({...switchConfigPost}, apiInit)
           return hook
         }
+       hook.result = omitMeta(hook.result)
+       return Promise.resolve(hook)
       }
     ] ,
     update : [] ,
