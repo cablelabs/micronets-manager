@@ -42,17 +42,3 @@ module.exports = function (app) {
   return mongooseClient.model('dhcp', dhcp);
 };
 
-/* POST BODY DEVICES
-
-    "device": {
-      "deviceId": "Wireddevice01",
-      "macAddress": {
-        "eui48": "10:13:13:0f:b0:26"
-      },
-      "networkAddress": {
-        "ipv4": "192.168.1.2"
-      }
-    }
-
-
- */
