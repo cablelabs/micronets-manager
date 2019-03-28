@@ -192,12 +192,18 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
 
     const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
       let switchConfigSubnetType = subnet.connection == WIRELESS ? wirelessSwitchConfigSubnets : wiredSwitchConfigSubnets
-      logger.debug('\n Subnet : ' + JSON.stringify(subnet) + '\t\t switchConfigSubnetType : ' + JSON.stringify(switchConfigSubnetType))
+      logger.debug('\n Subnet : ' + JSON.stringify(subnet) + '\t\t switchConfigSubnetType : ' + JSON.stringify(switchConfigSubnetType) + '\t\t Index : ' + JSON.stringify(index))
       if(isEmpty(switchConfigSubnetType) && isEmpty(wiredSwitchConfigSubnets)) {
         return Promise.reject(new errors.GeneralError(new Error('Micronet cannot be created.No wired subnet available')))
       }
       else if(isEmpty(switchConfigSubnetType) && isEmpty(wirelessSwitchConfigSubnets)) {
         return Promise.reject(new errors.GeneralError(new Error('Micronet cannot be created.No wireless subnet available')))
+      }
+      else if(subnetDetails.length > switchConfigSubnetType.length) {
+        const connectionType = subnet.connection == WIRELESS ? 'wifi' : 'wired'
+        logger.debug('\n ConnectionType : ' + JSON.stringify(connectionType))
+        const availableSubnetLength = connectionType == 'wifi' ?  wirelessSwitchConfigSubnets.length : wiredSwitchConfigSubnets.length
+        return Promise.reject(new errors.GeneralError(new Error(`Cannot add ${subnetDetails.length} ${connectionType} micronets. Only ${availableSubnetLength} ${connectionType} micronet can be added.Please update switch config to add more.`)))
       }
       const subnetNo = parseInt(switchConfigSubnetType[ index ].split ( '.' )[ 2 ])
       const subnets = await subnetAllocation.getNewSubnet ( index , subnetNo )
