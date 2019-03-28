@@ -16,7 +16,7 @@ module.exports = {
       async ( hook ) => {
         const { data , params } = hook
         if ( data.msoPortalUrl ) {
-          let subscriber = await axios.get ( `${data.msoPortalUrl}/internal/subscriber/${data.subscriberId}` )
+          let subscriber = await axios.get ( `${data.msoPortalUrl}/portal/v1/subscriber/${data.subscriberId}` )
           subscriber = subscriber.data
           logger.debug ( '\n Subscriber found : ' + JSON.stringify ( subscriber ) + '\t\t data.subscriberId : ' + JSON.stringify ( data.subscriberId ) )
           if ( !subscriber.id && subscriber.id != data.subscriberId ) {
@@ -40,8 +40,6 @@ module.exports = {
     get : [] ,
     create : [
       async ( hook ) => {
-        hook.result = omitMeta ( hook.data )
-
         // Update registry to include mano configuration parameters
         if(!hook.result.hasOwnProperty('identityUrl')) {
         const mano = hook.app.get('mano')
@@ -55,7 +53,7 @@ module.exports = {
 
         // Create Empty micronet
         const registry = hook.result
-        let subscriber = await axios.get ( `${registry.msoPortalUrl}/internal/subscriber/${registry.subscriberId}`)
+        let subscriber = await axios.get ( `${registry.msoPortalUrl}/portal/v1/subscriber/${registry.subscriberId}`)
         subscriber = subscriber.data
         logger.debug ( '\n Associated subscriber with registry : ' + JSON.stringify ( subscriber ) )
          await hook.app.service ( '/mm/v1/micronets' ).create ( Object.assign ( {} , {
@@ -63,6 +61,7 @@ module.exports = {
           id : subscriber.id ,
           name : subscriber.name ,
           ssid : subscriber.ssid ,
+          gatewayId: subscriber.gatewayId ,
           micronets : Object.assign ( {} , {
             micronet : []
           } )
@@ -80,6 +79,8 @@ module.exports = {
           await hook.app.service ( '/mm/v1/micronets/odl').create({...switchConfigPost}, apiInit)
           return hook
         }
+       hook.result = omitMeta(hook.result)
+       return Promise.resolve(hook)
       }
     ] ,
     update : [] ,

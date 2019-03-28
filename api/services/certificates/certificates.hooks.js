@@ -32,7 +32,7 @@ module.exports = {
        let subscriberId = data.subscriberId!= undefined ? data.subscriberId : result[0].subscriberId
        let axiosConfig = { headers : { 'Authorization' : params.headers.authorization } };
        let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get (  subscriberId );
-       const subscriber = await axios.get(`${registry.msoPortalUrl}/internal/subscriber/${data.subscriberId}`,axiosConfig)
+       const subscriber = await axios.get(`${registry.msoPortalUrl}/portal/v1/subscriber/${data.subscriberId}`,axiosConfig)
        logger.debug( '\n MSO URL  :' + JSON.stringify ( registry.msoPortalUrl )  + '\n\n Subscriber : ' + JSON.stringify(subscriber.data))
        const certificates =  await axios.post (`${registry.identityUrl}/certificates` ,  data , axiosConfig)
        logger.debug( '\n Identity URL  :' + JSON.stringify ( registry.identityUrl )  + '\n\n Certificates : ' + JSON.stringify(certificates.data))
