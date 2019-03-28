@@ -18,7 +18,7 @@ module.exports = {
         if ( data.msoPortalUrl ) {
           let subscriber = await axios.get ( `${data.msoPortalUrl}/portal/v1/subscriber/${data.subscriberId}` )
           subscriber = subscriber.data
-          logger.debug ( '\n Subscriber found : ' + JSON.stringify ( subscriber ) + '\t\t data.subscriberId : ' + JSON.stringify ( data.subscriberId ) )
+          logger.debug ( '\n Subscriber found : ' + JSON.stringify ( subscriber ) + '\t\t Data.subscriberId : ' + JSON.stringify ( data.subscriberId ) )
           if ( !subscriber.id && subscriber.id != data.subscriberId ) {
             return Promise.reject ( new errors.GeneralError ( new Error ( 'Registry cannot be created.No associated subscriber found' ) ) )
           }
@@ -62,15 +62,12 @@ module.exports = {
           name : subscriber.name ,
           ssid : subscriber.ssid ,
           gatewayId: subscriber.gatewayId ,
-          micronets : Object.assign ( {} , {
-            micronet : []
-          } )
+          micronets : []
         } ) )
         const micronet = await hook.app.service ( '/mm/v1/micronets' ).find ()
         logger.debug ( '\n Empty micronet for subscriber  : ' + JSON.stringify ( micronet ) )
 
         // Create default ODL Config
-
         const switchConfigPost = Object.assign({}, odlPost, {gatewayId:  hook.result.gatewayId})
         logger.debug('Default ODL Post body : ' + JSON.stringify(switchConfigPost))
         const switchConfig = await hook.app.service ( '/mm/v1/micronets/odl' ).find({})

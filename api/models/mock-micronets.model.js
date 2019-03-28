@@ -41,7 +41,7 @@ module.exports = function (app) {
   });
 
   const mockMicronets = new Schema({
-    micronets: { type:Subnets , required:true }
+    micronets: [{ type:subnet , required:true }]
   }, {
     timestamps: true
   });

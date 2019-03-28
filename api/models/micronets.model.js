@@ -45,7 +45,7 @@ module.exports = function (app) {
     name: { type: String, required: true },
     ssid: { type: String, required: false },
     gatewayId: {type: String, required: true },
-    micronets: { type:Subnets , required:true }
+    micronets: [{ type:subnet , required:true }]
   }, {
     timestamps: true
   });
