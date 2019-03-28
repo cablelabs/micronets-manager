@@ -40,8 +40,6 @@ module.exports = {
     get : [] ,
     create : [
       async ( hook ) => {
-        hook.result = omitMeta ( hook.data )
-
         // Update registry to include mano configuration parameters
         if(!hook.result.hasOwnProperty('identityUrl')) {
         const mano = hook.app.get('mano')
@@ -63,6 +61,7 @@ module.exports = {
           id : subscriber.id ,
           name : subscriber.name ,
           ssid : subscriber.ssid ,
+          gatewayId: subscriber.gatewayId ,
           micronets : Object.assign ( {} , {
             micronet : []
           } )

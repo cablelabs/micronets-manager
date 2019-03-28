@@ -869,12 +869,13 @@ module.exports = {
         /* User created. Initialize micronets object */
         if ( hook.data && hook.data.type == 'userCreate' ) {
           logger.debug('\n  Event Type ' + JSON.stringify( hook.data.type) +'\t\t Event data : ' + JSON.stringify(hook.data))
-          const { type , id, ssid, name } = hook.data
+          const { type , id, ssid, name, gatewayId } = hook.data
           // Create Micronets object
           hook.data = Object.assign ( {} , {
             id : id ,
             name : name ,
             ssid : ssid ,
+            gatewayId: gatewayId ,
             micronets : Object.assign ( {} , {
               micronet : []
             } )
@@ -965,6 +966,7 @@ module.exports = {
                     id : micronetFromDB.id ,
                     name : micronetFromDB.name ,
                     ssid : micronetFromDB.ssid ,
+                    gatewayId: micronetFromDB.gatewayId ,
                     micronets : { micronet : odlResponse.data.micronets.micronet }
                   } ,
                   { query : {} , mongoose : { upsert : true } } );
@@ -1004,6 +1006,7 @@ module.exports = {
                     id : micronetFromDB.id ,
                     name : micronetFromDB.name ,
                     ssid : micronetFromDB.ssid ,
+                    gatewayId : micronetFromDB.gatewayId ,
                     micronets : data.micronets
                   } ,
                   { query : {} , mongoose : { upsert : true } } );
@@ -1068,6 +1071,7 @@ module.exports = {
                     id : micronetFromDB.id ,
                     name : micronetFromDB.name ,
                     ssid : micronetFromDB.ssid,
+                    gatewayId : micronetFromDB.gatewayId,
                     devices : userDevicesPost
                   } )
                   const userCreated = await hook.app.service ( '/mm/v1/micronets/users').create(userPost)
