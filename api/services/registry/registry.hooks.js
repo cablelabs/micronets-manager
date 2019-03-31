@@ -56,7 +56,7 @@ module.exports = {
         let subscriber = await axios.get ( `${registry.msoPortalUrl}/portal/v1/subscriber/${registry.subscriberId}`)
         subscriber = subscriber.data
         logger.debug ( '\n Associated subscriber with registry : ' + JSON.stringify ( subscriber ) )
-         await hook.app.service ( '/mm/v1/micronets' ).create ( Object.assign ( {} , {
+         await hook.app.service ( '/mm/v1/subscriber' ).create ( Object.assign ( {} , {
           type : 'userCreate' ,
           id : subscriber.id ,
           name : subscriber.name ,
@@ -64,7 +64,7 @@ module.exports = {
           gatewayId: subscriber.gatewayId ,
           micronets : []
         } ) )
-        const micronet = await hook.app.service ( '/mm/v1/micronets' ).find ()
+        const micronet = await hook.app.service ( '/mm/v1/subscriber' ).find ()
         logger.debug ( '\n Empty micronet for subscriber  : ' + JSON.stringify ( micronet ) )
 
         // Create default ODL Config

@@ -319,9 +319,10 @@ const getRegistryForSubscriber = async ( hook , subscriberId ) => {
 }
 
 const getRegistry = async ( hook ) => {
-  const micronetFromDB = await getMicronet ( hook , {} )
-  const subscriberId = micronetFromDB.id
-  const registry = await getRegistryForSubscriber ( hook , subscriberId )
+ // const micronetFromDB = await getMicronet ( hook , {} )
+ // const subscriberId = micronetFromDB.id
+  const mano = hook.app.get('mano')
+  const registry = await getRegistryForSubscriber ( hook , mano.subscriberId )
   return registry
 }
 
@@ -386,9 +387,13 @@ const initializeMicronets = async ( hook , postBody ) => {
   }
 }
 
-const getMicronet = async ( hook , query ) => {
-  const micronetFromDb = await hook.app.service ( '/mm/v1/micronets' ).find ( query )
-  return micronetFromDb.data[ 0 ]
+const getMicronet = async ( hook , subscriberId ) => {
+  logger.debug('\n GET MICRONET : ' + JSON.stringify(subscriberId) + '\t\t MANO Subscriber ID : ' + JSON.stringify(hook.app.get('mano').subscriberId) )
+  const id =  hook.app.get('mano').subscriberId
+  logger.debug('\n GET MICRONET ID : ' + JSON.stringify(id))
+  const micronet = await hook.app.service ( '/mm/v1/subscriber' ).get ( id )
+  logger.debug('\n getMicronet micronet : ' + JSON.stringify(micronet))
+  return micronet
 }
 
 /* ODL Config PUT / GET Calls */
@@ -487,9 +492,9 @@ const createSubnetInMicronet = async ( hook , postBody , subnetsToAdd ) => {
   return finalPostBody
 }
 
-const upsertSubnetsToMicronet = async ( hook , body ) => {
+const upsertSubnetsToMicronet = async ( hook , body, subscriberId ) => {
   let postBodyForODL = []
-  const micronetFromDb = await getMicronet ( hook , query = {} )
+  const micronetFromDb = await getMicronet ( hook , subscriberId )
   // TODO : Add Logic to check with operational state
 
   const subnetsStatus = await subnetPresentCheck ( hook , body , micronetFromDb )
@@ -509,7 +514,7 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
   const { type , data } = eventData
   const { subscriberId , device } = data
 
-  let micronetFromDB = await getMicronet ( hook , {} )
+  let micronetFromDB = await getMicronet ( hook , subscriberId )
   hook.id = micronetFromDB._id
   const existingMicronetClasses = micronetFromDB.micronets.map ( ( micronet , index ) => {
     return micronet.class
@@ -528,14 +533,15 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
         } ]
     } )
 
-    const { postBodyForODL , addSubnet } = await upsertSubnetsToMicronet ( hook , postBodyForSubnet )
+    const { postBodyForODL , addSubnet } = await upsertSubnetsToMicronet ( hook , postBodyForSubnet, subscriberId )
 
     /* ODL API's */
     // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
     const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL )
-
+    logger.debug('\n ODL Response : ' + JSON.stringify(odlResponse.data) + '\t\t status : ' + JSON.stringify(odlResponse.status))
     if ( odlResponse.data && odlResponse.status == 201 ) {
-      const addSubnetPatchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( hook.id ,
+
+      const addSubnetPatchResult = await hook.app.service ( `/mm/v1/subscriber` ).patch ( subscriberId ,
         { micronets :  odlResponse.data.micronets  } ,
         { query : {} , mongoose : { upsert : true } } );
 
@@ -851,27 +857,14 @@ module.exports = {
       }
     ] ,
     get : [
-      hook => {
-        const { data , params , id } = hook;
-        hook.params.mongoose = {
-          runValidators : true ,
-          setDefaultsOnInsert : true
-        }
-        const query = Object.assign ( { 'micronet-id' : id ? id.micronetId : params.micronetId } , hook.params.query );
-        return hook.app.service ( '/mm/v1/micronets' ).find ( query )
-          .then ( ( { data } ) => {
-            hook.result = omitMeta ( data[ 0 ] );
-            Promise.resolve ( hook )
-          } )
-      }
     ] ,
     create : [
       async hook => {
         const { params , id, data, path } = hook;
-        const micronetFromDB = await getMicronet ( hook , {} )
-        if ( micronetFromDB ) {
-          hook.id = micronetFromDB._id
-        }
+        // const micronetFromDB = await getMicronet ( hook , {} )
+        // if ( micronetFromDB ) {
+          // hook.id = micronetFromDB._id
+        // }
 
         /* User created. Initialize micronets object */
         if ( hook.data && hook.data.type == 'userCreate' ) {
@@ -893,7 +886,8 @@ module.exports = {
           logger.debug('\n  Device registration process.Event Type ' + JSON.stringify( hook.data.type) +'\t\t Event data : ' + JSON.stringify(hook.data))
           const { type , data } = hook.data
           const { subscriberId , device } = data
-          const micronetFromDB = await getMicronet ( hook , {} )
+          logger.debug('\n Adding micronets for subscriberID : ' + JSON.stringify(subscriberId))
+          const micronetFromDB = await getMicronet ( hook , subscriberId )
           const odlPostBody = await upsertRegisteredDeviceToMicronet ( hook , hook.data )
           logger.debug('\n ODL Post Body : ' + JSON.stringify(odlPostBody))
           // const odlResponse = await odlOperationsForUpserts ( hook , odlPostBody )
@@ -905,11 +899,8 @@ module.exports = {
             const patchRequestData =  (odlResponseData.hasOwnProperty('id') && odlResponseData.hasOwnProperty('name') && odlResponseData.hasOwnProperty('micronets')) ? odlResponseData.micronets
               : ( odlResponseData.hasOwnProperty('micronets') && !odlResponseData.hasOwnProperty('name')) ? odlResponseData.micronets : odlResponseData
             logger.debug('\n patchRequestData : ' + JSON.stringify(patchRequestData))
-            const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
+            const patchResult = await hook.app.service ( '/mm/v1/subscriber' ).patch ( subscriberId ,
               {
-                id : micronetFromDB.id ,
-                name : micronetFromDB.name ,
-                ssid : micronetFromDB.ssid ,
                 micronets : patchRequestData
               } ,
               { query : {} , mongoose : { upsert : true } } )
@@ -942,8 +933,9 @@ module.exports = {
         }
 
         // Create Subnet without device registration process
-        if ( path == `mm/v1/micronets` && !hook.data.req  ) {
+        if ( path == `mm/v1/subscriber/:id/micronets` && !hook.data.req  ) {
           logger.debug('Create Subnet without device registration process')
+          logger.debug('\n PATH : ' + JSON.stringify(path))
           hook.params.mongoose = {
             runValidators : true ,
             setDefaultsOnInsert : true
@@ -1027,7 +1019,7 @@ module.exports = {
           }
 
           // Add device to existing subnet
-          if ( originalUrl.toString () == `/mm/v1/micronets/${req.params.micronetId}/devices` ) {
+          if ( originalUrl.toString () == `/mm/v1/subscriber/:id/micronets/${req.params.micronetId}/devices` ) {
             const isGtwyAlive = await isGatewayAlive ( hook )
             const isOdlAlive = await isODLAlive ( hook )
             const isGatewayConnected = await connectToGateway ( hook )
@@ -1260,7 +1252,7 @@ module.exports = {
     patch : [
       async ( hook ) => {
         const { data , id , params } = hook
-        hook.app.service ( '/mm/v1/micronets' ).emit ( 'micronetUpdated' , {
+        hook.app.service ( '/mm/v1/subscriber' ).emit ( 'micronetUpdated' , {
           type : 'micronetUpdated' ,
           data : data
         } );

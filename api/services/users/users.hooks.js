@@ -108,7 +108,7 @@ module.exports = {
         // const { headers: { Authorization }} = params
        //  let axiosConfig = { headers : { 'Authorization' : Authorization , crossDomain: true } };
         const user = hook.result
-        const micronet = await hook.app.service('/mm/v1/micronets').get({id:user.id})
+        // const micronet = await hook.app.service('/mm/v1/micronets').get({id:user.id})
         // const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
         //   type: 'userCreate',
         //   id : user.id ,

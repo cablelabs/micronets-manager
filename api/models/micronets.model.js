@@ -41,7 +41,7 @@ module.exports = function (app) {
   });
 
   const micronets = new Schema({
-    id: { type: String, required: true, primaryKey: true },
+    id: { type: String, required: true, primaryKey: true,  unique:true, sparse: true },
     name: { type: String, required: true },
     ssid: { type: String, required: false },
     gatewayId: {type: String, required: true },

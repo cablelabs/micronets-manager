@@ -16,11 +16,8 @@ const getRegistryForSubscriber = async ( hook , subscriberId ) => {
     } )
 }
 
-const getRegistry = async(hook,query) => {
-    let micronetFromDb = await hook.app.service ( '/mm/v1/micronets' ).find ( query )
-    micronetFromDb = micronetFromDb.data[ 0 ]
-    const subscriberId = micronetFromDb.id
-    const registry = await getRegistryForSubscriber ( hook , subscriberId )
+const getRegistry = async(hook,subscriberId) => {
+    const registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get ( subscriberId )
     return registry
 }
 
@@ -28,7 +25,8 @@ module.exports = {
   before: {
     all: [
        async(hook) => {
-         const registry = await getRegistry(hook,{})
+         const mano = hook.app.get('mano')
+         const registry = await getRegistry(hook,mano.subscriberId)
          const { webSocketUrl } = registry
          const dhcpAddress = await dw.setAddress(webSocketUrl)
          const dhcpConnection = await dw.connect().then(()=> {return true})

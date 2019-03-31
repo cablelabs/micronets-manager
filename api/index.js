@@ -93,7 +93,7 @@ app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceUpdate' , ( data ) => {
   } );
 } );
 
-app.service ( '/mm/v1/micronets' ).on ( 'micronetUpdated' , ( data ) => {
+app.service ( '/mm/v1/subscriber' ).on ( 'micronetUpdated' , ( data ) => {
   logger.debug ( '\n FeatherJS event micronetUpdated fired with data : ' + JSON.stringify ( data ) )
   io.on ( 'connection' , ( socket ) => {
     logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
