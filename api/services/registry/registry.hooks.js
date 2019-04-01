@@ -5,6 +5,7 @@ const axios = require ( 'axios' );
 const errors = require ( '@feathersjs/errors' );
 const logger = require ( './../../logger' );
 const odlPost = require('./../../../scripts/data/odlPost')
+let allHeaders = { crossDomain: true, headers : {  'Content-type': 'application/json' } };
 
 module.exports = {
   before : {
@@ -31,7 +32,31 @@ module.exports = {
     ] ,
     update : [] ,
     patch : [] ,
-    remove : []
+    remove : [
+      async(hook) => {
+        const {data, params, id } = hook
+        const registry = await hook.app.service('/mm/v1/micronets/registry').get(id)
+        if(id){
+          await hook.app.service('/mm/v1/micronets/odl').remove(registry.gatewayId,allHeaders)
+          await axios({
+            ...allHeaders,
+            method: 'DELETE',
+            url: `${registry.mmUrl}/mm/v1/subscriber/${id}/micronets`
+          })
+          await axios({
+            ...allHeaders,
+            method: 'DELETE',
+            url: `${registry.mmUrl}/mm/v1/subscriber/${id}`
+          })
+          await hook.app.service('/mm/v1/micronets/users').remove(id,allHeaders)
+        }
+        else {
+          await hook.app.service('/mm/v1/micronets/odl').remove(null,allHeaders)
+          await hook.app.service('/mm/v1/micronets/subscriber').remove(null,allHeaders)
+          await hook.app.service('/mm/v1/micronets/users').remove(null,allHeaders)
+        }
+      }
+    ]
   } ,
 
   after : {
@@ -82,7 +107,12 @@ module.exports = {
     ] ,
     update : [] ,
     patch : [] ,
-    remove : []
+    remove : [
+      async(hook) => {
+      const {data, params, id } = hook
+        logger.debug('\n REMOVE HOOK REGISTRY result : ' + JSON.stringify(hook.result))
+      }
+    ]
   } ,
 
   error : {

@@ -33,6 +33,11 @@ module.exports = function ( app ) {
 
   app.use ( `/mm/v1/subscriber/:id/micronets/:micronetId/devices` , async ( req , res , next ) => {
     const { path , originalUrl , method , params } = req
+    logger.debug('\n PATH : ' + JSON.stringify(path))
+    logger.debug('\n ORIGINAL URL : ' + JSON.stringify(originalUrl))
+    logger.debug('\n METHOD : ' + JSON.stringify(method))
+    logger.debug('\n PARAMS : ' + JSON.stringify(params))
+
     if ( method == 'POST' ) {
       const result = await service.create (
         { req : req } ,
@@ -46,6 +51,11 @@ module.exports = function ( app ) {
 
   app.use ( `/mm/v1/subscriber/:id/micronets/:micronetId` , async ( req , res , next ) => {
     const { path , originalUrl , method , params, body } = req
+    logger.debug('\n PATH : ' + JSON.stringify(path))
+    logger.debug('\n ORIGINAL URL : ' + JSON.stringify(originalUrl))
+    logger.debug('\n METHOD : ' + JSON.stringify(method))
+    logger.debug('\n PARAMS : ' + JSON.stringify(params))
+
     if ( method == 'DELETE' ) {
       const result = await service.remove ({...params})
       service.on ( 'deleted' , ( micronet ) => { } )
@@ -55,6 +65,10 @@ module.exports = function ( app ) {
 
   app.use ( `/mm/v1/subscriber/:id/micronets` , async ( req , res , next ) => {
     const { path , originalUrl , method , params, body } = req
+    logger.debug('\n PATH : ' + JSON.stringify(path))
+    logger.debug('\n ORIGINAL URL : ' + JSON.stringify(originalUrl))
+    logger.debug('\n METHOD : ' + JSON.stringify(method))
+    logger.debug('\n PARAMS : ' + JSON.stringify(params))
 
     if ( method == 'POST' ) {
       const result = await service.create (
