@@ -10,6 +10,7 @@ const WIRED = "wired"
 const WIRELESS = "wifi"
 const errors = require('@feathersjs/errors');
 const logger = require ( './../../logger' );
+const MUD_PARSER_VERSION = "1.1"
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
@@ -693,8 +694,8 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
 const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
 
   // Get MUD Url from users
-  const MUD_URL = hook.app.get('mudUrl')
-  logger.debug('\n MUD_URL : ' + JSON.stringify( MUD_URL ))
+  const mud = hook.app.get('mud')
+  logger.debug('\n MUD url : ' + JSON.stringify( mud.url ) + '\t\t MUD version : ' + JSON.stringify(mud.version))
   let user = await hook.app.service('/mm/v1/micronets/users').find({})
   user = user.data[0]
   let userDevices = user.devices
@@ -706,14 +707,14 @@ const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
     if(  mudUrlForDevice && mudUrlForDevice!='') {
       let mudParserPost = Object.assign ( {} , {
         url : mudUrlForDevice ,
-        version : "1.0" ,
+        version : mud.version ,
         ip : dhcpDeviceToUpsert.networkAddress.ipv4
       } )
       logger.debug('\n\n mudParserPost : ' + JSON.stringify(mudParserPost))
       // Make MUD Post call
       let mudParserRes = await axios ( {
         method : 'POST' ,
-        url : MUD_URL ,
+        url : mud.url ,
         data : mudParserPost
       } )
       mudParserRes = mudParserRes.data
@@ -768,6 +769,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
   } )
   dhcpDevicesPostBody = [].concat.apply ( [] , dhcpDevicesPostBody )
   dhcpDevicesPostBody = await upsertDhcpDevicesWithMudConfig(hook, dhcpDevicesPostBody)
+  logger.debug('\n DHCP DEVICES POST BODY : ' + JSON.stringify(dhcpDevicesPostBody))
   if ( micronetIndex > -1 ) {
     // Check if subnet exists in DHCP Gateway
     const dhcpSubnet = await axios ( {
