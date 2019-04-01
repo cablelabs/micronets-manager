@@ -695,11 +695,10 @@ const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
   // Get MUD Url from users
   const MUD_URL = hook.app.get('mudUrl')
   logger.debug('\n MUD_URL : ' + JSON.stringify( MUD_URL ))
-
   let user = await hook.app.service('/mm/v1/micronets/users').find({})
   user = user.data[0]
   let userDevices = user.devices
-
+  logger.debug('\n\n userDevices : ' + JSON.stringify(userDevices))
   let dhcpDevicesWithMudConfig = await Promise.all(dhcpDevicesToUpsert.map(async (dhcpDeviceToUpsert , index) => {
     let userDeviceIndex = userDevices.findIndex((userDevice) => userDevice.macAddress == dhcpDeviceToUpsert.macAddress.eui48 && userDevice.deviceId == dhcpDeviceToUpsert.deviceId)
     let mudUrlForDevice = userDeviceIndex != -1 ? userDevices[userDeviceIndex].mudUrl : ''
@@ -707,9 +706,10 @@ const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
     if(  mudUrlForDevice && mudUrlForDevice!='') {
       let mudParserPost = Object.assign ( {} , {
         url : mudUrlForDevice ,
-        version : "1.1" ,
+        version : "1.0" ,
         ip : dhcpDeviceToUpsert.networkAddress.ipv4
       } )
+      logger.debug('\n\n mudParserPost : ' + JSON.stringify(mudParserPost))
       // Make MUD Post call
       let mudParserRes = await axios ( {
         method : 'POST' ,
@@ -717,6 +717,7 @@ const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
         data : mudParserPost
       } )
       mudParserRes = mudParserRes.data
+      logger.debug('\n\n MUD Parser response : ' + JSON.stringify(mudParserRes))
       // return {... dhcpDevicesToUpsert, ['allowHosts']: mudParserRes.device.allowHosts }
 
       if(!(mudParserRes.device.hasOwnProperty('allowHosts')) || !(mudParserRes.device.hasOwnProperty('denyHosts'))) {

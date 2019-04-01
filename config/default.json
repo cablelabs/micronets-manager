@@ -46,5 +46,5 @@
     "subscriberId": "7B2A-BE88-08817Z",
     "identityUrl": "http://127.0.0.1:3230"
   },
-  "mudUrl": "http://45.79.13.134:8888/getFlowRules"
+  "mudUrl": "http://10.70.50.157:8888/getFlowRules"
 }
