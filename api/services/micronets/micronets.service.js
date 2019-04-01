@@ -44,6 +44,37 @@ module.exports = function ( app ) {
 
   } );
 
+  app.use ( `/mm/v1/subscriber/:id/micronets/:micronetId` , async ( req , res , next ) => {
+    const { path , originalUrl , method , params, body } = req
+    if ( method == 'DELETE' ) {
+      const result = await service.remove ({...params})
+      service.on ( 'deleted' , ( micronet ) => { } )
+      res.json ( result )
+    }
+  } );
+
+  app.use ( `/mm/v1/subscriber/:id/micronets` , async ( req , res , next ) => {
+    const { path , originalUrl , method , params, body } = req
+
+    if ( method == 'POST' ) {
+      const result = await service.create (
+        { req : req } ,
+        { params : service.hooks.params }
+      )
+      service.on ( 'created' , ( micronet ) => { } )
+      res.json ( result )
+
+    }
+
+    if ( method == 'DELETE' ) {
+      const result = await service.remove ({...params})
+      service.on ( 'deleted' , ( micronet ) => { } )
+      res.json ( result )
+    }
+
+  } );
+
+
   app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceRegistered' , ( data ) => {
     service.create ( { ...data } , { params : service.hooks.params } )
   } )
