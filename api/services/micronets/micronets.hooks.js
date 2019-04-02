@@ -437,14 +437,22 @@ const fetchOdlOperationalState = async ( hook ) => {
 }
 
 // Calls mock-micronet API
-const mockOdlOperationsForUpserts = async ( hook , requestBody , micronetId , subnetId ) => {
+const mockOdlOperationsForUpserts = async ( hook , requestBody , reqParams ) => {
+
+  const {micronetId, subnetId, subscriberId} = reqParams
+  logger.debug('\n mockOdlOperationsForUpserts requestBody : ' + JSON.stringify(requestBody) + '\t\t reqParams : ' + JSON.stringify(reqParams))
+  logger.debug('\n mockOdlOperationsForUpserts micronetId : ' + JSON.stringify(micronetId))
+  logger.debug('\n mockOdlOperationsForUpserts subnetId : ' + JSON.stringify(subnetId))
+  logger.debug('\n mockOdlOperationsForUpserts subscriberId : ' + JSON.stringify(subscriberId))
+
   let postBody = requestBody.hasOwnProperty('micronets') && requestBody.hasOwnProperty('name') && requestBody.hasOwnProperty('id') ? requestBody.micronets : requestBody
+  logger.debug('\n mockOdlOperationsForUpserts  postBody : ' + JSON.stringify(postBody))
   const registry = await getRegistry ( hook , {} )
   const { mmUrl } = registry
   const mockResponse = await axios ( {
     ...apiInit ,
     method : 'POST' ,
-    url : micronetId && subnetId ? `${mmUrl}/mm/v1/mock/micronets/${micronetId}/subnets/${subnetId}/devices` : `${mmUrl}/mm/v1/mock/micronets` ,
+    url : micronetId && subscriberId ? `${mmUrl}/mm/v1/mock/subscriber/${subscriberId}/micronets/${micronetId}/devices` :  `${mmUrl}/mm/v1/mock/subscriber/${subscriberId}/micronets`   ,
     data : Object.assign ( {} , { micronets :  postBody  } )
   } )
   return Object.assign ( {} , { data : mockResponse.data , status : mockResponse.status } )
@@ -534,7 +542,7 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
 
     /* ODL API's */
     // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-    const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL )
+    const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL, Object.assign({},{subscriberId}) )
     logger.debug('\n ODL Response : ' + JSON.stringify(odlResponse.data) + '\t\t status : ' + JSON.stringify(odlResponse.status))
     if ( odlResponse.data && odlResponse.status == 201 ) {
 
@@ -839,7 +847,6 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
 }
 
 /* Adding subnets & devices to DHCP */
-
 const deallocateIPSubnets = async(hook, ipSubnets) => {
   const deallocateSubnetPromises = await Promise.all(ipSubnets.map(async(subnetNo)=> {
     return await subnetAllocation.deallocateSubnet(0,parseInt(subnetNo))
@@ -855,8 +862,7 @@ module.exports = {
         const { data , params , id } = hook;
       }
     ] ,
-    get : [
-    ] ,
+    get : [] ,
     create : [
       async hook => {
         const { params , id, data, path } = hook;
@@ -892,7 +898,7 @@ module.exports = {
           logger.debug('\n ODL Post Body : ' + JSON.stringify(odlPostBody))
           // const odlResponse = await odlOperationsForUpserts ( hook , odlPostBody )
           // FAKE ODL API's
-          const odlResponse = await mockOdlOperationsForUpserts( hook , odlPostBody )
+          const odlResponse = await mockOdlOperationsForUpserts( hook , odlPostBody, Object.assign({},{subscriberId} ))
           logger.debug('\n ODL Response : ' + JSON.stringify(odlResponse))
           if ( odlResponse.data ) {
             const odlResponseData =  odlResponse.data
@@ -936,6 +942,7 @@ module.exports = {
         if(hook.data.req){
           const { req } = hook.data
           const { body , originalUrl , method , path, params } = req
+          const {id, micronetId} = params
           logger.debug('\n  REQUEST ORIGINAL URL : ' + JSON.stringify(originalUrl))
           logger.debug('\n  REQUEST METHOD : ' + JSON.stringify(method))
           logger.debug('\n  REQUEST BODY : ' + JSON.stringify(body))
@@ -961,7 +968,7 @@ module.exports = {
               // Call ODL and DHCP to add subnets
               if ( addSubnet ) {
                 // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-                const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL )
+                const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL, Object.assign({},{subscriberId:params.id}) )
                 /* Update DB with ODL Response */
                 logger.debug("\n\n ODL Response : " + JSON.stringify(odlResponse))
                 if ( odlResponse.data && odlResponse.status == 201 ) {
@@ -1108,7 +1115,7 @@ module.exports = {
                 const postBodyForODL = await addDevicesInSubnet ( hook , req.params.micronetId , associatedSubnetId , devicesToAdd )
                 logger.debug('\n Post Body for ODL : ' + JSON.stringify(postBodyForODL))
                 // const odlResponse = await odlOperationsForUpserts ( hook , postBodyForODL )
-                const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL , req.params.micronetId , associatedSubnetId )
+                const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL , Object.assign({},{ micronetId: req.params.micronetId , subnetId:associatedSubnetId, subscriberId: req.params.id })  )
                 logger.debug('\n ODL Response : ' + JSON.stringify(odlResponse))
                 if ( odlResponse.status == 201 && odlResponse.data ) {
                   // const dbUpdateResult = await updateMicronetModel ( hook , odlResponse.data )

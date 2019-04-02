@@ -8,16 +8,19 @@ module.exports = function (app) {
   const paginate = app.get('paginate');
   const path = app.get('path')
   const options = {
+    id: 'id',
     Model,
     paginate,
     path
   };
 
   // Initialize our service with any options it requires
-  app.use('/mm/v1/mock/micronets', createService(options));
-  const service = app.service('mm/v1/mock/micronets');
+  app.use('/mm/v1/mock/subscriber', createService(options));
+  const service = app.service('mm/v1/mock/subscriber');
   service.hooks(hooks);
 
-  // app.use('/mm/v1/mock/micronets/:micronetId', service);
-  app.use('/mm/v1/mock/micronets/:micronetId/subnets/:subnetId/devices', service);
+  app.use('/mm/v1/mock/subscriber/:id/micronets/:micronetId/devices', service);
+  app.use('/mm/v1/mock/subscriber/:id/micronets/:micronetId', service);
+  app.use('/mm/v1/mock/subscriber/:id/micronets', service);
+
 };
