@@ -14,7 +14,7 @@
           <v-icon class="grey--text">close</v-icon>
         </v-btn>
       </v-toolbar>
-      <v-list v-if="subscriber.micronets.micronet.length > 0">
+      <v-list v-if="subscriber.micronets.length > 0">
         <v-container
           style="max-height: max-content"
           class="scroll-y"
@@ -36,7 +36,7 @@
           </v-layout>
         </v-container>
       </v-list>
-      <v-list v-if="subscriber.micronets.micronet.length > 0 && micronetIndex == -1">
+      <v-list v-if="subscriber.micronets.length > 0 && micronetIndex == -1">
         <v-subheader v-if="Object.keys(this.$router.currentRoute.params).length == 0">All Logs</v-subheader>
         <v-container
           style="max-height: max-content"
@@ -50,7 +50,7 @@
             v-scroll:#scroll-target="onScroll"
             style="height: auto"
           >
-            <template v-for="(micronet, index) in subscriber.micronets.micronet">
+            <template v-for="(micronet, index) in subscriber.micronets">
               <template v-for="(message,msgIndex) in micronet.logEvents">
                 <div class="message-list">
                   <span class="message--text message-content">{{ formatLogMessage(message) }}</span>

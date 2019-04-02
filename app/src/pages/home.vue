@@ -1,9 +1,9 @@
 <template>
   <Layout>
-    <template v-for="(micronet, index) in subscriber.micronets.micronet">
+    <template v-for="(micronet, index) in subscriber.micronets">
         <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
     </template>
-    <template v-if="subscriber.micronets.micronet.length == 0">
+    <template v-if="subscriber.micronets.length == 0">
       <v-card>
         <v-card-title class="no-subnets">No Micro-nets found</v-card-title>
         <v-card-actions>
@@ -52,20 +52,23 @@
       ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers'])
     },
     mounted () {
-      this.fetchMicronets().then(() => {
-        console.log('\n  Home.vue Mounted state obj Subscriber : ' + JSON.stringify(this.subscriber))
-        console.log('\n\n Home.vue Mounted state.deviceLeases : ' + JSON.stringify(this.deviceLeases))
+      const subscriberId = '7B2A-BE88-08817Z'
+      console.log('\n Home page mounted  : ' + JSON.stringify(window.location.href))
+      this.fetchMicronets(subscriberId).then(() => {
+        console.log('\n   Subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
       })
       this.fetchUsers().then(() => {
-        console.log('\n Home.vue Mounted state obj users : ' + JSON.stringify(this.users))
+        console.log('\n Users : ' + JSON.stringify(this.users))
       })
     },
     created () {
-      this.fetchMicronets().then(() => {
-        console.log('\n Home.vue Created state obj Subscriber : ' + JSON.stringify(this.subscriber))
+      const subscriberId = '7B2A-BE88-08817Z'
+      this.fetchMicronets(subscriberId).then(() => {
+        console.log('\n  Subscriber : ' + JSON.stringify(this.subscriber))
       })
       this.fetchUsers().then(() => {
-        console.log('\n Home.vue Created state obj users : ' + JSON.stringify(this.users))
+        console.log('\n Users : ' + JSON.stringify(this.users))
       })
     }
   }

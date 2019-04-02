@@ -1,7 +1,7 @@
 import axios from 'axios'
 import {findIndex, propEq} from 'ramda'
 const setState = prop => (state, value) => { state[prop] = value }
-const micronetsUrl = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets`
+const micronetsUrl = `${process.env.MM_SERVER_BASE_URL}/mm/v1/subscriber`
 const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
 const msoPortalAuthPostConfig = {
   'clientID': 'https://coloradohealthcare.org/',
@@ -12,7 +12,7 @@ const msoPortalAuthPostConfig = {
   'serial': 'GG-555555',
   'macAddress': '03:30:93:39:03:3B'
 }
-const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/registration/token`
+const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/v1/registration/token`
 const usersUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets/users`
 // const micronetsUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets`
 // const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v'])
@@ -114,13 +114,17 @@ export const actions = {
       url: id ? `${micronetsUrl}/${id}` : micronetsUrl
     })
       .then(({data}) => {
-        console.log('\n Fetch Micronets data.data[0] : ' + JSON.stringify(data.data[0]))
         if (id) {
           console.log('\n Fetch micronets called with id : ' + JSON.stringify(id))
-          console.log('\n Fetch Micronets data : ' + JSON.stringify(data))
+          console.log('\n Fetch Micronets response : ' + JSON.stringify(data))
+          commit('setSubscriber', data)
+          return data
         }
-        commit('setSubscriber', data.data[0])
-        return data.data[0]
+        if (!id) {
+          console.log('\n Fetch Micronets response without id : ' + JSON.stringify(data.data))
+          commit('setSubscriber', data.data)
+          return data.data
+        }
       })
   }
 }
