@@ -52,7 +52,7 @@ module.exports = {
         }
         else {
           await hook.app.service('/mm/v1/micronets/odl').remove(null,allHeaders)
-          await hook.app.service('/mm/v1/micronets/subscriber').remove(null,allHeaders)
+          await hook.app.service('/mm/v1/subscriber').remove(null,allHeaders)
           await hook.app.service('/mm/v1/micronets/users').remove(null,allHeaders)
         }
       }
