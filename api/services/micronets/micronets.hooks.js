@@ -1155,7 +1155,8 @@ module.exports = {
       async ( hook ) => {
         const { data, params } = hook;
          const {id, micronetId } = hook.id
-          logger.debug('\n Remove hook ID : ' + JSON.stringify(id) + '\t\t MICRONET-ID : ' + JSON.stringify(micronetId))
+
+        logger.debug('\n Remove hook ID : ' + JSON.stringify(id) + '\t\t MICRONET-ID : ' + JSON.stringify(micronetId))
 
         if ( id || (id && micronetId) ) {
           const registry = await getRegistry ( hook , {} )
@@ -1188,20 +1189,19 @@ module.exports = {
                 return micronet[ 'micronet-subnet' ].split ( '.' )[ 2 ]
               } )
             }
-
+            logger.debug('\n Remove hook postBodyForDelete : ' + JSON.stringify(postBodyForDelete) + '\t\t IP Subnets : ' + JSON.stringify(ipSubnets))
             const patchResult = await hook.app.service ( '/mm/v1/subscriber' ).patch ( id ,
               {
                 micronets : postBodyForDelete
-              } ,
-              { query : {} , mongoose : { upsert : true } } );
-
+              } );
+            logger.debug('\n Remove hook patchResult : ' + JSON.stringify(patchResult))
             if ( patchResult ) {
               if ( micronetId ) {
                 const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , micronetToDelete ,micronetId )
                 const mockMicronetsDelete = await axios ( {
                   ...apiInit ,
                   method : 'DELETE' ,
-                  url : `${mmUrl}/mm/v1/mock/micronets/${micronetId}` ,
+                  url : `${mmUrl}/mm/v1/mock/subscriber/${id}/micronets/${micronetId}` ,
                   data : Object.assign ( {} , { micronets : [ postBodyForDelete ] } )
                 } )
 
@@ -1232,7 +1232,7 @@ module.exports = {
                 const mockMicronetsDelete = await axios ( {
                   ...apiInit ,
                   method : 'DELETE' ,
-                  url : `${mmUrl}/mm/v1/mock/micronets` ,
+                  url : `${mmUrl}/mm/v1/mock/subscriber/${id}/micronets` ,
                   data : Object.assign ( {} , { micronets : [] } )
                 } )
 
