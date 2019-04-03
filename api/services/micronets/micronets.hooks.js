@@ -390,7 +390,7 @@ const initializeMicronets = async ( hook , postBody ) => {
 }
 
 const getMicronet = async ( hook , subscriberId ) => {
-  logger.debug('\n subscriberId : ' + JSON.stringify(subscriberId))
+  logger.debug('\n SubscriberId : ' + JSON.stringify(subscriberId))
   const id =  isEmpty(subscriberId) ?  hook.app.get('mano').subscriberId :subscriberId
   const micronet = await hook.app.service ( '/mm/v1/subscriber' ).get ( id )
   logger.debug('\n ID : ' + JSON.stringify(id) + '\t\t MICRONET : ' + JSON.stringify(micronet))
@@ -739,7 +739,7 @@ const upsertDhcpDevicesWithMudConfig = async (hook , dhcpDevicesToUpsert) => {
       }
       return dhcpDeviceToUpsert
     } else {
-      // console.log('\n Empty MUD url.' + JSON.stringify(mudUrlForDevice) + ' Do nothing')
+      logger.debug('\n Empty MUD url.' + JSON.stringify(mudUrlForDevice) + ' Do nothing')
       return dhcpDeviceToUpsert
     }
   }))
