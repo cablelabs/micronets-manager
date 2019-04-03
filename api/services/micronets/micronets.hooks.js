@@ -306,26 +306,45 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
 }
 
 const getRegistryForSubscriber = async ( hook , subscriberId ) => {
-  const id =  subscriberId ? subscriberId  : hook.params.query ;
-  console.log('\n Find registry for subscriber : ' + JSON.stringify(id))
-  return hook.app.service ( '/mm/v1/micronets/registry' ).get ( id )
-    .then ( (  data  ) => {
-      console.log('\n Registry for subscriber : ' + JSON.stringify(data))
-      if ( data.hasOwnProperty('mmUrl') && data.hasOwnProperty('subscriberId') ) {
-        return omitMeta(data)
-      }
-      else {
-        return Promise.reject(new errors.GeneralError(new Error(`Registry not found for subscriber ${id}`)))
-      }
-    } )
+  console.log('\n Find registry for subscriber : ' + JSON.stringify(subscriberId))
+   if (subscriberId!= undefined ) {
+    return await hook.app.service ( '/mm/v1/micronets/registry' ).get ( subscriberId )
+  }
+  else {
+    return Promise.reject(new errors.GeneralError(new Error(`Invalid or missing subscriber ${id}`)))
+  }
+}
+
+const getSubscriberId = async (hook) => {
+  const { params, data } = hook
+  const { route } = params
+ // logger.debug('\n Get Subscriber id params : ' + JSON.stringify(params) + '\t\t Data : ' + JSON.stringify(data) )
+  const subscriberIdFromHook =  !isEmpty(params) && !isEmpty(route) && isEmpty(data) ? route.id : isEmpty(params) && isEmpty(route) && !isEmpty(data) && data.hasOwnProperty('type') && data.type == 'userDeviceRegistered' && data.data.hasOwnProperty('subscriberId') ? data.data.subscriberId : undefined
+  const defaultSubscriberId = hook.app.get('mano').subscriberId
+ // logger.debug('\n SubscriberIdFromHook : ' + JSON.stringify(subscriberIdFromHook) + '\t\t MANO SubscriberId : ' + JSON.stringify(defaultSubscriberId))
+  const subscriberId = subscriberIdFromHook !=undefined ? subscriberIdFromHook : defaultSubscriberId !=undefined ? defaultSubscriberId : undefined
+ // logger.debug('\n Subscriber ID : ' + JSON.stringify(subscriberId))
+  return subscriberId
 }
 
 const getRegistry = async ( hook ) => {
- // const micronetFromDB = await getMicronet ( hook , {} )
- // const subscriberId = micronetFromDB.id
   const mano = hook.app.get('mano')
-  const registry = await getRegistryForSubscriber ( hook , mano.subscriberId )
+  const subscriberId = await getSubscriberId(hook)
+  logger.debug('\n GET REGISTRY SUBSCRIBER ID : ' + JSON.stringify(subscriberId))
+  const registry = await getRegistryForSubscriber ( hook , subscriberId )
   return registry
+}
+
+const getMicronet = async ( hook , subscriberId ) => {
+  const id = isEmpty(subscriberId) ? await getSubscriberId(hook) : subscriberId
+  logger.debug('\n GET MICRONET SUBSCRIBER ID : ' + JSON.stringify(id))
+  if (id!= undefined ) {
+    return await hook.app.service ( '/mm/v1/subscriber' ).get (  id )
+  }
+  else {
+    return Promise.reject(new errors.GeneralError(new Error(`Invalid or missing subscriber ${id}`)))
+  }
+
 }
 
 const populatePostObj = async ( hook , reqBody ) => {
@@ -389,13 +408,6 @@ const initializeMicronets = async ( hook , postBody ) => {
   }
 }
 
-const getMicronet = async ( hook , subscriberId ) => {
-  logger.debug('\n SubscriberId : ' + JSON.stringify(subscriberId))
-  const id =  isEmpty(subscriberId) ?  hook.app.get('mano').subscriberId :subscriberId
-  const micronet = await hook.app.service ( '/mm/v1/subscriber' ).get ( id )
-  logger.debug('\n ID : ' + JSON.stringify(id) + '\t\t MICRONET : ' + JSON.stringify(micronet))
-  return micronet
-}
 
 /* ODL Config PUT / GET Calls */
 

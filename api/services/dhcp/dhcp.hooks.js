@@ -6,16 +6,6 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v' ] );
 const dhcpUrlPrefix = "/mm/v1/dhcp/subnets"
 
 
-const getRegistryForSubscriber = async ( hook , subscriberId ) => {
-  const query = Object.assign ( {} , { subscriberId : subscriberId } , hook.params.query );
-  return hook.app.service ( '/mm/v1/micronets/registry' ).find ( query )
-    .then ( ( { data } ) => {
-      if ( data.length === 1 ) {
-        return omitMeta ( data[ 0 ] );
-      }
-    } )
-}
-
 const getRegistry = async(hook,subscriberId) => {
     const registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get ( subscriberId )
     return registry
