@@ -5,7 +5,7 @@
     </template>
     <template v-if="subscriber.micronets.length == 0">
       <v-card>
-        <v-card-title class="no-subnets">No Micro-nets found</v-card-title>
+        <v-card-title class="no-subnets">No Micronets found</v-card-title>
         <v-card-actions>
           <!--<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>-->
         </v-card-actions>
