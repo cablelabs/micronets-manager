@@ -13,17 +13,19 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 );
 
 server.on ( 'listening' , async () => {
-  logger.info ( 'Feathers application started on Host : ' +  JSON.stringify(app.get ( 'host' )) + '\t Port : '+ JSON.stringify(port))
+  logger.info ('Feathers application started on http://%s:%d', app.get('host'), port)
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
-  registry = registry.data[ 0 ]
-
-  if ( registry && registry.hasOwnProperty ( 'websocketUrl' ) ) {
-    logger.info ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.webSocketUrl ) )
-    await dw.setAddress ( registry.webSocketUrl );
-    await dw.connect ().then ( () => { return true } );
+  const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
+  if ( registryIndex!= -1 ) {
+    registry = registry.data[registryIndex]
+    if( registry && registry.hasOwnProperty ( 'webSocketUrl' ) ) {
+      logger.info ( '\n Web Socket Url from registry : ' + JSON.stringify ( registry.webSocketUrl ) )
+      await dw.setAddress ( registry.webSocketUrl );
+      await dw.connect ().then ( () => { return true } );
+    }
   }
 
-  // if ( mano && mano.hasOwnProperty('webSocketUrl') && !(registry && registry.hasOwnProperty ( 'websocketUrl' ))) {
+  // if ( mano && mano.hasOwnProperty('webSocketUrl') && !(registry && registry.hasOwnProperty ( 'webSocketUrl' ))) {
   //   logger.info('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
   //   await dw.setAddress ( mano.webSocketUrl );
   //   await dw.connect ().then ( () => { return true } );
