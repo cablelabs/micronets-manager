@@ -31,6 +31,14 @@ server.on ( 'listening' , async () => {
   //   await dw.connect ().then ( () => { return true } );
   // }
 
+  if ( mano && mano.hasOwnProperty('webSocketBaseUrl') && mano.hasOwnProperty('subscriberId') && !(registry && registry.hasOwnProperty ( 'webSocketUrl' ))) {
+    const webSocketUrl = `${mano.webSocketBaseUrl}/${mano.subscriberId}`
+    logger.info('\n Connecting to : ' + JSON.stringify(webSocketUrl) + ' from mano configuration ' )
+    await dw.setAddress ( webSocketUrl );
+    await dw.connect ().then ( () => { return true } );
+  }
+
+
 } );
 
 io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )

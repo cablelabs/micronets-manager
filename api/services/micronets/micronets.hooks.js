@@ -869,12 +869,7 @@ module.exports = {
   before : {
     all : [] ,
     find : [] ,
-    get : [
-      async(hook) => {
-        const { params , id, data} = hook;
-        logger.debug('\n GET HOOK id : ' + JSON.stringify(id))
-}
-    ] ,
+    get : [] ,
     create : [
       async hook => {
         const { params , id, data, path } = hook;

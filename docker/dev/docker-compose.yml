@@ -3,7 +3,7 @@ services:
   mm-mongo:
      image: mongo
      volumes:
-       - /tmp/micronetsMongo:/data/db
+       - /tmp/mm-mongo:/data/db
      command: mongod --port 27018
      ports:
        - "27018:27018"
@@ -16,7 +16,7 @@ services:
       - NODE_ENV=development
       - PORT=3030
       - NETWORK_MODE=false
-      - MONGO_URL=mongodb://mongo:27018/micronets
+      - MONGO_URL=mongodb://mm-mongo:27018/micronets
     depends_on:
       - mm-mongo
     ports:
@@ -31,7 +31,7 @@ services:
       - NODE_ENV=development
       - PORT=8080
       - NETWORK_MODE=false
-      - MONGO_URL=mongodb://mongo:27018/micronets
+      - MONGO_URL=mongodb://mm-mongo:27018/micronets
     depends_on:
       - mm-mongo
       - mm-api

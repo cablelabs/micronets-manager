@@ -31,7 +31,7 @@
     }
   },
   "mongodb": "mongodb://127.0.0.1:27017/micronets",
-  "mongodbDocker": "mongodb://mongo:27018/micronets",
+  "mongodbDocker": "mongodb://mm-mongo:27018/micronets",
   "subnets": {
     "subnetMin": 10,
     "subnetMax": 254,
@@ -44,7 +44,8 @@
   },
   "mano":{
     "subscriberId": "7B2A-BE88-08817Z",
-    "identityUrl": "http://10.200.30.101:3230"
+    "identityUrl": "http://10.200.30.101:3230",
+    "webSocketBaseUrl":"wss://10.200.30.101:5050/micronets/v1/ws-proxy"
   },
   "mud" : {
     "url": "http://10.70.50.157:8888/getFlowRules",
