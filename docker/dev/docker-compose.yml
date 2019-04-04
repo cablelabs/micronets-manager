@@ -1,13 +1,13 @@
 version: '3'
 services:
-  mongo:
+  mm-mongo:
      image: mongo
      volumes:
        - /tmp/micronetsMongo:/data/db
      command: mongod --port 27018
      ports:
-       - "27018:27017"
-  api:
+       - "27018:27018"
+  mm-api:
     build:
       context: ./../..
       dockerfile: docker/dev/Dockerfile.api
@@ -18,11 +18,11 @@ services:
       - NETWORK_MODE=false
       - MONGO_URL=mongodb://mongo:27018/micronets
     depends_on:
-      - mongo
+      - mm-mongo
     ports:
       - '3030:3030'
 
-  app:
+  mm-app:
     build:
       context: ./../..
       dockerfile: docker/dev/Dockerfile.app
@@ -33,8 +33,8 @@ services:
       - NETWORK_MODE=false
       - MONGO_URL=mongodb://mongo:27018/micronets
     depends_on:
-      - mongo
-      - api
+      - mm-mongo
+      - mm-api
     ports:
       - '8080:8080'
 

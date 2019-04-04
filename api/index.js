@@ -13,7 +13,7 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 );
 
 server.on ( 'listening' , async () => {
-  logger.info ('Feathers application started on http://%s:%d', app.get('host'), port)
+  logger.info ('Feathers application started on ' + JSON.stringify(`http://${app.get('host')}:${app.get('port')}`))
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
   if ( registryIndex!= -1 ) {
