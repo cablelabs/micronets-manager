@@ -54,21 +54,6 @@ app.service ('/mm/v1/micronets/registry').on('gatewayReconnect', async( data ) =
   }
 })
 
-app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceAdd' , ( data ) => {
-  console.log ( '\n FeatherJS event userDeviceAdd fired with data : ' + JSON.stringify ( data ) )
-  io.on ( 'connection' , ( socket ) => {
-    logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
-    socket.emit ( 'userDeviceAdd' , data );
-    socket.on ( 'disconnect' , () => {
-      console.log ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
-      socket.removeAllListeners ( 'send message' );
-      socket.removeAllListeners ( 'disconnect' );
-      socket.removeAllListeners ( 'connection' );
-      socket.disconnect ( true );
-    } );
-  } );
-} );
-
 async function upsertDeviceLeaseStatus ( message , type ) {
   logger.info ( '\n DeviceLease message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
@@ -99,33 +84,5 @@ dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseExpiredEvent' )
 } )
 
-app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceUpdate' , ( data ) => {
-  logger.debug ( '\n FeatherJS event userDeviceUpdate fired with data : ' + JSON.stringify ( data ) )
-  io.on ( 'connection' , ( socket ) => {
-    logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
-    socket.emit ( 'userDeviceUpdate' , data );
-    socket.on ( 'disconnect' , () => {
-      logger.debug ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
-      socket.removeAllListeners ( 'send message' );
-      socket.removeAllListeners ( 'disconnect' );
-      socket.removeAllListeners ( 'connection' );
-      socket.disconnect ( true );
-    } );
-  } );
-} );
 
-app.service ( '/mm/v1/subscriber' ).on ( 'micronetUpdated' , ( data ) => {
-  logger.debug ( '\n FeatherJS event micronetUpdated fired with data : ' + JSON.stringify ( data ) )
-  io.on ( 'connection' , ( socket ) => {
-    logger.info ( 'Socket IO connection with data : ' + JSON.stringify ( data ) )
-    socket.emit ( 'micronetUpdated' , data );
-    socket.on ( 'disconnect' , () => {
-      logger.debug ( '\n Socket IO disconnect' + JSON.stringify ( socket.id ) + 'with Data : ' + JSON.stringify ( data ) )
-      socket.removeAllListeners ( 'send message' );
-      socket.removeAllListeners ( 'disconnect' );
-      socket.removeAllListeners ( 'connection' );
-      socket.disconnect ( true );
-    } );
-  } );
-} );
 
