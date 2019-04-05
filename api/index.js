@@ -43,6 +43,17 @@ server.on ( 'listening' , async () => {
 
 io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )
 
+app.service ('/mm/v1/micronets/registry').on('gatewayReconnect', async( data ) => {
+  if(data.data.hasOwnProperty('webSocketUrl')) {
+    logger.debug('\n Gateway Reconnect event fired for url : ' + JSON.stringify(data.data.webSocketUrl))
+    await dw.setAddress ( data.data.webSocketUrl );
+    await dw.connect ().then ( () => {
+      logger.debug('\n Inside then of connect')
+      return true
+    } );
+  }
+})
+
 app.service ( '/mm/v1/micronets/users' ).on ( 'userDeviceAdd' , ( data ) => {
   console.log ( '\n FeatherJS event userDeviceAdd fired with data : ' + JSON.stringify ( data ) )
   io.on ( 'connection' , ( socket ) => {

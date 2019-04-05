@@ -69,7 +69,7 @@ module.exports = {
         if(!hook.result.hasOwnProperty('identityUrl')) {
         const mano = hook.app.get('mano')
         logger.debug ( '\n Registry created : ' + JSON.stringify ( hook.result ) )
-        logger.debug('\n\n MANO CONFIG FOR IDENTITY SERVER : ' + JSON.stringify(mano.identityUrl))
+        logger.debug('\n\n identity server from mano config  : ' + JSON.stringify(mano.identityUrl))
         const updatedRegistry = await hook.app.service ( '/mm/v1/micronets/registry' ).patch ( hook.result.subscriberId ,{
           identityUrl:  mano.identityUrl
         })
@@ -105,14 +105,20 @@ module.exports = {
        return Promise.resolve(hook)
       }
     ] ,
-    update : [] ,
-    patch : [] ,
-    remove : [
+    update : [
       async(hook) => {
-      const {data, params, id } = hook
-        logger.debug('\n REMOVE HOOK REGISTRY result : ' + JSON.stringify(hook.result))
+       const {data, params, id} = hook
+        if(hook.data.gatewayReconnection){
+          hook.app.service ( '/mm/v1/micronets/registry' ).emit ( 'gatewayReconnect' , {
+            type : 'gatewayReconnect' ,
+            data : { ...hook.result }
+          } );
+        }
+
       }
-    ]
+    ] ,
+    patch : [] ,
+    remove : []
   } ,
 
   error : {

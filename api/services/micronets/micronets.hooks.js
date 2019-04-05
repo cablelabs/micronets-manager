@@ -1236,7 +1236,6 @@ module.exports = {
                 }
 
                 let users = await hook.app.service ( `/mm/v1/micronets/users` ).find ( {} )
-                console.log ( '\n !(isEmpty(users.data)) : ' + JSON.stringify ( !(isEmpty ( users.data )) ) )
                 if ( !(isEmpty ( users.data )) ) {
                   users = users.data[ 0 ]
                   let updatedDevices = []
