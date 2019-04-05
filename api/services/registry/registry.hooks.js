@@ -90,7 +90,7 @@ module.exports = {
           micronets : []
         } ) )
         const micronet = await hook.app.service ( '/mm/v1/subscriber' ).find ()
-        logger.debug ( '\n Empty micronet for subscriber  : ' + JSON.stringify ( micronet ) )
+        logger.debug ( '\n Default micronet for subscriber  : ' + JSON.stringify ( micronet ) )
 
         // Create default ODL Config
         const switchConfigPost = Object.assign({}, odlPost, {gatewayId:  hook.result.gatewayId})

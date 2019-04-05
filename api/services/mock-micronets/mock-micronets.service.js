@@ -16,7 +16,7 @@ module.exports = function (app) {
 
   // Initialize our service with any options it requires
   app.use('/mm/v1/mock/subscriber', createService(options));
-  const service = app.service('mm/v1/mock/subscriber');
+  const service = app.service('/mm/v1/mock/subscriber');
   service.hooks(hooks);
   app.use('/mm/v1/mock/subscriber/:id/micronets/:micronetId/devices', service);
   app.use('/mm/v1/mock/subscriber/:id/micronets/:micronetId', service);
