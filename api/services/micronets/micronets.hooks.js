@@ -1155,7 +1155,9 @@ module.exports = {
           const isOdlAlive = await isODLAlive ( hook )
           const isGatewayConnected = await connectToGateway ( hook )
           if ( isGtwyAlive && isOdlAlive && isGatewayConnected ) {
-
+            const mockMicronetsFromDb = await hook.app.service ( `/mm/v1/mock/subscriber` ).find ( {} )
+            const mockMicronetIndex = mockMicronetsFromDb.data.length > 0 ? mockMicronetsFromDb.data.findIndex((mockMicronet) => mockMicronet.id == id) : -1
+            logger.debug('\n\n Mock micronet Index : ' + JSON.stringify(mockMicronetIndex))
             // Delete single micro-net
             if ( micronetId ) {
               const micronetFromDB = await getMicronet ( hook , id )
@@ -1186,12 +1188,15 @@ module.exports = {
             if ( patchResult ) {
               if ( micronetId ) {
                 const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , micronetToDelete ,micronetId )
-                const mockMicronetsDelete = await axios ( {
-                  ...apiInit ,
-                  method : 'DELETE' ,
-                  url : `${mmUrl}/mm/v1/mock/subscriber/${id}/micronets/${micronetId}` ,
-                  data : Object.assign ( {} , { micronets : [ postBodyForDelete ] } )
-                } )
+
+                if(mockMicronetIndex > -1 ) {
+                  const mockMicronetsDelete = await axios ( {
+                    ...apiInit ,
+                    method : 'DELETE' ,
+                    url : `${mmUrl}/mm/v1/mock/subscriber/${id}/micronets/${micronetId}` ,
+                    data : Object.assign ( {} , { micronets : [ postBodyForDelete ] } )
+                  } )
+                }
 
                 // Deallocate subnets
                 if ( ipSubnets.length > 0 ) {
@@ -1217,13 +1222,14 @@ module.exports = {
               }
               if ( postBodyForDelete.length == 0 && !micronetId && id ) {
                 const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , {} , undefined )
-                const mockMicronetsDelete = await axios ( {
-                  ...apiInit ,
-                  method : 'DELETE' ,
-                  url : `${mmUrl}/mm/v1/mock/subscriber/${id}/micronets` ,
-                  data : Object.assign ( {} , { micronets : [] } )
-                } )
-
+                if(mockMicronetIndex > -1 ) {
+                  const mockMicronetsDelete = await axios ( {
+                    ...apiInit ,
+                    method : 'DELETE' ,
+                    url : `${mmUrl}/mm/v1/mock/subscriber/${id}/micronets` ,
+                    data : Object.assign ( {} , { micronets : [] } )
+                  } )
+                }
                 // De-allocate subnets
                 if ( ipSubnets.length > 0 ) {
                   deallocateIPSubnets ( hook , ipSubnets )
