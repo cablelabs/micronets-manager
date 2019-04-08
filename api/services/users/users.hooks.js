@@ -42,13 +42,9 @@ module.exports = {
       (hook) => {
         const { params, data, id } = hook;
         const postData = hook.data
-        hook.params.mongoose = {
-          runValidators: true,
-          setDefaultsOnInsert: true
-        }
         return hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : params.query.id || hook.id } } )
           .then ( ( { data } ) => {
-              if(data[0].id && !mongoose.Types.ObjectId.isValid(data[0].id))
+              if(data[0].id)
               {
                 if(hook.data.devices && hook.data.deleteRegisteredDevices == true) {
                   const originalUser = data[ 0 ];
@@ -62,7 +58,7 @@ module.exports = {
 
                   if(foundDeviceIndex >= 0 ) {
                     if(hook.data.isRegistered == true && originalUser.devices[foundDeviceIndex].isRegistered == true) {
-                       // return Promise.resolve(hook)
+                        return Promise.resolve(hook)
                     }
 
                     if(hook.data.isRegistered == true && originalUser.devices[foundDeviceIndex].isRegistered == false) {
@@ -74,7 +70,7 @@ module.exports = {
                         type : 'userDeviceRegistered' ,
                         data : { subscriberId : hook.data.id , device : updatedDevice }
                       } );
-                      // return Promise.resolve(hook)
+                       return Promise.resolve(hook)
                     }
 
                   }
@@ -86,7 +82,7 @@ module.exports = {
                       type : 'userDeviceAdd' ,
                       data : { subscriberId : hook.data.id , device : hook.data }
                     } );
-                   //  return Promise.resolve(hook)
+                     return Promise.resolve(hook)
                   }
                 }
               }
