@@ -672,7 +672,7 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
             interface: port.interface
           })
           return {
-            subnetId : dhcpSubnet.subnetId ,
+            micronetId : dhcpSubnet.subnetId ,
             ipv4Network : {
               network : micronets[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
               mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
@@ -693,10 +693,10 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
     method : 'GET' ,
     url : `${mmUrl}/mm/v1/dhcp/subnets` ,
   } )
-  const { subnets } = dhcpSubnets.data.body
+  const { body } = dhcpSubnets.data
   const dhcpSubnetPromises = await Promise.all ( dhcpSubnetsPostBody.map ( async ( subnetToPost , index ) => {
-    const dhcpSubnetIndex = subnets.findIndex ( ( subnet ) => subnet.subnetId == subnetToPost.subnetId )
-    if ( dhcpSubnetIndex == -1 && subnetToPost!=null ) {
+    const dhcpSubnetIndex = body.micronets.findIndex ( ( micronet ) => micronet.micronetId == subnetToPost.subnetId )
+    if ( dhcpSubnetIndex == -1 && subnetToPost != null ) {
       const dhcpSubnetResponse = await axios ( {
         ...apiInit ,
         method : 'POST' ,
@@ -793,11 +793,12 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
     // Check if subnet exists in DHCP Gateway
     const dhcpSubnet = await axios ( {
       ...apiInit ,
-      method : 'get' ,
+      method : 'GET' ,
       url : `${mmUrl}/mm/v1/dhcp/subnets/${subnetId}` ,
     } )
-    const { subnet } = dhcpSubnet.data.body
-    if ( subnet.subnetId == subnetId ) {
+    logger.debug('\n DHCP Subnet : ' + JSON.stringify(dhcpSubnet.data))
+    const { body, status } = dhcpSubnet.data
+    if ( status != 404 && ((body.hasOwnProperty('micronets') && body.micronets.micronetId == subnetId) || (body.hasOwnProperty('micronet') && body.micronet.micronetId == subnetId))) {
       const dhcpSubnetDevices = await axios ( {
         ...apiInit ,
         method : 'get' ,
