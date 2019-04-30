@@ -69,7 +69,7 @@ module.exports.connect = (address, cb) => {
   this.ws = new WebSocket(address, null, options);
   this.helloCB = cb;
   this.ws.on('error', (error) => {
-    console.log('Error:' + error)
+    console.log('Error:' + JSON.stringify(error))
     this.state = 'ERROR'
   });
 
@@ -121,7 +121,7 @@ module.exports.convertTo = function(json, method) {
       messageType: 'REST:REQUEST',
       requiresResponse: true,
       method: method,
-      path: "/micronets/v1/dhcp/subnets",
+      path: "/micronets/v1/gateway/micronets",
       headers: [
         {
           name: "Host",

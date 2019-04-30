@@ -121,7 +121,6 @@ module.exports.connect = function() {
       })
 
       wsp.onClose.addListener(event => {
-        console.log('Connections closed: ' + event.reason)
         setTimeout(()=> {
           me.connect()
             .then(() => { console.log('Reconnected') })
@@ -207,13 +206,13 @@ const convertTo = function (json, method, type, subnetId, deviceId) {
    */
   let path = '';
   if (type && type === 'device') {
-    path = '/micronets/v1/dhcp/subnets/' + subnetId + '/devices';
+    path = '/micronets/v1/gateway/micronets/' + subnetId + '/devices';
     if (deviceId) {
       path = path + '/' + deviceId;
     }
   }
   else { //Assume subnets
-    path = '/micronets/v1/dhcp/subnets';
+    path = '/micronets/v1/gateway/micronets';
     if (subnetId) {
       path = path + '/' + subnetId;
     }

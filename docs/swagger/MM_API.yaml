@@ -15,7 +15,7 @@ paths:
       responses:
         '201':
           description: successful operation
-  '/registry/{subscriberId}':
+  /registry/{subscriberId}:
     get:
       tags:
         - registry
@@ -62,12 +62,19 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Registry not found
-  /:
+  /subscriber/{subscriberId}/micronets:
     post:
       tags:
         - micronets
       summary: Request to create single / multiple micronets.
       operationId: createMicronet
+      parameters:
+        - in: path
+          name: subscriberId
+          schema:
+            type: string
+          required: true
+          description: Registry associated with subscriber to return
       requestBody:
         $ref: '#/components/requestBodies/MicronetsBody'
       responses:
@@ -86,6 +93,13 @@ paths:
         - micronets
       summary: Retreive information for all existing micronets
       description: ''
+      parameters:
+        - in: path
+          name: subscriberId
+          schema:
+            type: string
+          required: true
+          description: Associated subscriber to return
       operationId: getMicronets
       responses:
         '200':
@@ -104,6 +118,13 @@ paths:
       summary: Deletes all micronets
       description: ''
       operationId: deleteMicronets
+      parameters:
+        - in: path
+          name: subscriberId
+          schema:
+            type: string
+          required: true
+          description: Associated subscriber to return
       responses:
         '204':
           description: successful operation
@@ -115,7 +136,7 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Micronet not found
-  '/{micronetId}':
+  /subscriber/{subscriberId}/micronets/{micronetId}:
     delete:
       tags:
         - micronets
@@ -124,6 +145,12 @@ paths:
       operationId: deleteMicronet
       parameters:
         - in: path
+          name: subscriberId
+          schema:
+            type: string
+          required: true
+          description: Associated subscriber to return
+        - in: path  
           name: micronetId
           schema:
             type: string
@@ -148,6 +175,12 @@ paths:
       operationId: getMicronetById
       parameters:
         - in: path
+          name: subscriberId
+          schema:
+            type: string
+          required: true
+          description: Associated subscriber to return
+        - in: path
           name: micronetId
           schema:
             type: integer
@@ -164,7 +197,7 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Micronet not found
-  '/{micronetId}/device':
+  /subscriber/{subscriberId}/micronets/{micronetId}/devices:
     post:
       tags:
         - micronets
@@ -172,6 +205,12 @@ paths:
       description: ''
       operationId: createDeviceInMicronet
       parameters:
+        - in: path
+          name: subscriberId
+          schema:
+            type: string
+          required: true
+          description: Associated subscriber to return
         - in: path
           name: micronetId
           schema:
@@ -209,7 +248,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Users'
-  '/users/{userId}':
+  /users/{userId}:
     get:
       tags:
         - users
@@ -252,7 +291,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Users'
-  '/odl/{gatewayId}':
+  /odl/{gatewayId}:
     get:
       tags:
         - odl
@@ -351,9 +390,6 @@ components:
               type: string
               example: Grandma
             micronets:
-              type: object
-              properties:
-                micronet:
                   type: array
                   items:
                     type: object
@@ -519,10 +555,7 @@ components:
           schema:
             type: object
             properties:
-              micronets: 
-               type: object
-               properties: 
-                micronet:
+                micronets:
                  type: array
                  items:
                   type: object
@@ -544,10 +577,7 @@ components:
           schema:
             type: object
             properties:
-              micronets:
-               type: object
-               properties:
-                micronet:
+                micronets:
                  type: array
                  items:
                   type: object

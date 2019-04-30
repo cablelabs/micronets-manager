@@ -167,10 +167,10 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
     
     
 
- ### 5. Micronets Static Config :
- Reflects the associated static configuration required to create a micronet
+ ### 5. Micronets Gateway Config :
+ Reflects the associated gateway configuration required to create a micronet
    
- #### url: POST `/mm/v1/micronets/config`
+ #### url: POST `/mm/v1/micronets/odl`
    
     Header Fields:
     
@@ -255,9 +255,9 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
      
 
  ### 6. Create a micronet :
- Create a micronet
+ Create a micronet associated with particular subscriber
    
- #### url: POST `/mm/v1/micronets`
+ #### url: POST `/mm/v1/subscriber/:id/micronets`
    
     Header Fields:
       
@@ -266,15 +266,13 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  POST data:
       
           {
-            "micronets" : {
-              "micronet" : [
+            "micronets" : [
                 {
                   "name" : "Heart Rate Monitor",
                   "class": "Medical"
                   "micronet-subnet-id": "Medical"
-                }
-              ]
-            }
+                } 
+            ]
           }
    
  #### Response:
@@ -283,8 +281,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
       {   "id" : "7B2A-BE88-08817Z",
           "name" : "Grandma's LINKSYS 1900",
           "ssid" : "grandma-gw",
-          "micronets": {
-              "micronet": [
+          "micronets": [
                   {
                       "name": "Heart Rate Monitor",
                       "class": "Medical",
@@ -299,17 +296,16 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                       "micronet-gateway-ip": "192.168.250.1",
                       "ovs-bridge-name": "brmn001",
                       "trunk-gateway-ip": "10.36.32.55"
-                  }
-              ]
-          }
+                  }   
+          ]
       }
       
      
  ### 7. Retrieve micronet :
   
- Retrieves a micronet
+ Retrieves a specific micronet associated with the subscriber
   
- #### url: GET `/mm/v1/micronets/:micronetId`
+ #### url: GET `/mm/v1/subscriber/:id/micronets/:micronetId`
   
     Header Fields:
      
@@ -320,8 +316,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
         {      "id" : "7B2A-BE88-08817Z",
                "name" : "Grandma's LINKSYS 1900",
                "ssid" : "grandma-gw",
-                    "micronets": {
-                        "micronet": [
+                    "micronets": [
                             {
                                 "name": "Medical",
                                 "class" : "Medical"
@@ -388,8 +383,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                                 "dhcp-zone": "10.36.32.0/24",
                                 "trunk-gateway-ip": "10.36.32.55"
                             }
-                        ]
-                    }
+                    ]
          }
         
    
@@ -398,7 +392,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
    
  Add devices to an existing micronet
    
- #### url: POST `/mm/v1/micronets/:micronetId/devices`
+ #### url: POST `/mm/v1/subscriber/:id/micronets/:micronetId/devices`
    
     Header Fields:
       
@@ -407,8 +401,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  POST Data:
           
               {
-                "micronets" : {
-                  "micronet" : [
+                "micronets" : [
                     {
                         "connected-devices" : [
                           {
@@ -427,8 +420,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                           }
                         ]
                     }
-                  ]
-                }
+                ]
               } 
           
  #### Response:

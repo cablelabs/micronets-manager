@@ -95,13 +95,24 @@
         }
       }
     },
-    "/": {
+    "/subscriber/{subscriberId}/micronets": {
       "post": {
         "tags": [
           "micronets"
         ],
         "summary": "Request to create single / multiple micronets.",
         "operationId": "createMicronet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscriberId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Registry associated with subscriber to return"
+          }
+        ],
         "requestBody": {
           "$ref": "#/components/requestBodies/MicronetsBody"
         },
@@ -130,6 +141,17 @@
         ],
         "summary": "Retreive information for all existing micronets",
         "description": "",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscriberId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Associated subscriber to return"
+          }
+        ],
         "operationId": "getMicronets",
         "responses": {
           "200": {
@@ -157,6 +179,17 @@
         "summary": "Deletes all micronets",
         "description": "",
         "operationId": "deleteMicronets",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subscriberId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Associated subscriber to return"
+          }
+        ],
         "responses": {
           "204": {
             "description": "successful operation",
@@ -177,7 +210,7 @@
         }
       }
     },
-    "/{micronetId}": {
+    "/subscriber/{subscriberId}/micronets/{micronetId}": {
       "delete": {
         "tags": [
           "micronets"
@@ -186,6 +219,15 @@
         "description": "",
         "operationId": "deleteMicronet",
         "parameters": [
+          {
+            "in": "path",
+            "name": "subscriberId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Associated subscriber to return"
+          },
           {
             "in": "path",
             "name": "micronetId",
@@ -225,6 +267,15 @@
         "parameters": [
           {
             "in": "path",
+            "name": "subscriberId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Associated subscriber to return"
+          },
+          {
+            "in": "path",
             "name": "micronetId",
             "schema": {
               "type": "integer"
@@ -253,7 +304,7 @@
         }
       }
     },
-    "/{micronetId}/device": {
+    "/subscriber/{subscriberId}/micronets/{micronetId}/devices": {
       "post": {
         "tags": [
           "micronets"
@@ -262,6 +313,15 @@
         "description": "",
         "operationId": "createDeviceInMicronet",
         "parameters": [
+          {
+            "in": "path",
+            "name": "subscriberId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Associated subscriber to return"
+          },
           {
             "in": "path",
             "name": "micronetId",
@@ -532,87 +592,82 @@
                 "example": "Grandma"
               },
               "micronets": {
-                "type": "object",
-                "properties": {
-                  "micronet": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "example": "Medical"
-                        },
-                        "micronet-subnet-id": {
-                          "type": "string",
-                          "example": "Medical"
-                        },
-                        "trunk-gateway-port": {
-                          "type": "string",
-                          "example": "2"
-                        },
-                        "trunk-gateway-ip": {
-                          "type": "string",
-                          "example": "10.36.32.121"
-                        },
-                        "dhcp-server-port": {
-                          "type": "string",
-                          "example": "LOCAL"
-                        },
-                        "dhcp-zone": {
-                          "type": "string",
-                          "example": "192.168.252.0/24"
-                        },
-                        "ovs-bridge-name": {
-                          "type": "string",
-                          "example": "brmn001"
-                        },
-                        "ovs-manager-ip": {
-                          "type": "string",
-                          "example": "10.36.32.121"
-                        },
-                        "micronet-subnet": {
-                          "type": "string",
-                          "example": "192.168.252.0/24"
-                        },
-                        "micronet-gateway-ip": {
-                          "type": "string",
-                          "example": "192.168.252.1"
-                        },
-                        "class": {
-                          "type": "string",
-                          "example": "Medical"
-                        },
-                        "micronet-id": {
-                          "type": "string",
-                          "example": "1987357293"
-                        },
-                        "connected-devices": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "device-mac": {
-                                "type": "string",
-                                "example": "B8:27:EB:D8:DF:30"
-                              },
-                              "device-name": {
-                                "type": "string",
-                                "example": "ProtoMed 1"
-                              },
-                              "device-id": {
-                                "type": "string",
-                                "example": "sdfew32123"
-                              },
-                              "device-openflow-port": {
-                                "type": "string",
-                                "example": "2"
-                              },
-                              "device-ip": {
-                                "type": "string",
-                                "example": "192.168.252.2"
-                              }
-                            }
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "Medical"
+                    },
+                    "micronet-subnet-id": {
+                      "type": "string",
+                      "example": "Medical"
+                    },
+                    "trunk-gateway-port": {
+                      "type": "string",
+                      "example": "2"
+                    },
+                    "trunk-gateway-ip": {
+                      "type": "string",
+                      "example": "10.36.32.121"
+                    },
+                    "dhcp-server-port": {
+                      "type": "string",
+                      "example": "LOCAL"
+                    },
+                    "dhcp-zone": {
+                      "type": "string",
+                      "example": "192.168.252.0/24"
+                    },
+                    "ovs-bridge-name": {
+                      "type": "string",
+                      "example": "brmn001"
+                    },
+                    "ovs-manager-ip": {
+                      "type": "string",
+                      "example": "10.36.32.121"
+                    },
+                    "micronet-subnet": {
+                      "type": "string",
+                      "example": "192.168.252.0/24"
+                    },
+                    "micronet-gateway-ip": {
+                      "type": "string",
+                      "example": "192.168.252.1"
+                    },
+                    "class": {
+                      "type": "string",
+                      "example": "Medical"
+                    },
+                    "micronet-id": {
+                      "type": "string",
+                      "example": "1987357293"
+                    },
+                    "connected-devices": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "device-mac": {
+                            "type": "string",
+                            "example": "B8:27:EB:D8:DF:30"
+                          },
+                          "device-name": {
+                            "type": "string",
+                            "example": "ProtoMed 1"
+                          },
+                          "device-id": {
+                            "type": "string",
+                            "example": "sdfew32123"
+                          },
+                          "device-openflow-port": {
+                            "type": "string",
+                            "example": "2"
+                          },
+                          "device-ip": {
+                            "type": "string",
+                            "example": "192.168.252.2"
                           }
                         }
                       }
@@ -772,26 +827,21 @@
               "type": "object",
               "properties": {
                 "micronets": {
-                  "type": "object",
-                  "properties": {
-                    "micronet": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "example": "Heart Monitor"
-                          },
-                          "class": {
-                            "type": "string",
-                            "example": "Medical"
-                          },
-                          "micronet-subnet-id": {
-                            "type": "string",
-                            "example": "Medical"
-                          }
-                        }
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "example": "Heart Monitor"
+                      },
+                      "class": {
+                        "type": "string",
+                        "example": "Medical"
+                      },
+                      "micronet-subnet-id": {
+                        "type": "string",
+                        "example": "Medical"
                       }
                     }
                   }
@@ -810,35 +860,30 @@
               "type": "object",
               "properties": {
                 "micronets": {
-                  "type": "object",
-                  "properties": {
-                    "micronet": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "connected-devices": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "device-mac": {
-                                  "type": "string",
-                                  "example": "B8:27:EB:D8:DF:30"
-                                },
-                                "device-name": {
-                                  "type": "string",
-                                  "example": "ProtoMed 1"
-                                },
-                                "device-id": {
-                                  "type": "string",
-                                  "example": "sdfew32123"
-                                },
-                                "device-openflow-port": {
-                                  "type": "string",
-                                  "example": "2"
-                                }
-                              }
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "connected-devices": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "device-mac": {
+                              "type": "string",
+                              "example": "B8:27:EB:D8:DF:30"
+                            },
+                            "device-name": {
+                              "type": "string",
+                              "example": "ProtoMed 1"
+                            },
+                            "device-id": {
+                              "type": "string",
+                              "example": "sdfew32123"
+                            },
+                            "device-openflow-port": {
+                              "type": "string",
+                              "example": "2"
                             }
                           }
                         }

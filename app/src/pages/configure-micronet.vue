@@ -128,7 +128,7 @@
 </template>
 
 <script>
-  import { mapState, mapGetters, mapActions } from 'vuex'
+  import { mapState, mapActions } from 'vuex'
   import Layout from '@/components/Layout.vue'
   import { findIndex, propEq, lensPath, view, difference } from 'ramda'
 
@@ -182,7 +182,6 @@
     }),
     computed: {
       ...mapState(['editTargetIds', 'toast', 'micronets', 'dhcpSubnets', 'dhcpSubnetDevices']),
-      ...mapGetters(['editTarget']),
       currentMicronet () {
         const index = findIndex(propEq('_id', this.editTargetIds.micronetId))(this.micronets)
         const currentMicronet = this.micronets[index]
