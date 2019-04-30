@@ -11,10 +11,12 @@ const WIRELESS = "wifi"
 const errors = require('@feathersjs/errors');
 const logger = require ( './../../logger' );
 const paths = require('./../../hooks/servicePaths')
-const MICRONETS_PATH = paths.MICRONETS_PATH
+const MICRONETS_PATH = paths.MICRONET_PATH
 const REGISTRY_PATH = paths.REGISTRY_PATH
 const ODL_PATH = paths.ODL_PATH
 const MOCK_MICRONET_PATH = paths.MOCK_MICRONET_PATH
+const USERS_PATH = paths.USERS_PATH
+
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
   const registry = await getRegistry ( hook , {} )
