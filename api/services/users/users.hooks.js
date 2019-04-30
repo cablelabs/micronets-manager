@@ -5,7 +5,9 @@ const errors = require('@feathersjs/errors')
 const mongoose = require('mongoose');
 const axios = require ( 'axios' );
 const logger = require ( './../../logger' );
-
+const paths = require('./../../hooks/servicePaths')
+const USERS_PATH = paths.USERS_PATH
+const REGISTRY_PATH = paths.REGISTRY_PATH
 module.exports = {
   before : {
     all : [  ] ,
@@ -14,7 +16,7 @@ module.exports = {
       hook => {
         const {params, id} = hook
         const query = Object.assign({ id: id ? id : params.id }, hook.params.query);
-        return hook.app.service('/mm/v1/micronets/users').find({ query })
+        return hook.app.service(`${USERS_PATH}`).find({ query })
           .then(({data}) => {
             if(data.length === 1) {
               hook.result = omitMeta(data[0]);
@@ -42,7 +44,7 @@ module.exports = {
       (hook) => {
         const { params, data, id } = hook;
         const postData = hook.data
-        return hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : params.query.id || hook.id } } )
+        return hook.app.service ( `${USERS_PATH}` ).find ( { query : { id : params.query.id || hook.id } } )
           .then ( ( { data } ) => {
               if(data[0].id)
               {
@@ -66,7 +68,7 @@ module.exports = {
                       let updatedUser = Object.assign ( {} , originalUser , updatedDevice);
                       hook.data =  Object.assign ( {} , updatedUser );
                       logger.debug('\n Device Registered. Updated user : ' + JSON.stringify(hook.data))
-                      hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceRegistered' , {
+                      hook.app.service ( `${USERS_PATH}` ).emit ( 'userDeviceRegistered' , {
                         type : 'userDeviceRegistered' ,
                         data : { subscriberId : hook.data.id , device : updatedDevice }
                       } );
@@ -78,7 +80,7 @@ module.exports = {
                     let updatedUser = Object.assign ( {} , originalUser , originalUser.devices.push ( hook.data ) );
                     logger.debug('\n Added device to user' + JSON.stringify(updatedUser))
                     hook.data =  Object.assign ( {} , updatedUser );
-                    hook.app.service ( 'mm/v1/micronets/users' ).emit ( 'userDeviceAdd' , {
+                    hook.app.service ( `${USERS_PATH}` ).emit ( 'userDeviceAdd' , {
                       type : 'userDeviceAdd' ,
                       data : { subscriberId : hook.data.id , device : hook.data }
                     } );
@@ -114,7 +116,7 @@ module.exports = {
         //     micronet : []
         //   } )
         // }))
-        const registry = await hook.app.service('/mm/v1/micronets/registry').get(user.id)
+        const registry = await hook.app.service(`${REGISTRY_PATH}`).get(user.id)
         const userPostData = Object.assign({
           id : user.id ,
           name : user.name ,
@@ -131,7 +133,7 @@ module.exports = {
     ] ,
     update : [
       async(hook) => {
-        hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userDeviceUpdate' , {
+        hook.app.service (`${USERS_PATH}`).emit ( 'userDeviceUpdate' , {
           type : 'userDeviceUpdate' ,
           data : { subscriberId : hook.result.id, devices:hook.result.devices  }
         } );

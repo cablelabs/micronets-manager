@@ -7,6 +7,8 @@ var gen = rn.generator({
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' ,  '__v' ] );
 const logger = require ( './../../logger' );
+const paths = require('./../../hooks/servicePaths')
+const MOCK_MICRONET_PATH = paths.MOCK_MICRONET_PATH
 
 module.exports = {
   before: {
@@ -26,7 +28,7 @@ module.exports = {
         logger.debug('\n hook.id : ' + JSON.stringify(hook.id))
         logger.debug('\n hook.params : ' + JSON.stringify(hook.params))
 
-        const mockMicronetsFromDb = await hook.app.service('/mm/v1/mock/subscriber').find({})
+        const mockMicronetsFromDb = await hook.app.service(`${MOCK_MICRONET_PATH}`).find({})
         const mockMicronetIndex = mockMicronetsFromDb.data.length > 0 ? mockMicronetsFromDb.data.findIndex((subscriber) => subscriber.id == subscriberId) : -1
 
         logger.debug('\n mockMicronets : ' + JSON.stringify(mockMicronetsFromDb.data) + '\t\t mockMicronetIndex : ' + JSON.stringify(mockMicronetIndex))
@@ -45,7 +47,7 @@ module.exports = {
 
           if(mockMicronetsFromDb.data.length > 0 && mockMicronetIndex != -1) {
 
-            const patchResult = await hook.app.service ( '/mm/v1/mock/subscriber' ).patch ( subscriberId,
+            const patchResult = await hook.app.service ( `${MOCK_MICRONET_PATH}` ).patch ( subscriberId,
               { micronets :  mockMicronets  } ,
               { query : {} , mongoose : { upsert : true } }  );
             hook.result = Object.assign({},{ micronets:patchResult.micronets })
@@ -66,7 +68,7 @@ module.exports = {
         if(hook.data.micronets && subscriberId && hook.params.route.micronetId) {
           const micronetsPostData = Object.assign({},hook.data)
           if(mockMicronetIndex != -1) {
-            const patchResult = await hook.app.service ( '/mm/v1/mock/subscriber' ).patch ( subscriberId,
+            const patchResult = await hook.app.service ( `${MOCK_MICRONET_PATH}` ).patch ( subscriberId,
               { micronets :  micronetsPostData.micronets  } ,
               { query : {} , mongoose : { upsert : true } }  );
             hook.result = Object.assign({},{ micronets:patchResult.micronets })
@@ -86,7 +88,7 @@ module.exports = {
         const subscriberId =  !params.id && params.route.id ? params.route.id : params.id
         logger.debug('\n MOCK MICRONET REMOVE HOOK subscriberId : ' + JSON.stringify(subscriberId) + '\t\t PARAMS : ' + JSON.stringify(params) + '\t\t MicronetID : ' + JSON.stringify(micronetId))
         if(subscriberId && micronetId) {
-          const micronetFromDB = await hook.app.service('/mm/v1/mock/subscriber').get(subscriberId)
+          const micronetFromDB = await hook.app.service(`${MOCK_MICRONET_PATH}`).get(subscriberId)
           logger.debug('\n micronetFromDB : ' + JSON.stringify(micronetFromDB))
           const filteredMicronet = micronetFromDB.micronets.filter((foundMicronet) => foundMicronet['micronet-id']!= micronetId)
           logger.debug('\n filteredMicronet : ' + JSON.stringify(filteredMicronet))
@@ -97,9 +99,9 @@ module.exports = {
         }
 
         if(subscriberId && !micronetId) {
-          const micronetFromDB = await hook.app.service('/mm/v1/mock/subscriber').get(subscriberId)
+          const micronetFromDB = await hook.app.service(`${MOCK_MICRONET_PATH}`).get(subscriberId)
           logger.debug('\n micronetFromDB : ' + JSON.stringify(micronetFromDB))
-          const patchResult = await hook.app.service('/mm/v1/mock/subscriber').patch(subscriberId, { micronets:  []  }  )
+          const patchResult = await hook.app.service(`${MOCK_MICRONET_PATH}`).patch(subscriberId, { micronets:  []  }  )
           hook.result = Object.assign({},{ micronets:patchResult.micronets })
           return Promise.resolve(hook)
         }

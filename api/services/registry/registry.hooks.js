@@ -6,7 +6,11 @@ const errors = require ( '@feathersjs/errors' );
 const logger = require ( './../../logger' );
 const odlPost = require('./../../../scripts/data/odlPost')
 let allHeaders = { crossDomain: true, headers : {  'Content-type': 'application/json' } };
-
+const paths = require('./../../hooks/servicePaths')
+const REGISTRY_PATH = paths.REGISTRY_PATH
+const ODL_PATH = paths.ODL_PATH
+const USERS_PATH = paths.USERS_PATH
+const MICRONET_PATH = paths.MICRONET_PATH
 module.exports = {
   before : {
     all : [ //authenticate('jwt')
@@ -35,9 +39,9 @@ module.exports = {
     remove : [
       async(hook) => {
         const {data, params, id } = hook
-        const registry = await hook.app.service('/mm/v1/micronets/registry').get(id)
+        const registry = await hook.app.service(`${REGISTRY_PATH}`).get(id)
         if(id){
-          await hook.app.service('/mm/v1/micronets/odl').remove(registry.gatewayId,allHeaders)
+          await hook.app.service(`${ODL_PATH}`).remove(registry.gatewayId,allHeaders)
           await axios({
             ...allHeaders,
             method: 'DELETE',
@@ -48,12 +52,12 @@ module.exports = {
             method: 'DELETE',
             url: `${registry.mmUrl}/mm/v1/subscriber/${id}`
           })
-          await hook.app.service('/mm/v1/micronets/users').remove(id,allHeaders)
+          await hook.app.service(`${USERS_PATH}`).remove(id,allHeaders)
         }
         else {
-          await hook.app.service('/mm/v1/micronets/odl').remove(null,allHeaders)
-          await hook.app.service('/mm/v1/subscriber').remove(null,allHeaders)
-          await hook.app.service('/mm/v1/micronets/users').remove(null,allHeaders)
+          await hook.app.service(`${ODL_PATH}`).remove(null,allHeaders)
+          await hook.app.service(`${MICRONET_PATH}`).remove(null,allHeaders)
+          await hook.app.service(`${USERS_PATH}`).remove(null,allHeaders)
         }
       }
     ]
@@ -70,7 +74,7 @@ module.exports = {
         const mano = hook.app.get('mano')
         logger.debug ( '\n Registry created : ' + JSON.stringify ( hook.result ) )
         logger.debug('\n\n identity server from mano config  : ' + JSON.stringify(mano.identityUrl))
-        const updatedRegistry = await hook.app.service ( '/mm/v1/micronets/registry' ).patch ( hook.result.subscriberId ,{
+        const updatedRegistry = await hook.app.service ( `${REGISTRY_PATH}` ).patch ( hook.result.subscriberId ,{
           identityUrl:  mano.identityUrl
         })
         logger.debug('\n Updated registry : ' + JSON.stringify(updatedRegistry))
@@ -81,7 +85,7 @@ module.exports = {
         let subscriber = await axios.get ( `${registry.msoPortalUrl}/portal/v1/subscriber/${registry.subscriberId}`)
         subscriber = subscriber.data
         logger.debug ( '\n Associated subscriber with registry : ' + JSON.stringify ( subscriber ) )
-         await hook.app.service ( '/mm/v1/subscriber' ).create ( Object.assign ( {} , {
+         await hook.app.service ( `${MICRONET_PATH}` ).create ( Object.assign ( {} , {
           type : 'userCreate' ,
           id : subscriber.id ,
           name : subscriber.name ,
@@ -89,16 +93,16 @@ module.exports = {
           gatewayId: subscriber.gatewayId ,
           micronets : []
         } ) )
-        const micronet = await hook.app.service ( '/mm/v1/subscriber' ).find ()
+        const micronet = await hook.app.service ( `${MICRONET_PATH}` ).find ()
         logger.debug ( '\n Default micronet for subscriber  : ' + JSON.stringify ( micronet ) )
 
         // Create default ODL Config
         const switchConfigPost = Object.assign({}, odlPost, {gatewayId:  hook.result.gatewayId})
         logger.debug('Default ODL Post body : ' + JSON.stringify(switchConfigPost))
-        const switchConfig = await hook.app.service ( '/mm/v1/micronets/odl' ).find({})
+        const switchConfig = await hook.app.service ( `${ODL_PATH}` ).find({})
         const odlIndex = switchConfig.data.length > 0  ? switchConfig.data.findIndex((swConfig) => swConfig.gatewayId == hook.result.gatewayId) : -1
         if(switchConfig.data.length == 0 || odlIndex == -1)  {
-          await hook.app.service ( '/mm/v1/micronets/odl').create({...switchConfigPost}, apiInit)
+          await hook.app.service ( `${ODL_PATH}`).create({...switchConfigPost}, apiInit)
           return hook
         }
        hook.result = omitMeta(hook.result)
@@ -109,7 +113,7 @@ module.exports = {
       async(hook) => {
        const {data, params, id} = hook
         if(hook.data.gatewayReconnection){
-          hook.app.service ( '/mm/v1/micronets/registry' ).emit ( 'gatewayReconnect' , {
+          hook.app.service ( `${REGISTRY_PATH}` ).emit ( 'gatewayReconnect' , {
             type : 'gatewayReconnect' ,
             data : { ...hook.result }
           } );

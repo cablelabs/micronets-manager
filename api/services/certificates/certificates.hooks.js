@@ -7,7 +7,10 @@ const logger = require ( './../../logger' );
 const propEq = require ( 'ramda/src/propEq' );
 const findIndex = require ( 'ramda/src/findIndex' );
 const path = require('ramda/src/path');
-
+const paths = require('./../../hooks/servicePaths')
+const CSRT_PATH = paths.CSRT_PATH
+const REGISTRY_PATH = paths.REGISTRY_PATH
+const USERS_PATH = paths.USERS_PATH
 module.exports = {
   before: {
     all: [ authenticate('jwt') ],
@@ -17,7 +20,7 @@ module.exports = {
      async ( hook ) => {
        const { params  , payload, data } = hook;
        const jwtToken = params.headers.authorization.split ( ' ' )[ 1 ]
-       const certList = await hook.app.service ( 'mm/v1/micronets/csrt' ).find ()
+       const certList = await hook.app.service ( `${CSRT_PATH}` ).find ()
        let result = certList.data.map ( ( cert, index ) => {
            const tokenIndex = findIndex ( propEq ( 'token' , jwtToken ) ) ( cert )
            const getToken = path(['debug', 'context', 'token'])
@@ -31,7 +34,7 @@ module.exports = {
        result = result.filter ( ( e ) => { return e } )
        let subscriberId = data.subscriberId!= undefined ? data.subscriberId : result[0].subscriberId
        let axiosConfig = { headers : { 'Authorization' : params.headers.authorization } };
-       let registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get (  subscriberId );
+       let registry = await hook.app.service ( `${REGISTRY_PATH}` ).get (  subscriberId );
        const subscriber = await axios.get(`${registry.msoPortalUrl}/portal/v1/subscriber/${data.subscriberId}`,axiosConfig)
        logger.debug( '\n MSO URL  :' + JSON.stringify ( registry.msoPortalUrl )  + '\n\n Subscriber : ' + JSON.stringify(subscriber.data))
        const certificates =  await axios.post (`${registry.identityUrl}/certificates` ,  data , axiosConfig)
@@ -59,9 +62,9 @@ module.exports = {
        hook  => {
         const { params  , payload, data } = hook;
          if(hook.result) {
-           hook.app.service ( 'mm/v1/micronets/users' ).find ( { query : { id : data.subscriber.id } } )
+           hook.app.service ( `${USERS_PATH}` ).find ( { query : { id : data.subscriber.id } } )
              .then ( ( { data } ) => {
-               hook.app.service ( 'mm/v1/micronets/users' ).patch ( null ,{
+               hook.app.service ( `${USERS_PATH}` ).patch ( null ,{
                  clientId : params.payload.clientID ,
                  deviceId : params.payload.deviceID ,
                  macAddress : params.payload.macAddress ,

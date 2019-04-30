@@ -4,6 +4,10 @@ const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ,'registry'] );
 const errors = require('@feathersjs/errors');
 const logger = require ( './../../logger' );
+const paths = require('./../../hooks/servicePaths')
+const CSRT_PATH = paths.CSRT_PATH
+const REGISTRY_PATH = paths.REGISTRY_PATH
+const USERS_PATH = paths.USERS_PATH
 module.exports = {
   before: {
     all: [ authenticate('jwt') ],
@@ -16,7 +20,7 @@ module.exports = {
         const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
         let allHeaders = { headers : { 'Authorization' : authorization , crossDomain: true } };
         console.log('\n ')
-        let registry = await hook.app.service ( `/mm/v1/micronets/registry`).get(hook.data.subscriberId);
+        let registry = await hook.app.service (`${REGISTRY_PATH}`).get(hook.data.subscriberId);
         logger.debug( '\n Registry from MM :' + JSON.stringify ( registry ) )
        // let registry = await axios.get(`${hook.data.registryUrl}/micronets/v1/mm/registry/${hook.data.subscriberId}`,allHeaders)
         // Call configure url
@@ -58,8 +62,8 @@ module.exports = {
                 mudUrl: params.payload.mudURL
               } )
             } )
-            const user = await hook.app.service ( '/mm/v1/micronets/users' ).find ( { query : { id : subscriber.data.id } } )
-             user.data.length == 0 ?  await hook.app.service ( '/mm/v1/micronets/users').create(sessionData , allHeaders ) :
+            const user = await hook.app.service ( `${USERS_PATH}` ).find ( { query : { id : subscriber.data.id } } )
+             user.data.length == 0 ?  await hook.app.service (`${USERS_PATH}`).create(sessionData , allHeaders ) :
                await hook.app.service ( '/mm/v1/micronets/users' ).patch ( null ,{
                  clientId : params.payload.clientID ,
                  deviceId : params.payload.deviceID ,
