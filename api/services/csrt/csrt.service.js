@@ -3,7 +3,7 @@ const createService = require('feathers-mongoose');
 const createModel = require('../../models/csrt.model');
 const hooks = require('./csrt.hooks');
 const paths = require('./../../hooks/servicePaths')
-const CSRT_PATH = paths.CSRT_PATH
+const servicePath = paths.CSRT_PATH
 module.exports = function (app) {
   const Model = createModel(app);
   const paginate = app.get('paginate');
@@ -14,10 +14,10 @@ module.exports = function (app) {
   };
 
   // Initialize our service with any options it requires
-  app.use(`${CSRT_PATH}`, createService(options));
+  app.use(`${servicePath}`, createService(options));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service(`${CSRT_PATH}`);
+  const service = app.service(`${servicePath}`);
 
   service.hooks(hooks);
 };

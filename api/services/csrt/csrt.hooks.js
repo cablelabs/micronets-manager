@@ -5,9 +5,8 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ,'registry']
 const errors = require('@feathersjs/errors');
 const logger = require ( './../../logger' );
 const paths = require('./../../hooks/servicePaths')
-const CSRT_PATH = paths.CSRT_PATH
-const REGISTRY_PATH = paths.REGISTRY_PATH
-const USERS_PATH = paths.USERS_PATH
+const { REGISTRY_PATH, USERS_PATH } = paths
+
 module.exports = {
   before: {
     all: [ authenticate('jwt') ],

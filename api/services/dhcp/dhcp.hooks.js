@@ -6,8 +6,9 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v' ] );
 const dhcpUrlPrefix = "/mm/v1/dhcp/subnets"
 const logger = require ( './../../logger' );
 const paths = require('./../../hooks/servicePaths')
+const { REGISTRY_PATH } = paths
 const getRegistry = async(hook,subscriberId) => {
-    const registry = await hook.app.service ( '/mm/v1/micronets/registry' ).get ( subscriberId )
+    const registry = await hook.app.service ( `${REGISTRY_PATH}` ).get ( subscriberId )
     return registry
 }
 

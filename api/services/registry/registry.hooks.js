@@ -7,10 +7,8 @@ const logger = require ( './../../logger' );
 const odlPost = require('./../../../scripts/data/odlPost')
 let allHeaders = { crossDomain: true, headers : {  'Content-type': 'application/json' } };
 const paths = require('./../../hooks/servicePaths')
-const REGISTRY_PATH = paths.REGISTRY_PATH
-const ODL_PATH = paths.ODL_PATH
-const USERS_PATH = paths.USERS_PATH
-const MICRONET_PATH = paths.MICRONET_PATH
+const { REGISTRY_PATH, ODL_PATH, USERS_PATH, MICRONETS_PATH } = paths
+
 module.exports = {
   before : {
     all : [ //authenticate('jwt')
@@ -40,7 +38,7 @@ module.exports = {
         }
         else {
           await hook.app.service(`${ODL_PATH}`).remove(null,allHeaders)
-          await hook.app.service(`${MICRONET_PATH}`).remove(null,allHeaders)
+          await hook.app.service(`${MICRONETS_PATH}`).remove(null,allHeaders)
           await hook.app.service(`${USERS_PATH}`).remove(null,allHeaders)
         }
       }
@@ -98,7 +96,7 @@ module.exports = {
             logger.debug ( '\n Subscriber created on MSO Portal : ' + JSON.stringify ( result.data ) )
 
             // Create default Micronet
-            await hook.app.service ( `${MICRONET_PATH}` ).create ( Object.assign ( {} , {
+            await hook.app.service ( `${MICRONETS_PATH}` ).create ( Object.assign ( {} , {
               type : 'userCreate' ,
               id : result.data.id ,
               name : result.data.name ,
@@ -107,7 +105,7 @@ module.exports = {
               micronets : []
             } ) )
 
-            const micronet = await hook.app.service ( `${MICRONET_PATH}` ).find ()
+            const micronet = await hook.app.service ( `${MICRONETS_PATH}` ).find ()
             logger.debug ( '\n Default micronet for subscriber  : ' + JSON.stringify ( micronet ) )
 
             // Create default ODL Config

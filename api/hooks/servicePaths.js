@@ -1,6 +1,6 @@
 const API_PREFIX = 'mm/v1/micronets'
 const API_PREFIX2 = 'mm/v1'
-const MICRONET_PATH = `mm/v1/subscriber`
+const MICRONETS_PATH = `mm/v1/subscriber`
 const MOCK_MICRONET_PATH = `mm/v1/mock/subscriber`
 const CSRT_PATH = `${API_PREFIX}/csrt`
 const CERTIFICATES_PATH = `${API_PREFIX}/certificates`
@@ -13,7 +13,7 @@ const GATEWAY_PATH = `${API_PREFIX}/gateway`
 const paths = () => {
   return {
     API_PREFIX ,
-    MICRONET_PATH ,
+    MICRONETS_PATH ,
     GATEWAY_PATH ,
     MOCK_MICRONET_PATH ,
     CSRT_PATH ,
