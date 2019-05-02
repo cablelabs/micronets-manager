@@ -6,8 +6,8 @@ const mongoose = require('mongoose');
 const axios = require ( 'axios' );
 const logger = require ( './../../logger' );
 const paths = require('./../../hooks/servicePaths')
-const USERS_PATH = paths.USERS_PATH
-const REGISTRY_PATH = paths.REGISTRY_PATH
+const { USERS_PATH, REGISTRY_PATH  } = paths
+
 module.exports = {
   before : {
     all : [  ] ,

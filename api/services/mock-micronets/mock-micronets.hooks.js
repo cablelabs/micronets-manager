@@ -8,7 +8,7 @@ const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' ,  '__v' ] );
 const logger = require ( './../../logger' );
 const paths = require('./../../hooks/servicePaths')
-const MOCK_MICRONET_PATH = paths.MOCK_MICRONET_PATH
+const { MOCK_MICRONET_PATH } = paths
 
 module.exports = {
   before: {

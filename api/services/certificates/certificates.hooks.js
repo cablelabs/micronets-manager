@@ -8,9 +8,8 @@ const propEq = require ( 'ramda/src/propEq' );
 const findIndex = require ( 'ramda/src/findIndex' );
 const path = require('ramda/src/path');
 const paths = require('./../../hooks/servicePaths')
-const CSRT_PATH = paths.CSRT_PATH
-const REGISTRY_PATH = paths.REGISTRY_PATH
-const USERS_PATH = paths.USERS_PATH
+const { CSRT_PATH, REGISTRY_PATH, USERS_PATH } = paths
+
 module.exports = {
   before: {
     all: [ authenticate('jwt') ],

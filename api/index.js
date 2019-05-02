@@ -16,6 +16,30 @@ server.on ( 'listening' , async () => {
   logger.info ('Feathers application started on ' + JSON.stringify(`http://${app.get('host')}:${app.get('port')}`))
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
+
+  // Create default registry on bootup of micronets-manager
+  if(registryIndex == -1 ) {
+    logger.debug('\n No Registry found. Initializing Registry ... ')
+    if(mano.hasOwnProperty('subscriberId') && mano.hasOwnProperty('identityUrl') && mano.hasOwnProperty('msoPortalUrl')) {
+    const postRegistry = Object.assign({},{
+      subscriberId : mano.subscriberId,
+      identityUrl: mano.identityUrl,
+      mmUrl : `http://${app.get('host')}:${app.get('port')}`,
+      mmClientUrl : `http://${app.get('host')}:8080`,
+      webSocketUrl: `${mano.webSocketBaseUrl}/${mano.subscriberId}`,
+      msoPortalUrl: mano.msoPortalUrl,
+      gatewayId: `default-gw-${mano.subscriberId}`
+    })
+    const result = await app.service ( '/mm/v1/micronets/registry' ).create ( postRegistry )
+    if(result.data) {
+      logger.debug('\n Default registry on instantiation : ' + JSON.stringify(result.data))
+    }
+  } else {
+      throw new Error('Missing mano configuration to create default registry')
+    }
+  }
+
+  // Registry present. Connect to web socket url
   if ( registryIndex!= -1 ) {
     registry = registry.data[registryIndex]
     if( registry && registry.hasOwnProperty ( 'webSocketUrl' ) ) {
@@ -25,12 +49,8 @@ server.on ( 'listening' , async () => {
     }
   }
 
-  // if ( mano && mano.hasOwnProperty('webSocketUrl') && !(registry && registry.hasOwnProperty ( 'webSocketUrl' ))) {
-  //   logger.info('\n Connecting to : ' + JSON.stringify(mano.webSocketUrl) + ' from mano configuration ' )
-  //   await dw.setAddress ( mano.webSocketUrl );
-  //   await dw.connect ().then ( () => { return true } );
-  // }
 
+  // Missing Registry. Connect to web socket url using mano configuration
   if ( mano && mano.hasOwnProperty('webSocketBaseUrl') && mano.hasOwnProperty('subscriberId') && !(registry && registry.hasOwnProperty ( 'webSocketUrl' ))) {
     const webSocketUrl = `${mano.webSocketBaseUrl}/${mano.subscriberId}`
     logger.info('\n Connecting to : ' + JSON.stringify(webSocketUrl) + ' from mano configuration ' )
