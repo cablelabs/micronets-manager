@@ -17,23 +17,7 @@ module.exports = {
     ] ,
     find : [] ,
     get : [] ,
-    create : [
-      async ( hook ) => {
-        const { data , params } = hook
-        if ( data.msoPortalUrl ) {
-          let subscriber = await axios.get ( `${data.msoPortalUrl}/portal/v1/subscriber/${data.subscriberId}` )
-          subscriber = subscriber.data
-          logger.debug ( '\n Subscriber found : ' + JSON.stringify ( subscriber ) + '\t\t Data.subscriberId : ' + JSON.stringify ( data.subscriberId ) )
-          if ( !subscriber.id && subscriber.id != data.subscriberId ) {
-            return Promise.reject ( new errors.GeneralError ( new Error ( 'Registry cannot be created.No associated subscriber found' ) ) )
-          }
-          else {
-            hook.data.gatewayId = subscriber.gatewayId
-            return Promise.resolve ( hook )
-          }
-        }
-      }
-    ] ,
+    create : [] ,
     update : [] ,
     patch : [] ,
     remove : [
@@ -69,44 +53,79 @@ module.exports = {
     get : [] ,
     create : [
       async ( hook ) => {
+        logger.debug('\n Created registry after hook : ' + JSON.stringify(hook.result))
+
         // Update registry to include mano configuration parameters
         if(!hook.result.hasOwnProperty('identityUrl')) {
         const mano = hook.app.get('mano')
         logger.debug ( '\n Registry created : ' + JSON.stringify ( hook.result ) )
-        logger.debug('\n\n identity server from mano config  : ' + JSON.stringify(mano.identityUrl))
+        logger.debug('\n\n Identity server from mano config  : ' + JSON.stringify(mano.identityUrl))
         const updatedRegistry = await hook.app.service ( `${REGISTRY_PATH}` ).patch ( hook.result.subscriberId ,{
           identityUrl:  mano.identityUrl
         })
         logger.debug('\n Updated registry : ' + JSON.stringify(updatedRegistry))
         }
 
-        // Create Empty micronet
-        const registry = hook.result
-        let subscriber = await axios.get ( `${registry.msoPortalUrl}/portal/v1/subscriber/${registry.subscriberId}`)
-        subscriber = subscriber.data
-        logger.debug ( '\n Associated subscriber with registry : ' + JSON.stringify ( subscriber ) )
-         await hook.app.service ( `${MICRONET_PATH}` ).create ( Object.assign ( {} , {
-          type : 'userCreate' ,
-          id : subscriber.id ,
-          name : subscriber.name ,
-          ssid : subscriber.ssid ,
-          gatewayId: subscriber.gatewayId ,
-          micronets : []
-        } ) )
-        const micronet = await hook.app.service ( `${MICRONET_PATH}` ).find ()
-        logger.debug ( '\n Default micronet for subscriber  : ' + JSON.stringify ( micronet ) )
+        // Create Subscriber on MSO-PORTAL
+        if(hook.result.hasOwnProperty('subscriberId') && hook.result.hasOwnProperty('msoPortalUrl')) {
 
-        // Create default ODL Config
-        const switchConfigPost = Object.assign({}, odlPost, {gatewayId:  hook.result.gatewayId})
-        logger.debug('Default ODL Post body : ' + JSON.stringify(switchConfigPost))
-        const switchConfig = await hook.app.service ( `${ODL_PATH}` ).find({})
-        const odlIndex = switchConfig.data.length > 0  ? switchConfig.data.findIndex((swConfig) => swConfig.gatewayId == hook.result.gatewayId) : -1
-        if(switchConfig.data.length == 0 || odlIndex == -1)  {
-          await hook.app.service ( `${ODL_PATH}`).create({...switchConfigPost}, apiInit)
-          return hook
+          // Create/Register registry url for subscriber on MSO PORTAL
+           let register = await axios.get ( `${hook.result.msoPortalUrl}/portal/v1/register` )
+          const registerIndex = register.data.data.length > 0 ? register.data.data.findIndex((register) => register.subscriberId == hook.result.subscriberId) : -1
+          logger.debug ( '\n Register : ' + JSON.stringify ( register.data.data ) + '\t\t RegisterIndex : ' + JSON.stringify(registerIndex) )
+
+            const upsertResult =  registerIndex == -1 ? await axios.post ( `${hook.result.msoPortalUrl}/portal/v1/register` , Object.assign ( {} , {
+              subscriberId : hook.result.subscriberId ,
+              registry : `http://${hook.app.get ( 'host' )}:${hook.app.get ( 'port' )}`
+            } ) ) : await axios.put ( `${hook.result.msoPortalUrl}/portal/v1/register/${hook.result.subscriberId}` , Object.assign ( {} , {
+              subscriberId : hook.result.subscriberId ,
+              registry : `http://${hook.app.get ( 'host' )}:${hook.app.get ( 'port' )}`
+            } ) )
+
+          logger.debug ( '\n Registered registry url  : ' + JSON.stringify ( upsertResult.data ) )
+
+          if ( upsertResult.data.hasOwnProperty ( 'registry' ) && upsertResult.data.hasOwnProperty ( 'subscriberId' ) && upsertResult.data.subscriberId  == hook.result.subscriberId ) {
+            logger.debug ( '\n Creating associated subscriber for registry ' )
+            const postSubscriberBody = Object.assign ( {} , {
+              id : hook.result.subscriberId ,
+              ssid : `micronets-${hook.result.subscriberId}` ,
+              name : hook.result.subscriberId ,
+              registry : hook.result.mmUrl ,
+              gatewayId : hook.result.gatewayId
+            } )
+
+            const result = await axios.post ( `${hook.result.msoPortalUrl}/portal/v1/subscriber` , postSubscriberBody )
+            logger.debug ( '\n Subscriber created on MSO Portal : ' + JSON.stringify ( result.data ) )
+
+            // Create default Micronet
+            await hook.app.service ( `${MICRONET_PATH}` ).create ( Object.assign ( {} , {
+              type : 'userCreate' ,
+              id : result.data.id ,
+              name : result.data.name ,
+              ssid : result.data.ssid ,
+              gatewayId : result.data.gatewayId ,
+              micronets : []
+            } ) )
+
+            const micronet = await hook.app.service ( `${MICRONET_PATH}` ).find ()
+            logger.debug ( '\n Default micronet for subscriber  : ' + JSON.stringify ( micronet ) )
+
+            // Create default ODL Config
+            const switchConfigPost = Object.assign ( {} , odlPost , { gatewayId : hook.result.gatewayId } )
+            logger.debug ( 'Default ODL Post body : ' + JSON.stringify ( switchConfigPost ) )
+            const switchConfig = await hook.app.service ( `${ODL_PATH}` ).find ( {} )
+            const odlIndex = switchConfig.data.length > 0 ? switchConfig.data.findIndex ( ( swConfig ) => swConfig.gatewayId == hook.result.gatewayId ) : -1
+            if ( switchConfig.data.length == 0 || odlIndex == -1 ) {
+              await hook.app.service ( `${ODL_PATH}` ).create ( { ...switchConfigPost } , apiInit )
+              return hook
+            }
+            hook.result = omitMeta ( hook.result )
+            return Promise.resolve ( hook )
+          }
+          else {
+            return Promise.reject(new errors.GeneralError(new Error(' Subscriber cannot be created. Associated registry for subscriber not found !')))
+          }
         }
-       hook.result = omitMeta(hook.result)
-       return Promise.resolve(hook)
       }
     ] ,
     update : [
