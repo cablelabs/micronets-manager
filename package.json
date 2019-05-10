@@ -71,6 +71,7 @@
     "ip-address": "^5.8.9",
     "moment": "^2.22.2",
     "mongodb": "^3.0.10",
+    "mongodb-core": "^3.2.3",
     "mongoose": "^5.2.1",
     "nodemon": "^1.18.5",
     "ramda": "^0.25.0",

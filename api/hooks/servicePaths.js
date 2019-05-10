@@ -9,7 +9,7 @@ const REGISTRY_PATH = `${API_PREFIX}/registry`
 const ODL_PATH = `${API_PREFIX}/odl`
 const DHCP_PATH = `${API_PREFIX2}/dhcp/subnets`
 const GATEWAY_PATH = `${API_PREFIX}/gateway`
-
+const DPP_PATH =  `${API_PREFIX2}/dpp`
 const paths = () => {
   return {
     API_PREFIX ,
@@ -21,7 +21,8 @@ const paths = () => {
     USERS_PATH ,
     REGISTRY_PATH ,
     ODL_PATH ,
-    DHCP_PATH
+    DHCP_PATH,
+    DPP_PATH
   }
 }
 
