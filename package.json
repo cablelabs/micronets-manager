@@ -75,6 +75,7 @@
     "mongoose": "^5.2.1",
     "nodemon": "^1.18.5",
     "ramda": "^0.25.0",
+    "random-hex-character-generator": "^0.10.1",
     "random-number": "0.0.9",
     "serve-favicon": "^2.5.0",
     "socket.io": "^2.1.1",

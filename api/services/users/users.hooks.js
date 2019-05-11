@@ -44,7 +44,8 @@ module.exports = {
       (hook) => {
         const { params, data, id } = hook;
         const postData = hook.data
-        return hook.app.service ( `${USERS_PATH}` ).find ( { query : { id : params.query.id || hook.id } } )
+        const queryId = params.hasOwnProperty('query') && params.query.hasOwnProperty('id') ? params.query.id : hook.id
+        return hook.app.service ( `${USERS_PATH}` ).find ( { query : { id : queryId } } )
           .then ( ( { data } ) => {
               if(data[0].id)
               {
@@ -56,7 +57,7 @@ module.exports = {
                 }
                 else {
                   const originalUser = data[ 0 ];
-                  const foundDeviceIndex = originalUser.devices.findIndex( device => device.clientId ==  hook.data.clientId && device.deviceId == hook.data.deviceId && device.macAddress == hook.data.macAddress && device.class == hook.data.class);
+                  const foundDeviceIndex = originalUser.devices.findIndex( device =>  device.deviceId == hook.data.deviceId && device.macAddress == hook.data.macAddress && device.class == hook.data.class);
 
                   if(foundDeviceIndex >= 0 ) {
                     if(hook.data.isRegistered == true && originalUser.devices[foundDeviceIndex].isRegistered == true) {

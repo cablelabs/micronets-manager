@@ -22,9 +22,12 @@ module.exports = function (app) {
       deviceName: {type: String, required: true, default: 'Test Device'},
       clientId: { type: String, required: false },
       class: { type: String, required: false },
-      deviceConnection:{type: String, required: true, default: 'wired'},
-      deviceLeaseStatus:{ type: String, required:true, default: 'intermediary' },
-      mudUrl: { type: String, required:false, default: '' }
+      deviceConnection: {type: String, required: true, default: 'wired'},
+      deviceLeaseStatus: { type: String, required:true, default: 'intermediary' },
+      mudUrl: { type: String, required:false, default: '' },
+      onboardType: { type: String, required: false },
+      onboardStatus: { type: String, required: false },
+      psk: { type: String, required: false  }
     }]
   }, {
     timestamps: true
