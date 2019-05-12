@@ -114,6 +114,22 @@ module.exports.connect = function() {
           let leaseExpired = convertFrom(message)
           me.eventEmitter.emit('LeaseExpired', leaseExpired)
         }
+        else if(message.message.messageType === 'EVENT:DPP:DPPOnboardingStartedEvent'){
+          let DPPOnboardingStartedEvent = convertFrom(message)
+          me.eventEmitter.emit('DPPOnboardingStartedEvent', DPPOnboardingStartedEvent)
+        }
+        else if(message.message.messageType === 'EVENT:DPP:DPPOnboardingProgressEvent'){
+          let DPPOnboardingProgressEvent = convertFrom(message)
+          me.eventEmitter.emit('DPPOnboardingProgressEvent', DPPOnboardingProgressEvent)
+        }
+        else if(message.message.messageType === 'EVENT:DPP:DPPOnboardingFailedEvent'){
+          let DPPOnboardingFailedEvent = convertFrom(message)
+          me.eventEmitter.emit('DPPOnboardingFailedEvent', DPPOnboardingFailedEvent)                 //EVENT_ONBOARDING_COMPLETE
+        }
+        else if(message.message.messageType === 'EVENT:DPP:DPPOnboardingCompleteEvent'){
+          let DPPOnboardingCompleteEvent = convertFrom(message)
+          me.eventEmitter.emit('DPPOnboardingCompleteEvent', DPPOnboardingCompleteEvent)
+        }
         else {
           console.log('Received Message')
           console.log(message)

@@ -6,6 +6,9 @@ const server = app.listen ( port );
 const mano = app.get('mano')
 const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
+const DPPOnboardingStartedEvent = 'DPPOnboardingStartedEvent'
+const DPPOnboardingProgressEvent = 'DPPOnboardingProgressEvent'
+const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
 
 
 process.on ( 'unhandledRejection' , ( reason , p ) =>
@@ -103,6 +106,8 @@ dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
 dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseExpiredEvent' )
 } )
+
+
 
 
 

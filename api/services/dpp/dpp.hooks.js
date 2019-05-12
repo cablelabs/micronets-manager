@@ -1,7 +1,7 @@
 var axios = require ( 'axios' );
 const logger = require ( './../../logger' );
 const paths = require ( './../../hooks/servicePaths' )
-const { DPP_PATH , USERS_PATH, MICRONETS_PATH } = paths
+const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH  } = paths
 const DPP_ONBOARD = `/${DPP_PATH}/onboard`
 const DPP_CONFIG = `/${DPP_PATH}/config`
 var random = require ( 'random-hex-character-generator' );
@@ -11,6 +11,13 @@ const WIFI = 'wifi'
 const START_ON_BOARD = 'initial'
 const INTERMEDIATE_ON_BOARD = 'in_progress'
 const COMPLETE_ON_BOARD = 'complete'
+const DPPOnboardingStartedEvent = 'DPPOnboardingStartedEvent'
+const DPPOnboardingProgressEvent = 'DPPOnboardingProgressEvent'
+const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
+const DPPOnboardingCompleteEvent = 'DPPOnboardingCompleteEvent'
+const waitForFirst = require('wait-for-event').waitForFirst;
+
+const dw = require ( './../../hooks/dhcpWrapperPromise' )
 
 const generateDevicePSK = async ( hook , len ) => {
   // A 32-bit PSK (64 hex digits) hex-encoded WPA key or 6-63 character ASCII password
@@ -74,8 +81,8 @@ const validateDppRequest = async(hook) => {
 const onboardDppDevice = async(hook) => {
   const { data } = hook
   const {bootstrap, user, device} = data
-
-  //Retreive mud-uri from mud-registry using vendor and pubkey parameters
+  let emitterResult = ''
+  //Retrieve mud-uri from mud-registry using vendor and pubkey parameters
   const dppMudUrl = await getMudUri(hook)
 
   //Generate PSK for device
@@ -103,7 +110,7 @@ const onboardDppDevice = async(hook) => {
 
   // Create micronet and add dhcp subnet class
   if( dppDeviceClassIndex == -1 ) {
-    logger.debug('\n Micronet class does not exist.Create micronet and add device')
+    logger.debug('\n Micronet class does not exist.Create micronet and add dpp device')
     const postMicronetBody =  Object.assign({},{
       micronets: [Object.assign({},{
         name: data.device.class,
@@ -132,53 +139,120 @@ const onboardDppDevice = async(hook) => {
 
   // Add device to micronet and add device to dhcp subnet
   const micronetsFromDb = await hook.app.service(`${MICRONETS_PATH}`).get(data.subscriberId)
-  logger.debug('\n micronetsFromDb : ' + JSON.stringify(micronetsFromDb))
-  const micronetIdToUpsertIndex = micronetsFromDb.micronets.findIndex((micronet) => micronet['class'] == data.device.class)
-  const micronetToUpsertId = micronetsFromDb.micronets[micronetIdToUpsertIndex]['micronet-id']
-  const subnetToUpsertId = micronetsFromDb.micronets[micronetIdToUpsertIndex]['micronet-subnet-id']
-  const dppDevicesToAddToMicronet = Object.assign({},{
-          deviceName: hook.data.user.deviceName ,
-          deviceId: hook.data.bootstrap.pubkey.split('+')[0],
-          macAddress : hook.data.bootstrap.mac,
-          onboardType: DPP_ON_BOARD_TYPE,
-          onboardStatus: START_ON_BOARD
-    })
+  logger.debug('\n Micronets from database : ' + JSON.stringify(micronetsFromDb))
 
-  const dppDhcpDevicesToAdd = Object.assign({},{
+  const micronetToUpsertIndex = micronetsFromDb.micronets.findIndex((micronet) => micronet['class'] == data.device.class)
 
-    "micronets" :  [
-    {
-      "connected-devices" : [
+  if(micronetToUpsertIndex != -1 ) {
+    const micronetIdToUpsert = micronetsFromDb.micronets[ micronetToUpsertIndex ][ 'micronet-id' ]
+    const subnetIdToUpsert = micronetsFromDb.micronets[ micronetToUpsertIndex ][ 'micronet-subnet-id' ]
+
+    const dppDevicesToAddToMicronetPost = Object.assign ( {} , {
+      deviceName : hook.data.user.deviceName ,
+      deviceId : hook.data.bootstrap.pubkey.split ( '+' )[ 0 ] ,
+      macAddress : hook.data.bootstrap.mac ,
+      onboardType : DPP_ON_BOARD_TYPE ,
+      onboardStatus : START_ON_BOARD
+    } )
+
+    const dppDevicesToAddToDhcpPost = Object.assign ( {} , {
+      "micronets" : [
         {
-          "device-name": hook.data.user.deviceName,
-          "device-id": hook.data.bootstrap.pubkey.split('+')[0],
-          "device-mac" : hook.data.bootstrap.mac
+          "connected-devices" : [
+            {
+              "device-name" : hook.data.user.deviceName ,
+              "device-id" : hook.data.bootstrap.pubkey.split ( '+' )[ 0 ] ,
+              "device-mac" : hook.data.bootstrap.mac
+            }
+          ]
         }
       ]
-    }
-  ]})
+    } )
 
-  logger.debug('\n DPP DEVICES TO ADD TO MICRONET : ' + JSON.stringify(dppDevicesToAddToMicronet))
-  const postBodyForODL = await addDevicesInSubnet ( hook , micronetToUpsertId , subnetToUpsertId , dppDevicesToAddToMicronet )
-  logger.debug('\n DPP Post Body for ODL : ' + JSON.stringify(postBodyForODL))
-  const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL , Object.assign({},{ micronetId: micronetToUpsertId , subnetId:  subnetToUpsertId, subscriberId: data.subscriberId })  )
-  logger.debug('\n DPP ODL Response : ' + JSON.stringify(odlResponse))
-  if ( odlResponse.status == 201 && odlResponse.data ) {
-    const patchResult = await hook.app.service (`${MICRONETS_PATH}`).patch ( data.subscriberId ,
-      {
-        micronets : odlResponse.data.micronets
-      } );
-    logger.debug('\n\n Add Device to subnet response : ' + JSON.stringify(patchResult))
-    if ( patchResult ) {
-      logger.debug('\n DPP DEVICES TO ADD TO DHCP : ' + JSON.stringify(dppDhcpDevicesToAdd))
-      const addedDhcpDevices = await addDhcpDevices ( hook , dppDhcpDevicesToAdd , micronetToUpsertId , subnetToUpsertId )
+    logger.debug ( '\n DPP DEVICES TO ADD TO MICRONET : ' + JSON.stringify ( dppDevicesToAddToMicronetPost ) )
+    const postBodyForODL = await addDevicesInSubnet ( hook , micronetIdToUpsert , subnetIdToUpsert , dppDevicesToAddToMicronetPost )
+    logger.debug ( '\n DPP Post Body for ODL : ' + JSON.stringify ( postBodyForODL ) )
+    const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL , Object.assign ( {} , {
+      micronetId : micronetIdToUpsert ,
+      subnetId : subnetIdToUpsert ,
+      subscriberId : data.subscriberId
+    } ) )
+    logger.debug ( '\n DPP ODL Response : ' + JSON.stringify ( odlResponse ) )
+    if ( odlResponse.status == 201 && odlResponse.data ) {
+      const patchResult = await hook.app.service ( `${MICRONETS_PATH}` ).patch ( data.subscriberId ,
+        {
+          micronets : odlResponse.data.micronets
+        } );
+      logger.debug ( '\n\n Add Device to subnet response : ' + JSON.stringify ( patchResult ) )
+      if ( patchResult ) {
+        logger.debug ( '\n DPP DEVICES TO ADD TO DHCP : ' + JSON.stringify ( dppDevicesToAddToDhcpPost ) )
+        const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
+      }
     }
-    //  hook.result = patchResult
-    // return Promise.resolve ( hook );
+
+    // PUT request to onboard device
+    const { gatewayUrl } = hook.app.get('mano')
+    const deviceId = hook.data.bootstrap.pubkey.split ( '+' )[ 0 ]
+    const gatewayPutBody = Object.assign({},{
+      dpp: {
+        uri: hook.data.bootstrap.uri,
+        akms: ["psk"]
+      }
+    })
+    let emitterResult = ''
+    const onBoardPutReqUrl  = `${gatewayUrl}/${subnetIdToUpsert}/devices/${deviceId}/onboard`
+    logger.debug('\n gatewayUrl : ' + JSON.stringify(gatewayUrl) + '\t\t deviceId : ' + JSON.stringify(deviceId) + '\t\t\t gatewayPutBody : ' + JSON.stringify(gatewayPutBody) + '\t\t\t onBoardPutReqUrl : ' + JSON.stringify(onBoardPutReqUrl))
+    const onBoardResponse = await axios.put (`${onBoardPutReqUrl}` ,  gatewayPutBody)
+    logger.debug('\n On Board Response data : ' + JSON.stringify(onBoardResponse.data) + '\t\t status : ' + JSON.stringify(onBoardResponse.status))
+     if(onBoardResponse.data && onBoardResponse.status == 200) {
+      return Promise.resolve(hook)
+     }
+      await dw.eventEmitter.on ( DPPOnboardingStartedEvent , async ( message ) => {
+        logger.debug('\n\n DPP Hook Event ' + JSON.stringify(`${DPPOnboardingStartedEvent}`) + '\t\t\t Message : ' + JSON.stringify(message))
+      } )
+      dw.eventEmitter.on ( DPPOnboardingProgressEvent , async ( message ) => {
+        logger.debug('\n\n DPP Hook Event ' + JSON.stringify(`${DPPOnboardingProgressEvent}`) + '\t\t\t Message : ' + JSON.stringify(message))
+      } )
+      await dw.eventEmitter.on ( DPPOnboardingFailedEvent , async ( message ) => {
+        logger.debug('\n\n DPP Hook Event ' + JSON.stringify(`${DPPOnboardingFailedEvent}`) + '\t\t\t Message : ' + JSON.stringify(message))
+        const { body : { DPPOnboardingFailedEvent : { deviceId , macAddress, micronetId, reason } }} = message
+        emitterResult =  Object.assign({},{
+          subscriberId: hook.data.subscriberId,
+          deviceId: deviceId,
+          events: [ Object.assign({},{
+            type: 'DPPOnboardingFailedEvent',
+            macAddress: macAddress,
+            micronetId: micronetId,
+            reason: reason,
+            createdAt: Date.now()
+          })]
+        })
+        logger.debug('\n DPPOnboardingFailedEvent Emitter result : ' + JSON.stringify(emitterResult))
+      } )
+     await dw.eventEmitter.on ( DPPOnboardingCompleteEvent  , async ( message ) => {
+      logger.debug('\n\n DPP Hook Event ' + JSON.stringify(`${DPPOnboardingCompleteEvent}`) + '\t\t\t Message : ' + JSON.stringify(message))
+       const { body : { DPPOnboardingCompleteEvent : { deviceId , macAddress, micronetId, reason } }} = message
+       emitterResult = Object.assign({},{
+        subscriberId: hook.data.subscriberId,
+        deviceId: deviceId,
+        events: [ Object.assign({},{
+          type: 'DPPOnboardingCompleteEvent',
+          macAddress: macAddress,
+          micronetId: micronetId,
+          reason: reason,
+          createdAt: Date.now()
+        })]
+      })
+       logger.debug('\n DPPOnboardingCompleteEvent Emitter result : ' + JSON.stringify(emitterResult))
+    } )
+
+    // waitForFirst(DPPOnboardingProgressEvent, dw.eventEmitter, (data)=> {
+    //   logger.debug('\n testing waitForFirst DPPOnboardingProgressEvent data ' + JSON.stringify(data))
+    // })
+
   }
-
-  // PUT request to onboard device
-
+  logger.debug('\n Emitter result : ' + JSON.stringify(emitterResult))
+  return emitterResult
 }
 
 
@@ -195,16 +269,37 @@ module.exports = {
         if ( requestUrl == DPP_ONBOARD ) {
           logger.debug ( '\n\n MM DPP ONBOARD PATH ... ' + JSON.stringify ( requestUrl ) + '\t\t DATA : ' + JSON.stringify ( data ) )
           if ( validateDppRequest ( hook ) ) {
+            const allUsers = await hook.app.service ( `${USERS_PATH}` ).find({})
+
+            if( allUsers.data.length == 0) {
+              logger.debug('\n No user present.Create default user .... ')
+              const { msoPortalUrl } = hook.app.get('mano')
+              let subscriber  =  await axios.get(`${msoPortalUrl}/portal/v1/subscriber/${hook.data.subscriberId}`)
+              subscriber = subscriber.data
+              logger.debug('\n\n Subscriber from MSO Portal : ' + JSON.stringify(subscriber))
+              const userPostBody =  Object.assign({},{
+                id: subscriber.id,
+                name: subscriber.name,
+                ssid: subscriber.ssid,
+                devices: []
+              })
+              logger.debug('\n\n msoPortalUrl : ' + JSON.stringify(msoPortalUrl) + '\t\t userPostBody  : ' + JSON.stringify(userPostBody))
+               const user = await hook.app.service(`${USERS_PATH}`).create(userPostBody)
+            }
             const users = await hook.app.service ( `${USERS_PATH}` ).get ( data.subscriberId )
             logger.debug ( '\n Current devices for subscriber : ' + JSON.stringify ( users ) )
             const dppOnboardDeviceIndex = users.devices.findIndex ( ( device ) => device.macAddress == data.bootstrap.mac )
             logger.debug ( '\n dppOnboardDeviceIndex  : ' + JSON.stringify ( dppOnboardDeviceIndex ) )
             if ( dppOnboardDeviceIndex == -1 ) {
               logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t not present. Onboarding device ... ' )
-              await onboardDppDevice ( hook )
+              const dppResult = await onboardDppDevice ( hook )
+              logger.debug('\n DPP RESULT : ' + JSON.stringify(dppResult))
+              hook.result = dppResult
+              return Promise.resolve(hook)
             }
             else {
               logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t present. Do nothing ... ' )
+              return Promise.resolve(hook)
             }
 
           }

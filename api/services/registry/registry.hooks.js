@@ -105,6 +105,8 @@ module.exports = {
               micronets : []
             } ) )
 
+            // TODO : Create default user
+
             const micronet = await hook.app.service ( `${MICRONETS_PATH}` ).find ()
             logger.debug ( '\n Default micronet for subscriber  : ' + JSON.stringify ( micronet ) )
 
