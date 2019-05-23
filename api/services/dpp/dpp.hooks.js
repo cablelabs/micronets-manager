@@ -1,4 +1,5 @@
 var axios = require ( 'axios' );
+const omit = require ( 'ramda/src/omit' );
 const logger = require ( './../../logger' );
 const paths = require ( './../../hooks/servicePaths' )
 const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH  } = paths
@@ -15,9 +16,13 @@ const DPPOnboardingStartedEvent = 'DPPOnboardingStartedEvent'
 const DPPOnboardingProgressEvent = 'DPPOnboardingProgressEvent'
 const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
 const DPPOnboardingCompleteEvent = 'DPPOnboardingCompleteEvent'
-const waitForFirst = require('wait-for-event').waitForFirst;
-
 const dw = require ( './../../hooks/dhcpWrapperPromise' )
+const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v' ] );
+
+
+const waitForOnBoardingEvents = async(hook) => {
+  logger.debug('\n waitForOnBoardingEvents')
+}
 
 const generateDevicePSK = async ( hook , len ) => {
   // A 32-bit PSK (64 hex digits) hex-encoded WPA key or 6-63 character ASCII password
@@ -39,8 +44,9 @@ const getMudUri = async(hook) => {
   const {bootstrap, user, device} = data
   const { registryUrl } = hook.app.get('mud')
   const dppRegistryMudUrl = `${registryUrl}/${bootstrap.vendor}/${bootstrap.pubkey}`
-  logger.debug('\n DPP MUD REGISTRY URL ' +JSON.stringify(dppRegistryMudUrl))
-  // const dppMudUrl = await axios.get(dppRegistryMudUrl) // TODO: Request returns 404
+  const encodedMudUrl = encodeURIComponent(dppRegistryMudUrl)
+  logger.debug('\n DPP MUD REGISTRY URL ' +JSON.stringify(dppRegistryMudUrl) + '\t\t encodedMudUrl : ' + JSON.stringify(encodedMudUrl))
+  // const dppMudUrl = await axios.get(encodedMudUrl) // TODO: Request returns 404
   const dppMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
   logger.debug('\n DPP MUD URL : ' + JSON.stringify(dppMudUrl))
   return dppMudUrl
@@ -204,55 +210,43 @@ const onboardDppDevice = async(hook) => {
     logger.debug('\n gatewayUrl : ' + JSON.stringify(gatewayUrl) + '\t\t deviceId : ' + JSON.stringify(deviceId) + '\t\t\t gatewayPutBody : ' + JSON.stringify(gatewayPutBody) + '\t\t\t onBoardPutReqUrl : ' + JSON.stringify(onBoardPutReqUrl))
     const onBoardResponse = await axios.put (`${onBoardPutReqUrl}` ,  gatewayPutBody)
     logger.debug('\n On Board Response data : ' + JSON.stringify(onBoardResponse.data) + '\t\t status : ' + JSON.stringify(onBoardResponse.status))
-     if(onBoardResponse.data && onBoardResponse.status == 200) {
+
+
+    // if(onBoardResponse.data && onBoardResponse.status == 200) {
+    //  // return Promise.resolve(hook)
+    // }
+
+    await dw.eventEmitter.on ( DPPOnboardingStartedEvent , async ( message ) => {
+      logger.debug('\n\n DPP Event ' + JSON.stringify(`${DPPOnboardingStartedEvent}`) + '\t\t\t EventData : ' + JSON.stringify(message))
+    })
+
+    await dw.eventEmitter.on ( DPPOnboardingProgressEvent , async ( message ) => {
+      logger.debug('\n\n DPP Event ' + JSON.stringify(`${DPPOnboardingProgressEvent}`) + '\t\t\t EventData : ' + JSON.stringify(message))
+    })
+
+    await dw.eventEmitter.on ( DPPOnboardingFailedEvent , async ( message ) => {
+      logger.debug ( '\n\n DPP Event ' + JSON.stringify ( `${DPPOnboardingFailedEvent}` ) + '\t\t\t EventData : ' + JSON.stringify ( message ) )
+      logger.debug ( '\n\n DPP Hook Event ' + JSON.stringify ( `${DPPOnboardingFailedEvent}` ) + '\t\t\t Message : ' + JSON.stringify ( message ) )
+      const { body : { DPPOnboardingFailedEvent : { deviceId , macAddress , micronetId , reason } } } = message
+      emitterResult = Object.assign ( {} , {
+        subscriberId : hook.data.subscriberId ,
+        deviceId : deviceId ,
+        events : [ Object.assign ( {} , {
+          type : 'DPPOnboardingFailedEvent' ,
+          macAddress : macAddress ,
+          micronetId : micronetId ,
+          reason : reason ,
+          createdAt : Date.now ()
+        } ) ]
+      } )
+      hook.result = Object.assign({}, emitterResult)
       return Promise.resolve(hook)
-     }
-      await dw.eventEmitter.on ( DPPOnboardingStartedEvent , async ( message ) => {
-        logger.debug('\n\n DPP Hook Event ' + JSON.stringify(`${DPPOnboardingStartedEvent}`) + '\t\t\t Message : ' + JSON.stringify(message))
-      } )
-      dw.eventEmitter.on ( DPPOnboardingProgressEvent , async ( message ) => {
-        logger.debug('\n\n DPP Hook Event ' + JSON.stringify(`${DPPOnboardingProgressEvent}`) + '\t\t\t Message : ' + JSON.stringify(message))
-      } )
-      await dw.eventEmitter.on ( DPPOnboardingFailedEvent , async ( message ) => {
-        logger.debug('\n\n DPP Hook Event ' + JSON.stringify(`${DPPOnboardingFailedEvent}`) + '\t\t\t Message : ' + JSON.stringify(message))
-        const { body : { DPPOnboardingFailedEvent : { deviceId , macAddress, micronetId, reason } }} = message
-        emitterResult =  Object.assign({},{
-          subscriberId: hook.data.subscriberId,
-          deviceId: deviceId,
-          events: [ Object.assign({},{
-            type: 'DPPOnboardingFailedEvent',
-            macAddress: macAddress,
-            micronetId: micronetId,
-            reason: reason,
-            createdAt: Date.now()
-          })]
-        })
-        logger.debug('\n DPPOnboardingFailedEvent Emitter result : ' + JSON.stringify(emitterResult))
-      } )
-     await dw.eventEmitter.on ( DPPOnboardingCompleteEvent  , async ( message ) => {
-      logger.debug('\n\n DPP Hook Event ' + JSON.stringify(`${DPPOnboardingCompleteEvent}`) + '\t\t\t Message : ' + JSON.stringify(message))
-       const { body : { DPPOnboardingCompleteEvent : { deviceId , macAddress, micronetId, reason } }} = message
-       emitterResult = Object.assign({},{
-        subscriberId: hook.data.subscriberId,
-        deviceId: deviceId,
-        events: [ Object.assign({},{
-          type: 'DPPOnboardingCompleteEvent',
-          macAddress: macAddress,
-          micronetId: micronetId,
-          reason: reason,
-          createdAt: Date.now()
-        })]
-      })
-       logger.debug('\n DPPOnboardingCompleteEvent Emitter result : ' + JSON.stringify(emitterResult))
-    } )
+    })
 
-    // waitForFirst(DPPOnboardingProgressEvent, dw.eventEmitter, (data)=> {
-    //   logger.debug('\n testing waitForFirst DPPOnboardingProgressEvent data ' + JSON.stringify(data))
-    // })
-
+    await dw.eventEmitter.on ( DPPOnboardingCompleteEvent , async ( message ) => {
+      logger.debug('\n\n DPP Event ' + JSON.stringify(`${DPPOnboardingCompleteEvent}`) + '\t\t\t EventData : ' + JSON.stringify(message))
+    })
   }
-  logger.debug('\n Emitter result : ' + JSON.stringify(emitterResult))
-  return emitterResult
 }
 
 
@@ -271,7 +265,7 @@ module.exports = {
           if ( validateDppRequest ( hook ) ) {
             const allUsers = await hook.app.service ( `${USERS_PATH}` ).find({})
 
-            if( allUsers.data.length == 0) {
+            if(allUsers.data.length == 0) {
               logger.debug('\n No user present.Create default user .... ')
               const { msoPortalUrl } = hook.app.get('mano')
               let subscriber  =  await axios.get(`${msoPortalUrl}/portal/v1/subscriber/${hook.data.subscriberId}`)
@@ -286,12 +280,13 @@ module.exports = {
               logger.debug('\n\n msoPortalUrl : ' + JSON.stringify(msoPortalUrl) + '\t\t userPostBody  : ' + JSON.stringify(userPostBody))
                const user = await hook.app.service(`${USERS_PATH}`).create(userPostBody)
             }
+
             const users = await hook.app.service ( `${USERS_PATH}` ).get ( data.subscriberId )
             logger.debug ( '\n Current devices for subscriber : ' + JSON.stringify ( users ) )
             const dppOnboardDeviceIndex = users.devices.findIndex ( ( device ) => device.macAddress == data.bootstrap.mac )
             logger.debug ( '\n dppOnboardDeviceIndex  : ' + JSON.stringify ( dppOnboardDeviceIndex ) )
             if ( dppOnboardDeviceIndex == -1 ) {
-              logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t not present. Onboarding device ... ' )
+              logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t not present. On-boarding device ... ' )
               const dppResult = await onboardDppDevice ( hook )
               logger.debug('\n DPP RESULT : ' + JSON.stringify(dppResult))
               hook.result = dppResult
@@ -301,11 +296,9 @@ module.exports = {
               logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t present. Do nothing ... ' )
               return Promise.resolve(hook)
             }
-
           }
         }
       }
-
     ] ,
     update : [] ,
     patch : [] ,
@@ -316,7 +309,11 @@ module.exports = {
     all : [] ,
     find : [] ,
     get : [] ,
-    create : [] ,
+    create : [
+      async(hook) => {
+
+      }
+    ] ,
     update : [] ,
     patch : [] ,
     remove : []
