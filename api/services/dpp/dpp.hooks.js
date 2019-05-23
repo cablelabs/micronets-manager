@@ -294,6 +294,7 @@ module.exports = {
             }
             else {
               logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t present. Do nothing ... ' )
+              hook.result = Object.assign({},{message: `Device ${data.bootstrap.mac} on-boarded already`})
               return Promise.resolve(hook)
             }
           }
