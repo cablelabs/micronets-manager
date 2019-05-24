@@ -9,7 +9,8 @@ const dw = require ( './hooks/dhcpWrapperPromise' )
 const DPPOnboardingStartedEvent = 'DPPOnboardingStartedEvent'
 const DPPOnboardingProgressEvent = 'DPPOnboardingProgressEvent'
 const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
-
+const paths = require ( './hooks/servicePaths' )
+const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH, REGISTRY_PATH  } = paths
 
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
@@ -17,7 +18,7 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 
 server.on ( 'listening' , async () => {
   logger.info ('Feathers application started on ' + JSON.stringify(`http://${app.get('host')}:${app.get('port')}`))
-  let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
+  let registry = await app.service ( `${REGISTRY_PATH}` ).find ( {} )
   const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
 
   // Create default registry on bootup of micronets-manager
@@ -33,7 +34,7 @@ server.on ( 'listening' , async () => {
       msoPortalUrl: mano.msoPortalUrl,
       gatewayId: `default-gw-${mano.subscriberId}`
     })
-    const result = await app.service ( '/mm/v1/micronets/registry' ).create ( postRegistry )
+    const result = await app.service ( `${REGISTRY_PATH}`).create ( postRegistry )
     if(result.data) {
       logger.debug('\n Default registry on instantiation : ' + JSON.stringify(result.data))
     }
@@ -66,7 +67,7 @@ server.on ( 'listening' , async () => {
 
 io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )
 
-app.service ('/mm/v1/micronets/registry').on('gatewayReconnect', async( data ) => {
+app.service (`${REGISTRY_PATH}`).on('gatewayReconnect', async( data ) => {
   if(data.data.hasOwnProperty('webSocketUrl')) {
     logger.debug('\n Gateway Reconnect event fired for url : ' + JSON.stringify(data.data.webSocketUrl))
     await dw.setAddress ( data.data.webSocketUrl );
@@ -78,65 +79,72 @@ app.service ('/mm/v1/micronets/registry').on('gatewayReconnect', async( data ) =
 })
 
 async function upsertDeviceLeaseStatus ( message , type ) {
+  const { subscriberId } = app.get('mano')
   logger.info ( '\n DeviceLease message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
   const eventDeviceId = isLeaseAcquired ? message.body.leaseAcquiredEvent.deviceId : message.body.leaseExpiredEvent.deviceId
-  let user = await app.service ( '/mm/v1/micronets/users' ).find ( {} )
-  user = user.data[ 0 ]
-  const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
-  const updatedDevice = Object.assign ( {} ,
-    {
-      ...user.devices[ deviceIndex ] ,
-      deviceLeaseStatus : isLeaseAcquired ? 'positive' : 'intermediary'
-    } )
-  user.devices[ deviceIndex ] = updatedDevice
-  const updateResult = await app.service ( '/mm/v1/micronets/users' ).update ( user.id , Object.assign ( {} , {
-    id : user.id ,
-    name : user.name ,
-    ssid : user.ssid ,
-    devices : user.devices
-  } ) )
-  return updateResult
+  let users = await app.service ( `${USERS_PATH}` ).find ( {} )
+  const userIndex = users.data.findIndex((user)=> user.id == subscriberId)
+  if(userIndex > -1) {
+    const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
+    const updatedDevice = Object.assign ( {} ,
+      {
+        ...user.devices[ deviceIndex ] ,
+        deviceLeaseStatus : isLeaseAcquired ? 'positive' : 'intermediary'
+      } )
+    user.devices[ deviceIndex ] = updatedDevice
+    const updateResult = await app.service (`${USERS_PATH}`).update ( user.id , Object.assign ( {} , {
+      id : user.id ,
+      name : user.name ,
+      ssid : user.ssid ,
+      devices : user.devices
+    } ) )
+    return updateResult
+  }
 }
 
 async function upsertDppDeviceOnboardStatus ( message , type ) {
+  const { subscriberId } = app.get('mano')
   let eventDeviceId = '' , eventMacAddress = '', eventMicronetId = ''
     logger.info ( '\n Dpp Onboard message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
     const isOnBoardComplete = type == 'DPPOnboardingCompleteEvent' ? true : false
     const isOnBoardFailed = type == 'DPPOnboardingFailedEvent' ? true : false
     logger.debug('\n isOnBoardComplete : ' + JSON.stringify(isOnBoardComplete) + '\t\t isOnBoardFailed : ' + JSON.stringify(isOnBoardFailed))
-  let user = await app.service ( '/mm/v1/micronets/users' ).find ( {} )
-  user = user.data[ 0 ]
-  logger.debug('\n  user : ' + JSON.stringify(user))
-    if(isOnBoardComplete) {
-      const {deviceId, macAddress, micronetId} =  message.body.DPPOnboardingCompleteEvent
+  let users = await app.service (`${USERS_PATH}`).find ( {} )
+  const userIndex = users.data.findIndex((user)=> user.id == subscriberId)
+  if(userIndex > -1) {
+    let user = users.data[ userIndex ]
+    logger.debug ( '\n  user : ' + JSON.stringify ( user ) )
+    if ( isOnBoardComplete ) {
+      const { deviceId , macAddress , micronetId } = message.body.DPPOnboardingCompleteEvent
       eventDeviceId = deviceId
       eventMicronetId = micronetId
       eventMacAddress = macAddress
     }
 
-  if(isOnBoardFailed) {
-    const {  deviceId, macAddress, micronetId} =  message.body.DPPOnboardingFailedEvent
-    eventDeviceId = deviceId
-    eventMicronetId = micronetId
-    eventMacAddress = macAddress
-  }
+    if ( isOnBoardFailed ) {
+      const { deviceId , macAddress , micronetId } = message.body.DPPOnboardingFailedEvent
+      eventDeviceId = deviceId
+      eventMicronetId = micronetId
+      eventMacAddress = macAddress
+    }
     const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
     const updatedDevice = Object.assign ( {} ,
-    {
-      ...user.devices[ deviceIndex ] ,
-      deviceLeaseStatus : isOnBoardComplete ? 'positive' : isOnBoardFailed ? 'negative': 'intermediary',
-      onboardStatus: isOnBoardComplete ? 'complete' : isOnBoardFailed ? 'failed' :  'initial',
-      micronetId: eventMicronetId
-    } )
-   user.devices[ deviceIndex ] = updatedDevice
-   const updateResult = await app.service ( '/mm/v1/micronets/users' ).update ( user.id , Object.assign ( {} , {
-    id : user.id ,
-    name : user.name ,
-    ssid : user.ssid ,
-    devices : user.devices
-  } ) )
-  return updateResult
+      {
+        ...user.devices[ deviceIndex ] ,
+        deviceLeaseStatus : isOnBoardComplete ? 'positive' : isOnBoardFailed ? 'negative' : 'intermediary' ,
+        onboardStatus : isOnBoardComplete ? 'complete' : isOnBoardFailed ? 'failed' : 'initial' ,
+        micronetId : eventMicronetId
+      } )
+    user.devices[ deviceIndex ] = updatedDevice
+    const updateResult = await app.service ( `${USERS_PATH}` ).update ( user.id , Object.assign ( {} , {
+      id : user.id ,
+      name : user.name ,
+      ssid : user.ssid ,
+      devices : user.devices
+    } ) )
+    return updateResult
+  }
 }
 
 
@@ -158,7 +166,7 @@ dw.eventEmitter.on ( 'DPPOnboardingProgressEvent' , async ( message ) => {
 
 dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
   io.emit('DPPOnboardingCompleteEvent', message)
-  await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingCompleteEvent' )
+  await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingCompleteEvent')
 } )
 
 dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
