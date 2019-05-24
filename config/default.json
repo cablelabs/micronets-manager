@@ -52,6 +52,7 @@
   "mud" : {
     "url": "http://dev.mud-manager-api.micronets.in:8888/getFlowRules",
     "version": "1.1",
-    "registryUrl": "https://registry.micronets.in/mud/v1/mud-url"
+    "registryUrl": "https://registry.micronets.in/mud/v1/mud-url",
+    "registerDeviceUrl": "https://registry.micronets.in/mud/v1/register-device"
   }
 }

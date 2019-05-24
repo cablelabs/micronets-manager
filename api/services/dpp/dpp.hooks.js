@@ -18,12 +18,18 @@ const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
 const DPPOnboardingCompleteEvent = 'DPPOnboardingCompleteEvent'
 const dw = require ( './../../hooks/dhcpWrapperPromise' )
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v' ] );
-
+var child_process = require('child_process');
 
 const generateDevicePSK = async ( hook , len ) => {
   // A 32-bit PSK (64 hex digits) hex-encoded WPA key or 6-63 character ASCII password
   let length = len ? len : 64
   return random.RandomHax ( length )
+}
+
+const runCurlCmd = async(hook,cmd) => {
+  var resp = child_process.execSync(cmd);
+  var result = resp.toString('UTF8');
+  return result;
 }
 
 const micronetExistsCheck = async(hook) => {
@@ -38,14 +44,23 @@ const micronetExistsCheck = async(hook) => {
 const getMudUri = async(hook) => {
   const { data } = hook
   const {bootstrap, user, device} = data
-  const { registryUrl } = hook.app.get('mud')
+  const { registryUrl, registerDeviceUrl } = hook.app.get('mud')
+  const registerDevice = `${registerDeviceUrl}/${bootstrap.vendor}/${device.modelUID}/${bootstrap.pubkey}`
   const dppRegistryMudUrl = `${registryUrl}/${bootstrap.vendor}/${bootstrap.pubkey}`
-  const encodedMudUrl = encodeURIComponent(dppRegistryMudUrl)
-  logger.debug('\n DPP MUD REGISTRY URL ' +JSON.stringify(dppRegistryMudUrl) + '\t\t encodedMudUrl : ' + JSON.stringify(encodedMudUrl))
-  // const dppMudUrl = await axios.get(encodedMudUrl) // TODO: Request returns 404
-  const dppMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
-  logger.debug('\n DPP MUD URL : ' + JSON.stringify(dppMudUrl))
-  return dppMudUrl
+  logger.debug('\n Register Device Url : ' + JSON.stringify(registerDevice) + '\t\t  MudUrl ' +JSON.stringify(dppRegistryMudUrl))
+
+  // Register device
+  const registerDeviceCurl = `curl -L -X POST \"${registerDevice}\"`
+  const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
+  console.log(registerDeviceRes);
+
+  // Get MUD URL
+  const getMudUrlCurl = `curl -L -X GET \"${dppRegistryMudUrl}\"`
+  const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
+  console.log(getMudUrlRes);
+ //  const dppMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
+ // logger.debug('\n DPP MUD URL : ' + (dppMudUrl))
+  return getMudUrlRes
 }
 
 const validateDppRequest = async(hook) => {
