@@ -4,27 +4,20 @@ const compress = require('compression');
 const helmet = require('helmet');
 const cors = require('cors');
 const logger = require('./logger');
-
 const feathers = require('@feathersjs/feathers');
 const configuration = require('@feathersjs/configuration');
 const express = require('@feathersjs/express');
 const socketio = require('@feathersjs/socketio');
 const handler = require('@feathersjs/express/errors');
 const notFound = require('@feathersjs/errors/not-found');
-
 const middleware = require('./middleware');
 const services = require('./services');
 const appHooks = require('./app.hooks');
 const channels = require('./channels');
-
 const authentication = require('./authentication');
-
 const mongodb = require('./mongodb');
-
 const mongoose = require('./mongoose');
-
 const subnet = require('./subnet')
-
 const app = express(feathers());
 
 // Load app configuration

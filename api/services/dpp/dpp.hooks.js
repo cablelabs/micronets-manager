@@ -20,10 +20,6 @@ const dw = require ( './../../hooks/dhcpWrapperPromise' )
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v' ] );
 
 
-const waitForOnBoardingEvents = async(hook) => {
-  logger.debug('\n waitForOnBoardingEvents')
-}
-
 const generateDevicePSK = async ( hook , len ) => {
   // A 32-bit PSK (64 hex digits) hex-encoded WPA key or 6-63 character ASCII password
   let length = len ? len : 64
@@ -211,41 +207,9 @@ const onboardDppDevice = async(hook) => {
     const onBoardResponse = await axios.put (`${onBoardPutReqUrl}` ,  gatewayPutBody)
     logger.debug('\n On Board Response data : ' + JSON.stringify(onBoardResponse.data) + '\t\t status : ' + JSON.stringify(onBoardResponse.status))
 
-
     // if(onBoardResponse.data && onBoardResponse.status == 200) {
     //  // return Promise.resolve(hook)
     // }
-
-    await dw.eventEmitter.on ( DPPOnboardingStartedEvent , async ( message ) => {
-      logger.debug('\n\n DPP Event ' + JSON.stringify(`${DPPOnboardingStartedEvent}`) + '\t\t\t EventData : ' + JSON.stringify(message))
-    })
-
-    await dw.eventEmitter.on ( DPPOnboardingProgressEvent , async ( message ) => {
-      logger.debug('\n\n DPP Event ' + JSON.stringify(`${DPPOnboardingProgressEvent}`) + '\t\t\t EventData : ' + JSON.stringify(message))
-    })
-
-    await dw.eventEmitter.on ( DPPOnboardingFailedEvent , async ( message ) => {
-      logger.debug ( '\n\n DPP Event ' + JSON.stringify ( `${DPPOnboardingFailedEvent}` ) + '\t\t\t EventData : ' + JSON.stringify ( message ) )
-      logger.debug ( '\n\n DPP Hook Event ' + JSON.stringify ( `${DPPOnboardingFailedEvent}` ) + '\t\t\t Message : ' + JSON.stringify ( message ) )
-      const { body : { DPPOnboardingFailedEvent : { deviceId , macAddress , micronetId , reason } } } = message
-      emitterResult = Object.assign ( {} , {
-        subscriberId : hook.data.subscriberId ,
-        deviceId : deviceId ,
-        events : [ Object.assign ( {} , {
-          type : 'DPPOnboardingFailedEvent' ,
-          macAddress : macAddress ,
-          micronetId : micronetId ,
-          reason : reason ,
-          createdAt : Date.now ()
-        } ) ]
-      } )
-      hook.result = Object.assign({}, emitterResult)
-      return Promise.resolve(hook)
-    })
-
-    await dw.eventEmitter.on ( DPPOnboardingCompleteEvent , async ( message ) => {
-      logger.debug('\n\n DPP Event ' + JSON.stringify(`${DPPOnboardingCompleteEvent}`) + '\t\t\t EventData : ' + JSON.stringify(message))
-    })
   }
 }
 

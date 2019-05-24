@@ -58,7 +58,6 @@ module.exports = {
                 else {
                   const originalUser = data[ 0 ];
                   const foundDeviceIndex = originalUser.devices.findIndex( device =>  device.deviceId == hook.data.deviceId && device.macAddress == hook.data.macAddress && device.class == hook.data.class);
-
                   if(foundDeviceIndex >= 0 ) {
                     if(hook.data.isRegistered == true && originalUser.devices[foundDeviceIndex].isRegistered == true) {
                         return Promise.resolve(hook)

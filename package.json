@@ -75,6 +75,7 @@
     "mongodb-core": "^3.2.3",
     "mongoose": "^5.2.1",
     "nodemon": "^1.18.5",
+    "promise-events": "^0.1.4",
     "ramda": "^0.25.0",
     "random-hex-character-generator": "^0.10.1",
     "random-number": "0.0.9",

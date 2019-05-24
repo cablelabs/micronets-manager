@@ -4,6 +4,7 @@
     <div v-if="Object.keys(deviceLeases).length > 0" class="device-indicator">
       <div v-if="deviceLeases[deviceId].status == 'positive'"><status-indicator positive pulse></status-indicator></div>
       <div v-else-if="deviceLeases[deviceId].status == 'intermediary'"><status-indicator intermediary pulse></status-indicator></div>
+      <div v-else-if="deviceLeases[deviceId].status == 'negative'"><status-indicator negative pulse></status-indicator></div>
     </div>
     <div v-else="!deviceLeases[deviceId]" class="device-indicator">
       <status-indicator intermediary pulse></status-indicator>

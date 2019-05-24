@@ -27,7 +27,8 @@ module.exports = function (app) {
       mudUrl: { type: String, required:false, default: '' },
       onboardType: { type: String, required: false },
       onboardStatus: { type: String, required: false },
-      psk: { type: String, required: false  }
+      psk: { type: String, required: false  },
+      micronetId : { type: String, required: false  }
     }]
   }, {
     timestamps: true
