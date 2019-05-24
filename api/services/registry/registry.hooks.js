@@ -9,6 +9,22 @@ let allHeaders = { crossDomain: true, headers : {  'Content-type': 'application/
 const paths = require('./../../hooks/servicePaths')
 const { REGISTRY_PATH, ODL_PATH, USERS_PATH, MICRONETS_PATH } = paths
 
+const createDefaultMicronet = async(hook, result) => {
+ const subscriber = await hook.app.service(`${MICRONETS_PATH}`).find({})
+  logger.debug('\n Subscriber : ' + JSON.stringify(subscriber.data))
+  // Create default Micronet
+  if( subscriber.data.length == 0 ) {
+    logger.debug('\n Creating default micronet for result : ' + JSON.stringify(result.data))
+    return await hook.app.service ( `${MICRONETS_PATH}` ).create ( Object.assign ( {} , {
+      type : 'userCreate' ,
+      id : result.data.id ,
+      name : result.data.name ,
+      ssid : result.data.ssid ,
+      gatewayId : result.data.gatewayId ,
+      micronets : []
+    } ) )
+  }
+}
 module.exports = {
   before : {
     all : [ //authenticate('jwt')
@@ -67,7 +83,7 @@ module.exports = {
         // Create Subscriber on MSO-PORTAL
         if(hook.result.hasOwnProperty('subscriberId') && hook.result.hasOwnProperty('msoPortalUrl')) {
 
-          // Create/Register registry url for subscriber on MSO PORTAL
+          // Register registry url for subscriber on MSO PORTAL
           let register = await axios.get ( `${hook.result.msoPortalUrl}/portal/v1/register` )
           const registerIndex = register.data.data.length > 0 ? register.data.data.findIndex((register) => register.subscriberId == hook.result.subscriberId) : -1
           logger.debug ( '\n Register : ' + JSON.stringify ( register.data.data ) + '\t\t RegisterIndex : ' + JSON.stringify(registerIndex) )
@@ -100,15 +116,7 @@ module.exports = {
               } )
               const result = await axios.post ( `${hook.result.msoPortalUrl}/portal/v1/subscriber` , postSubscriberBody )
               logger.debug ( '\n Subscriber created on MSO Portal : ' + JSON.stringify ( result.data ) )
-              // Create default Micronet
-              await hook.app.service ( `${MICRONETS_PATH}` ).create ( Object.assign ( {} , {
-                type : 'userCreate' ,
-                id : result.data.id ,
-                name : result.data.name ,
-                ssid : result.data.ssid ,
-                gatewayId : result.data.gatewayId ,
-                micronets : []
-              } ) )
+              await createDefaultMicronet(hook,result)
             }
 
             if(subscriberIndex != -1){
@@ -119,20 +127,9 @@ module.exports = {
               } )
               logger.debug ( '\n Updating associated subscriber for registry ' + JSON.stringify(putSubscriberBody))
               const result = await axios.patch ( `${hook.result.msoPortalUrl}/portal/v1/subscriber/${hook.result.subscriberId}` , putSubscriberBody )
-              logger.debug ( '\n Subscriber created on MSO Portal : ' + JSON.stringify ( result.data ) )
+              logger.debug ( '\n Subscriber updated on MSO Portal : ' + JSON.stringify ( result.data ) )
+              await createDefaultMicronet(hook,result)
             }
-
-
-            // // Create default Micronet
-            // await hook.app.service ( `${MICRONETS_PATH}` ).create ( Object.assign ( {} , {
-            //   type : 'userCreate' ,
-            //   id : result.data.id ,
-            //   name : result.data.name ,
-            //   ssid : result.data.ssid ,
-            //   gatewayId : result.data.gatewayId ,
-            //   micronets : []
-            // } ) )
-
             // TODO : Create default user
 
             const micronet = await hook.app.service ( `${MICRONETS_PATH}` ).find ()
