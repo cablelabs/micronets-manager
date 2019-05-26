@@ -19,6 +19,8 @@ const DPPOnboardingCompleteEvent = 'DPPOnboardingCompleteEvent'
 const dw = require ( './../../hooks/dhcpWrapperPromise' )
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v', '_id' ] );
 var child_process = require('child_process');
+const defaultDPPMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
+
 
 const wait = function ( ms ) {
   var start = new Date().getTime();
@@ -69,12 +71,19 @@ const getMudUri = async(hook) => {
   console.log(registerDeviceRes);
 
   // Get MUD URL
-  const getMudUrlCurl = `curl -L -X GET \"${dppRegistryMudUrl}\"`
-  const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
-  console.log(getMudUrlRes);
+  if(registerDeviceRes){
+    const getMudUrlCurl = `curl -L -X GET \"${dppRegistryMudUrl}\"`
+    const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
+    console.log(getMudUrlRes);
+    return getMudUrlRes
+  }
+  else {
+    return Promise.reject(new errors.GeneralError(new Error('Error occured to obtain MUD url')))
+  }
+
  //  const dppMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
  // logger.debug('\n DPP MUD URL : ' + (dppMudUrl))
-  return getMudUrlRes
+
 }
 
 const validateDppRequest = async(hook) => {
@@ -229,6 +238,7 @@ const onboardDppDevice = async(hook) => {
   const { data } = hook
   const {bootstrap, user, device} = data
   let emitterResult = ''
+
   //Retrieve mud-uri from mud-registry using vendor and pubkey parameters
   const dppMudUrl = await getMudUri(hook)
 
