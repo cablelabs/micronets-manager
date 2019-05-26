@@ -20,6 +20,14 @@ const dw = require ( './../../hooks/dhcpWrapperPromise' )
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v', '_id' ] );
 var child_process = require('child_process');
 
+const wait = function ( ms ) {
+  var start = new Date().getTime();
+  var end = start;
+  while(end < start + ms) {
+    end = new Date().getTime();
+  }
+}
+
 const generateDevicePSK = async ( hook , len ) => {
   // A 32-bit PSK (64 hex digits) hex-encoded WPA key or 6-63 character ASCII password
   let length = len ? len : 64
@@ -133,6 +141,7 @@ const upsertOnboardingResults = async(hook,onboardingEvents) => {
     }))
   }
 }
+
 const postOnboardingResultsToMSO = async(hook) => {
   logger.debug('\n postOnboardingResultsToMSO hook.data :' + JSON.stringify(hook.data))
   const onBoardResult = await hook.app.service(`${DPP_ONBOARD}`).get(hook.data.subscriberId)
@@ -192,14 +201,10 @@ const postOnboardingResults = async(hook) => {
       }))
     }))
     const patchResult = await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
-     if(patchResult){
-      logger.debug(`\n PATCH Result for ${DPPOnboardingFailedEvent} event `)
-       hook.app.service(`${DPP_ONBOARD}`).emit('DPPOnBoardFailedEventPatch', {
-         type : 'DPPOnBoardFailedEventPatch' ,
-         data : { subscriberId : hook.data.subscriberId , deviceId : deviceId, msoUri:'' }
-       } )
-       // const postResult = await postOnboardingResultsToMSO(hook) //TODO: Figure out why posting to MSO leads to duplicate results
-    }
+      wait(7000); //7 seconds in milliseconds
+     // if(patchResult){
+       const postResult = await postOnboardingResultsToMSO(hook)
+    // }
   })
 
   await dw.eventEmitter.on ( `${DPPOnboardingCompleteEvent}` , async ( message ) => {
@@ -214,9 +219,8 @@ const postOnboardingResults = async(hook) => {
       }))
     }))
     const patchResult = await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
-    if(patchResult){
-      logger.debug(`\n PATCH Result for ${DPPOnboardingCompleteEvent} event `)
-    }
+    wait(7000); //7 seconds in milliseconds
+    const postResult = await postOnboardingResultsToMSO(hook)
   })
 
 }
@@ -349,9 +353,9 @@ const onboardDppDevice = async(hook) => {
           const onBoardResponse = await axios.put (`${onBoardPutReqUrl}` ,  gatewayPutBody)
           logger.debug('\n On Board Response data : ' + JSON.stringify(onBoardResponse.data) + '\t\t status : ' + JSON.stringify(onBoardResponse.status))
           logger.debug('\n\n Create dpp object to store stuff')
-          await postOnboardingResults(hook)
-          if(onBoardResponse.data && onBoardResponse.status == 200) {
-                 await postOnboardingResults(hook)
+          // await postOnboardingResults(hook)
+          if(onBoardResponse.status == 200) {
+            await postOnboardingResults(hook)
           }
 
         }
