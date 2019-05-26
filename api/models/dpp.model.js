@@ -10,15 +10,18 @@ module.exports = function (app) {
     _id:false,
     type: { type: String, required: true },
     macAddress: { type: String, required: true },
-    micronetId: { type: String, required: true },
-    reason: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+    micronetId: { type: String, required: true }
+  })
+
+  const device = new Schema({
+    _id:false,
+    deviceId: { type: String, required: true, unique: true },
+    events:[{ type: event, required: false }]
   })
 
   const dpp = new Schema({
-    subscriberId: { type: String, required: false },
-    deviceId: { type: String, required: false },
-    events:[{ type: event, required: false }]
+    subscriberId: { type: String, required: false, unique: true, primaryKey: true, sparse: true },
+    devices:[{ type: device, required: false }]
   }, {
     timestamps: true
   });

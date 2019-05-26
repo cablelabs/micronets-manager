@@ -148,6 +148,7 @@ async function upsertDppDeviceOnboardStatus ( message , type ) {
 }
 
 
+
 dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseAcquiredEvent' )
 } )
