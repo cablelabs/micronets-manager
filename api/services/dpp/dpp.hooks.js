@@ -2,7 +2,7 @@ var axios = require ( 'axios' );
 const omit = require ( 'ramda/src/omit' );
 const logger = require ( './../../logger' );
 const paths = require ( './../../hooks/servicePaths' )
-const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH, MSO_DPP_API_ONBOARD  } = paths
+const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH, MSO_DPP_API_ONBOARD, MSO_STATUS_PATH  } = paths
 const DPP_ONBOARD = `/${DPP_PATH}/onboard`
 const DPP_CONFIG = `/${DPP_PATH}/config`
 var random = require ( 'random-hex-character-generator' );
@@ -212,7 +212,7 @@ const postOnboardingResults = async(hook) => {
       }))
     }))
     const patchResult = await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
-      wait(7000); //7 seconds in milliseconds
+      wait(4000); //4 seconds in milliseconds
      // if(patchResult){
        const postResult = await postOnboardingResultsToMSO(hook)
     // }
@@ -230,7 +230,7 @@ const postOnboardingResults = async(hook) => {
       }))
     }))
     const patchResult = await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
-    wait(7000); //7 seconds in milliseconds
+    wait(4000); //4 seconds in milliseconds
     const postResult = await postOnboardingResultsToMSO(hook)
   })
 
@@ -385,9 +385,11 @@ const reInitializeDppOnboarding = async(hook) => {
     const dppDevices = await hook.app.service(`${DPP_PATH}`).find({})
     const dppDeviceIndex = dppDevices.data.length > 0 ? dppDevices.data.findIndex((dppDevice) => dppDevice.subscriberId == data.subscriberId) : -1
     logger.debug('\n Dpp Device Index : ' + JSON.stringify(dppDeviceIndex))
+    const { msoPortalUrl } = hook.app.get('mano')
     if(dppDeviceIndex > -1){
       await hook.app.service(`${DPP_PATH}`).remove(data.subscriberId)
       await axios.delete(`http://${hook.app.get('host')}:${hook.app.get('port')}/${MICRONETS_PATH}/${data.subscriberId}/micronets`)
+      await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}/${data.subscriberId}`)
     }
   }
 }
@@ -456,11 +458,13 @@ module.exports = {
             }
             else {
               logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t present. Do nothing ... ' )
+
               // TODO : Initiate Delete sequence and re-onboard device
-              await reInitializeDppOnboarding(hook)
-              await startDppOnBoarding(hook)
-              // hook.result = Object.assign({},{message: `Device ${data.bootstrap.mac} on-boarded already`})
-              // return Promise.resolve(hook)
+                await reInitializeDppOnboarding(hook)
+                wait(4000) // 4 seconds in milliseconds wait
+                await startDppOnBoarding(hook)
+               // hook.result = Object.assign({},{message: `Device ${data.bootstrap.mac} on-boarded already`})
+               // return Promise.resolve(hook)
             }
           }
         }

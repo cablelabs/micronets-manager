@@ -12,7 +12,8 @@ const ODL_PATH = `${API_PREFIX}/odl`
 const DHCP_PATH = `${API_PREFIX2}/dhcp/subnets`
 const GATEWAY_PATH = `${API_PREFIX}/gateway`
 const DPP_PATH =  `${API_PREFIX2}/dpp`
-const MSO_DPP_API_ONBOARD = `/${MSO_API_PREFIX}/onboarding/dpp`
+const MSO_DPP_API_ONBOARD = `${MSO_API_PREFIX}/onboarding/dpp`
+const MSO_STATUS_PATH = `${MSO_API_PREFIX}/status`
 const paths = () => {
   return {
     API_PREFIX ,
@@ -26,7 +27,8 @@ const paths = () => {
     ODL_PATH ,
     DHCP_PATH,
     DPP_PATH,
-    MSO_DPP_API_ONBOARD
+    MSO_DPP_API_ONBOARD,
+    MSO_STATUS_PATH
   }
 }
 
