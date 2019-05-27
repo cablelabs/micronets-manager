@@ -169,6 +169,8 @@ const postOnboardingResults = async(hook) => {
   const dppIndex = dpps.data.findIndex((dpp) => dpp.subscriberId == data.subscriberId)
   logger.debug('\n Dpp Index : ' + JSON.stringify(dppIndex))
   const deviceId = await getDeviceId(hook)
+
+
   await dw.eventEmitter.on ( `${DPPOnboardingStartedEvent}` , async ( message ) => {
    logger.debug(`${DPPOnboardingStartedEvent} emitted : ` + JSON.stringify(message))
     const { body: { DPPOnboardingStartedEvent : {macAddress, micronetId} }} = message
@@ -374,6 +376,61 @@ const onboardDppDevice = async(hook) => {
   }
 }
 
+const reInitializeDppOnboarding = async(hook) => {
+  const { data , params } = hook
+  const { requestHeaders , requestUrl } = params
+  logger.debug('\n reInitializeDppOnboarding data : ' + JSON.stringify(data))
+  if(data.subscriberId) {
+    logger.debug(`\n DPP Remove hook for ${data.subscriberId}`)
+    const dppDevices = await hook.app.service(`${DPP_PATH}`).find({})
+    const dppDeviceIndex = dppDevices.data.length > 0 ? dppDevices.data.findIndex((dppDevice) => dppDevice.subscriberId == data.subscriberId) : -1
+    logger.debug('\n Dpp Device Index : ' + JSON.stringify(dppDeviceIndex))
+    if(dppDeviceIndex > -1){
+      await hook.app.service(`${DPP_PATH}`).remove(data.subscriberId)
+      await axios.delete(`http://${hook.app.get('host')}:${hook.app.get('port')}/${MICRONETS_PATH}/${data.subscriberId}/micronets`)
+    }
+  }
+}
+
+const startDppOnBoarding = async(hook) => {
+  const { data , params } = hook
+  const { requestHeaders , requestUrl } = params
+  if ( validateDppRequest ( hook ) ) {
+    const {dppOnboardDeviceIndex, user } = await checkUserAndDeviceToOnboard(hook)
+    if ( dppOnboardDeviceIndex == -1 ) {
+      logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t not present. On-boarding device ... ' )
+      const dppResult = await onboardDppDevice ( hook )
+      logger.debug('\n Dpp on-boarding result : ' + JSON.stringify(dppResult))
+      hook.result = dppResult
+      return Promise.resolve(hook)
+    }
+  }
+}
+
+const checkUserAndDeviceToOnboard = async(hook) => {
+  const {data, params } = hook
+  const allUsers = await hook.app.service ( `${USERS_PATH}` ).find({})
+  if(allUsers.data.length == 0) {
+    logger.debug('\n No user present.Create default user .... ')
+    const { msoPortalUrl } = hook.app.get('mano')
+    let subscriber  =  await axios.get(`${msoPortalUrl}/portal/v1/subscriber/${hook.data.subscriberId}`)
+    subscriber = subscriber.data
+    logger.debug('\n\n Subscriber from MSO Portal : ' + JSON.stringify(subscriber))
+    const userPostBody =  Object.assign({},{
+      id: subscriber.id,
+      name: subscriber.name,
+      ssid: subscriber.ssid,
+      devices: []
+    })
+    logger.debug('\n\n msoPortalUrl : ' + JSON.stringify(msoPortalUrl) + '\t\t userPostBody  : ' + JSON.stringify(userPostBody))
+    const user = await hook.app.service(`${USERS_PATH}`).create(userPostBody)
+  }
+  const users = await hook.app.service ( `${USERS_PATH}` ).get ( data.subscriberId )
+  logger.debug ( '\n Current devices for subscriber : ' + JSON.stringify ( users ) )
+  const dppOnboardDeviceIndex = users.devices.findIndex ( ( device ) => device.macAddress == data.bootstrap.mac )
+  logger.debug ( '\n dppOnboardDeviceIndex  : ' + JSON.stringify ( dppOnboardDeviceIndex ) )
+  return Object.assign({ dppOnboardDeviceIndex: dppOnboardDeviceIndex, user: users })
+}
 
 module.exports = {
   before : {
@@ -384,44 +441,26 @@ module.exports = {
       async ( hook ) => {
         const { data , params } = hook
         const { requestHeaders , requestUrl } = params
-        logger.debug ( '\n\n MICRONETS CREATE DPP HOOK requestHeaders : ' + JSON.stringify ( requestHeaders ) + '\t\t requestUrl  : ' + JSON.stringify ( requestUrl ) )
+        logger.debug ( '\n\n Micronet DPP HOOK requestHeaders : ' + JSON.stringify ( requestHeaders ) + '\t\t requestUrl  : ' + JSON.stringify ( requestUrl ) )
+        logger.debug ( '\n\n Micronet DPP HOOK params : ' + JSON.stringify ( params ) + '\t\t data  : ' + JSON.stringify ( data ) )
         if ( requestUrl == DPP_ONBOARD ) {
           logger.debug ( '\n\n MM DPP ONBOARD PATH ... ' + JSON.stringify ( requestUrl ) + '\t\t DATA : ' + JSON.stringify ( data ) )
           if ( validateDppRequest ( hook ) ) {
-            const allUsers = await hook.app.service ( `${USERS_PATH}` ).find({})
-
-            if(allUsers.data.length == 0) {
-              logger.debug('\n No user present.Create default user .... ')
-              const { msoPortalUrl } = hook.app.get('mano')
-              let subscriber  =  await axios.get(`${msoPortalUrl}/portal/v1/subscriber/${hook.data.subscriberId}`)
-              subscriber = subscriber.data
-              logger.debug('\n\n Subscriber from MSO Portal : ' + JSON.stringify(subscriber))
-              const userPostBody =  Object.assign({},{
-                id: subscriber.id,
-                name: subscriber.name,
-                ssid: subscriber.ssid,
-                devices: []
-              })
-              logger.debug('\n\n msoPortalUrl : ' + JSON.stringify(msoPortalUrl) + '\t\t userPostBody  : ' + JSON.stringify(userPostBody))
-               const user = await hook.app.service(`${USERS_PATH}`).create(userPostBody)
-            }
-
-            const users = await hook.app.service ( `${USERS_PATH}` ).get ( data.subscriberId )
-            logger.debug ( '\n Current devices for subscriber : ' + JSON.stringify ( users ) )
-            const dppOnboardDeviceIndex = users.devices.findIndex ( ( device ) => device.macAddress == data.bootstrap.mac )
-            logger.debug ( '\n dppOnboardDeviceIndex  : ' + JSON.stringify ( dppOnboardDeviceIndex ) )
+            const {dppOnboardDeviceIndex, user } = await checkUserAndDeviceToOnboard(hook)
             if ( dppOnboardDeviceIndex == -1 ) {
               logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t not present. On-boarding device ... ' )
               const dppResult = await onboardDppDevice ( hook )
-              logger.debug('\n DPP RESULT : ' + JSON.stringify(dppResult))
+              logger.debug('\n Dpp on-boarding result : ' + JSON.stringify(dppResult))
               hook.result = dppResult
               return Promise.resolve(hook)
             }
             else {
               logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t present. Do nothing ... ' )
               // TODO : Initiate Delete sequence and re-onboard device
-              hook.result = Object.assign({},{message: `Device ${data.bootstrap.mac} on-boarded already`})
-              return Promise.resolve(hook)
+              await reInitializeDppOnboarding(hook)
+              await startDppOnBoarding(hook)
+              // hook.result = Object.assign({},{message: `Device ${data.bootstrap.mac} on-boarded already`})
+              // return Promise.resolve(hook)
             }
           }
         }

@@ -986,42 +986,6 @@ module.exports = {
             }
           }
 
-          // Reset micronet with an inital state
-         // if ( originalUrl.toString () == '/mm/v1/micronets/init' ) {
-         //    const isGtwyAlive = await isGatewayAlive ( hook )
-         //    const isOdlAlive = await isODLAlive ( hook )
-         //    const isGatewayConnected = await connectToGateway ( hook )
-         //    if ( isGtwyAlive && isGatewayConnected && isOdlAlive ) {
-         //      const postBodyForODL = await populatePostObj ( hook , body )
-         //      const odlResponse = await initializeMicronets ( hook , postBodyForODL )
-         //
-         //      /* ODL CALLS */
-         //      const { status , data } = odlResponse
-         //      if ( data && status == 201 ) {
-         //        const patchResult = await hook.app.service ( '/mm/v1/micronets' ).patch ( micronetFromDB._id ,
-         //          {
-         //            id : micronetFromDB.id ,
-         //            name : micronetFromDB.name ,
-         //            ssid : micronetFromDB.ssid ,
-         //            gatewayId : micronetFromDB.gatewayId ,
-         //            micronets : data.micronets
-         //          } ,
-         //          { query : {} , mongoose : { upsert : true } } );
-         //
-         //        if ( patchResult ) {
-         //          const dhcpSubnets = await addDhcpSubnets ( hook , body )
-         //          hook.result = patchResult
-         //          return Promise.resolve ( hook )
-         //        }
-         //        hook.result = patchResult
-         //        return Promise.resolve ( hook )
-         //      }
-         //      /* ODL CALLS */
-         //      return Promise.resolve ( hook )
-         //    }
-         //
-         //  }
-
           // Add device to existing subnet
          if ( route.hasOwnProperty('id') && route.hasOwnProperty('micronetId') ) {
             logger.debug('\n Add Device To Subnet' + JSON.stringify(route))
@@ -1148,7 +1112,7 @@ module.exports = {
       async ( hook ) => {
         const { data, params } = hook;
         const { route } = params
-        const {id, micronetId } = route
+        const { id, micronetId } = route
         logger.debug('\n  Route params  : ' + JSON.stringify(route))
 
         if ( id || (id && micronetId) ) {
