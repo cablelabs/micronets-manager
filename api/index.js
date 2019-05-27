@@ -11,16 +11,22 @@ const DPPOnboardingProgressEvent = 'DPPOnboardingProgressEvent'
 const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
 const paths = require ( './hooks/servicePaths' )
 const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH, REGISTRY_PATH  } = paths
-
+const dotenv = require('dotenv');
+dotenv.config();
+const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl, gatewayUrl} = require('./config')
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
 );
 
 server.on ( 'listening' , async () => {
   logger.info ('Feathers application started on ' + JSON.stringify(`http://${app.get('host')}:${app.get('port')}`))
+  logger.debug('\n SubscriberId from config : ' + JSON.stringify(subscriberId))
+  logger.debug('\n identityUrl from config : ' + JSON.stringify(identityUrl))
+  logger.debug('\n webSocketBaseUrl from config : ' + JSON.stringify(webSocketBaseUrl))
+
   let registry = await app.service ( `${REGISTRY_PATH}` ).find ( {} )
   const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
-
+  logger.debug('\n ')
   // Create default registry on bootup of micronets-manager
   if(registryIndex == -1 ) {
     logger.debug('\n No Registry found. Initializing Registry ... ')
