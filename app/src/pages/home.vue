@@ -49,11 +49,27 @@
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers'])
+      ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers']),
+      getSubscriberId () {
+        let subscriberId = ''
+        console.log('\n Home page mounted  : ' + JSON.stringify(window.location.href))
+        const pageUrl = window.location.href
+        if (pageUrl.indexOf('users') > -1) {
+          subscriberId = pageUrl.split('users')[1].split('/')[1]
+          console.log('The subscriberId is: ' + JSON.stringify(subscriberId))
+          console.log('SubscriberId from ENV SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
+          console.log('SubscriberId from ENV TEST_ID : ' + process.env.TEST_ID)
+        } else {
+          console.log('SubscriberId from ENV SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
+          console.log('SubscriberId from ENV TEST_ID : ' + process.env.TEST_ID)
+          subscriberId = process.env.SUBSCRIBER_ID
+        }
+        return subscriberId
+      }
     },
     mounted () {
-      const subscriberId = '7B2A-BE88-08817Z'
-      console.log('\n Home page mounted  : ' + JSON.stringify(window.location.href))
+      // const subscriberId = '9B4C-BE88-08817Z'
+      let subscriberId = this.getSubscriberId()
       this.fetchMicronets(subscriberId).then(() => {
         console.log('\n   Subscriber : ' + JSON.stringify(this.subscriber))
         console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
@@ -63,7 +79,8 @@
       })
     },
     created () {
-      const subscriberId = '7B2A-BE88-08817Z'
+      // const subscriberId = '9B4C-BE88-08817Z'
+      let subscriberId = this.getSubscriberId()
       this.fetchMicronets(subscriberId).then(() => {
         console.log('\n  Subscriber : ' + JSON.stringify(this.subscriber))
       })
