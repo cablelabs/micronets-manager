@@ -20,6 +20,7 @@ module.exports = function (app) {
   // Get our initialized service so that we can register hooks
   const service = app.service(`${servicePath}`);
   service.hooks(hooks);
+  app.use(`${servicePath}/:id/devices/:deviceId/onboard`, service);
   app.use(`${servicePath}/:id/devices/:deviceId`, service);
   app.use(`${servicePath}/:id/devices`, service);
   app.use(`${servicePath}/:id`, service);

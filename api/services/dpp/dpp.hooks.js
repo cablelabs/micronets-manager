@@ -352,6 +352,7 @@ const onboardDppDevice = async(hook) => {
 
           // PUT request to onboard device
           const { gatewayUrl } = hook.app.get('mano')
+          const mmUrl = `http://${hook.app.get('host')}:${hook.app.get('port')}`
           const deviceId = hook.data.bootstrap.pubkey.split ( '+' )[ 0 ]
           const gatewayPutBody = Object.assign({},{
             dpp: {
@@ -360,8 +361,8 @@ const onboardDppDevice = async(hook) => {
             }
           })
           let emitterResult = ''
-          const onBoardPutReqUrl  = `${gatewayUrl}/${subnetIdToUpsert}/devices/${deviceId}/onboard`
-          logger.debug('\n gatewayUrl : ' + JSON.stringify(gatewayUrl) + '\t\t deviceId : ' + JSON.stringify(deviceId) + '\t\t\t gatewayPutBody : ' + JSON.stringify(gatewayPutBody) + '\t\t\t onBoardPutReqUrl : ' + JSON.stringify(onBoardPutReqUrl))
+          const onBoardPutReqUrl  = `${mmUrl}/${subnetIdToUpsert}/devices/${deviceId}/onboard`
+          logger.debug('\n onBoardPutReqUrl : ' + JSON.stringify(onBoardPutReqUrl) + '\t\t deviceId : ' + JSON.stringify(deviceId) + '\t\t\t gatewayPutBody : ' + JSON.stringify(gatewayPutBody))
           const onBoardResponse = await axios.put (`${onBoardPutReqUrl}` ,  gatewayPutBody)
           logger.debug('\n On Board Response data : ' + JSON.stringify(onBoardResponse.data) + '\t\t status : ' + JSON.stringify(onBoardResponse.status))
           logger.debug('\n\n Create dpp object to store stuff')
