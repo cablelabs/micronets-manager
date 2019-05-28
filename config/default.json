@@ -46,7 +46,7 @@
     "subscriberId": "7B2A-BE88-08817Z",
     "identityUrl": "http://198.58.114.200:3230",
     "webSocketBaseUrl":"wss://45.79.13.134:5050/micronets/v1/ws-proxy",
-    "msoPortalUrl": "http://45.33.1.184:3210",
+    "msoPortalUrl": "http://45.79.13.192:3210",
     "gatewayUrl": "http://45.79.13.134:5000/micronets/v1/gateway/micronets"
   },
   "mud" : {
