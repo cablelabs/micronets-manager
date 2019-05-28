@@ -101,6 +101,52 @@ async function upsertDeviceLeaseStatus ( message , type ) {
   return updateResult
 }
 
+async function upsertDppDeviceOnboardStatus ( message , type ) {
+  const { subscriberId } = app.get('mano')
+  let eventDeviceId = '' , eventMacAddress = '', eventMicronetId = ''
+    logger.info ( '\n Dpp Onboard message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
+    const isOnBoardComplete = type == 'DPPOnboardingCompleteEvent' ? true : false
+    const isOnBoardFailed = type == 'DPPOnboardingFailedEvent' ? true : false
+    logger.debug('\n isOnBoardComplete : ' + JSON.stringify(isOnBoardComplete) + '\t\t isOnBoardFailed : ' + JSON.stringify(isOnBoardFailed))
+  let users = await app.service (`${USERS_PATH}`).find ( {} )
+  const userIndex = users.data.findIndex((user)=> user.id == subscriberId)
+  if(userIndex > -1) {
+    let user = users.data[ userIndex ]
+    logger.debug ( '\n  user : ' + JSON.stringify ( user ) )
+    if ( isOnBoardComplete ) {
+      const { deviceId , macAddress , micronetId } = message.body.DPPOnboardingCompleteEvent
+      eventDeviceId = deviceId
+      eventMicronetId = micronetId
+      eventMacAddress = macAddress
+    }
+
+    if ( isOnBoardFailed ) {
+      const { deviceId , macAddress , micronetId } = message.body.DPPOnboardingFailedEvent
+      eventDeviceId = deviceId
+      eventMicronetId = micronetId
+      eventMacAddress = macAddress
+    }
+    const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
+    const updatedDevice = Object.assign ( {} ,
+      {
+        ...user.devices[ deviceIndex ] ,
+        deviceLeaseStatus : isOnBoardComplete ? 'positive' : isOnBoardFailed ? 'negative' : 'intermediary' ,
+        onboardStatus : isOnBoardComplete ? 'complete' : isOnBoardFailed ? 'failed' : 'initial' ,
+        micronetId : eventMicronetId
+      } )
+    user.devices[ deviceIndex ] = updatedDevice
+    const updateResult = await app.service ( `${USERS_PATH}` ).update ( user.id , Object.assign ( {} , {
+      id : user.id ,
+      name : user.name ,
+      ssid : user.ssid ,
+      devices : user.devices
+    } ) )
+    return updateResult
+  }
+}
+
+
+
 dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseAcquiredEvent' )
 } )
@@ -108,3 +154,22 @@ dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
 dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseExpiredEvent' )
 } )
+
+dw.eventEmitter.on ( 'DPPOnboardingStartedEvent' , async ( message ) => {
+  io.emit('DPPOnboardingStartedEvent', message)
+})
+
+dw.eventEmitter.on ( 'DPPOnboardingProgressEvent' , async ( message ) => {
+  io.emit('DPPOnboardingProgressEvent', message)
+} )
+
+dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
+  io.emit('DPPOnboardingCompleteEvent', message)
+  await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingCompleteEvent')
+} )
+
+dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
+  io.emit('DPPOnboardingFailedEvent', message)
+  await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingFailedEvent' )
+})
+
