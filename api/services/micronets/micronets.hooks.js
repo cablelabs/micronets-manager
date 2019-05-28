@@ -885,12 +885,13 @@ module.exports = {
           logger.debug('\n  Event Type ' + JSON.stringify( hook.data.type) +'\t\t Event data : ' + JSON.stringify(hook.data))
           const { type , id, ssid, name, gatewayId } = hook.data
           // Create Micronets object
+          const micronets = []
           hook.data = Object.assign ( {} , {
             id : id ,
             name : name ,
             ssid : ssid ,
             gatewayId: gatewayId ,
-            micronets : []
+            micronets : micronets
           } )
           return Promise.resolve ( hook )
         }

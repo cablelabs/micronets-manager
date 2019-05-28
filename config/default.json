@@ -1,5 +1,5 @@
 {
-  "host": "10.70.17.163",
+  "host": "127.0.0.1",
   "port": 3030,
   "public": "../public/",
   "paginate": {
@@ -44,10 +44,10 @@
   },
   "mano":{
     "subscriberId": "7B2A-BE88-08817Z",
-    "identityUrl": "http://10.70.17.163:3230",
-    "webSocketBaseUrl":"wss://10.70.17.163:5050/micronets/v1/ws-proxy",
-    "msoPortalUrl": "http://10.70.17.163:3210",
-    "gatewayUrl": "http://10.70.17.163:5000/micronets/v1/gateway/micronets"
+    "identityUrl": "http://127.0.0.1:3230",
+    "webSocketBaseUrl":"wss://127.0.0.1:5050/micronets/v1/ws-proxy",
+    "msoPortalUrl": "http://127.0.0.1:3210",
+    "gatewayUrl": "http://127.0.0.1:5000/micronets/v1/gateway/micronets"
   },
   "mud" : {
     "url": "http://dev.mud-manager-api.micronets.in:8888/getFlowRules",

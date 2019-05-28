@@ -1,21 +1,22 @@
 // Initializes the `token` service on path `/token`
-const createService = require('feathers-mongodb');
+const createService = require('feathers-mongoose');
+const createModel = require('../../models/token.model');
 const hooks = require('./token.hooks');
 
 module.exports = function (app) {
+  const Model = createModel(app);
   const paginate = app.get('paginate');
-  const mongoClient = app.get('mongoClient');
-  const options = { paginate };
+
+  const options = {
+    Model,
+    paginate
+  };
 
   // Initialize our service with any options it requires
   app.use('/token', createService(options));
 
-  // Get our initialized service so that we can register hooks and filters
+  // Get our initialized service so that we can register hooks
   const service = app.service('token');
-
-  mongoClient.then(db => {
-    service.Model = db.db().collection('token');
-  });
 
   service.hooks(hooks);
 };

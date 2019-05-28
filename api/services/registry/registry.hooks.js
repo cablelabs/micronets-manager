@@ -17,15 +17,18 @@ const createDefaultMicronet = async(hook, result) => {
 
   // Create default Micronet
   if(micronetIndex == -1) {
+   const micronets = []
     logger.debug('\n Creating default micronet for result : ' + JSON.stringify(result.data))
-    return await hook.app.service ( `${MICRONETS_PATH}` ).create ( Object.assign ( {} , {
+    const postMicronetBody = Object.assign ( {} , {
       type : 'userCreate' ,
       id : result.data.id ,
       name : result.data.name ,
       ssid : result.data.ssid ,
-      gatewayId : result.data.gatewayId ,
-      micronets : []
-    } ) )
+      gatewayId : result.data.gatewayId,
+      micronets: micronets
+    } )
+
+    const micronet = await hook.app.service ( `${MICRONETS_PATH}` ).create ( postMicronetBody )
   }
 }
 module.exports = {
