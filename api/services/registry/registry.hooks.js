@@ -12,8 +12,11 @@ const { REGISTRY_PATH, ODL_PATH, USERS_PATH, MICRONETS_PATH } = paths
 const createDefaultMicronet = async(hook, result) => {
  const subscriber = await hook.app.service(`${MICRONETS_PATH}`).find({})
   logger.debug('\n Subscriber : ' + JSON.stringify(subscriber.data))
+  const micronetIndex =  subscriber.data.length > 0 ? subscriber.data.findIndex((subscriber) => subscriber.id == result.data.id) : -1
+  logger.debug('\n Micronet Index : ' + JSON.stringify(micronetIndex) + '\t\t Subscriber.data.length : ' + JSON.stringify(subscriber.data.length))
+
   // Create default Micronet
-  if( subscriber.data.length == 0 ) {
+  if(micronetIndex == -1) {
     logger.debug('\n Creating default micronet for result : ' + JSON.stringify(result.data))
     return await hook.app.service ( `${MICRONETS_PATH}` ).create ( Object.assign ( {} , {
       type : 'userCreate' ,

@@ -3,7 +3,7 @@ const logger = require ( './logger' );
 const app = require ( './app' );
 const port = app.get ( 'port' );
 const server = app.listen ( port );
-const mano = app.get('mano')
+// const mano = app.get('mano')
 const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
 const DPPOnboardingStartedEvent = 'DPPOnboardingStartedEvent'
@@ -25,27 +25,27 @@ server.on ( 'listening' , async () => {
   logger.debug('\n webSocketBaseUrl from config : ' + JSON.stringify(webSocketBaseUrl))
 
   let registry = await app.service ( `${REGISTRY_PATH}` ).find ( {} )
-  const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
-  logger.debug('\n ')
+  const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == subscriberId) : -1
+  logger.debug('\n registryIndex : ' + JSON.stringify(registryIndex))
   // Create default registry on bootup of micronets-manager
   if(registryIndex == -1 ) {
     logger.debug('\n No Registry found. Initializing Registry ... ')
-    if(mano.hasOwnProperty('subscriberId') && mano.hasOwnProperty('identityUrl') && mano.hasOwnProperty('msoPortalUrl')) {
+    if(subscriberId && identityUrl && msoPortalUrl) {
     const postRegistry = Object.assign({},{
-      subscriberId : mano.subscriberId,
-      identityUrl: mano.identityUrl,
+      subscriberId : subscriberId,
+      identityUrl: identityUrl,
       mmUrl : `http://${app.get('host')}:${app.get('port')}`,
       mmClientUrl : `http://${app.get('host')}:8080`,
-      webSocketUrl: `${mano.webSocketBaseUrl}/${mano.subscriberId}`,
-      msoPortalUrl: mano.msoPortalUrl,
-      gatewayId: `default-gw-${mano.subscriberId}`
+      webSocketUrl: `${webSocketBaseUrl}/${subscriberId}`,
+      msoPortalUrl: msoPortalUrl,
+      gatewayId: `default-gw-${subscriberId}`
     })
     const result = await app.service ( `${REGISTRY_PATH}`).create ( postRegistry )
     if(result.data) {
       logger.debug('\n Default registry on instantiation : ' + JSON.stringify(result.data))
     }
   } else {
-      throw new Error('Missing mano configuration to create default registry')
+      throw new Error('Missing .env configuration to create default registry')
     }
   }
 
@@ -60,10 +60,10 @@ server.on ( 'listening' , async () => {
   }
 
 
-  // Missing Registry. Connect to web socket url using mano configuration
-  if ( mano && mano.hasOwnProperty('webSocketBaseUrl') && mano.hasOwnProperty('subscriberId') && !(registry && registry.hasOwnProperty ( 'webSocketUrl' ))) {
-    const webSocketUrl = `${mano.webSocketBaseUrl}/${mano.subscriberId}`
-    logger.info('\n Connecting to : ' + JSON.stringify(webSocketUrl) + ' from mano configuration ' )
+  // Missing Registry. Connect to web socket url using .env configuration
+  if (webSocketBaseUrl && subscriberId && !(registry && registry.hasOwnProperty ( 'webSocketUrl' ))) {
+    const webSocketUrl = `${webSocketBaseUrl}/${subscriberId}`
+    logger.info('\n Connecting to : ' + JSON.stringify(webSocketUrl) + ' from .env configuration ' )
     await dw.setAddress ( webSocketUrl );
     await dw.connect ().then ( () => { return true } );
   }
