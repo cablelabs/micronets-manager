@@ -210,6 +210,10 @@ module.exports.close = function() {
 
 
 const convertTo = function (json, method, type, subnetId, deviceId) {
+  // console.log('\n method : ' + JSON.stringify(method))
+  // console.log('\n type : ' + JSON.stringify(type))
+  // console.log('\n subnetId : ' + JSON.stringify(subnetId))
+  // console.log('\n deviceId : ' + JSON.stringify(deviceId))
   /*
   “messageType”: “REST:REQUEST”,
    “requiresResponse”: true,
@@ -225,6 +229,12 @@ const convertTo = function (json, method, type, subnetId, deviceId) {
     path = '/micronets/v1/gateway/micronets/' + subnetId + '/devices';
     if (deviceId) {
       path = path + '/' + deviceId;
+    }
+  }
+  else if (type && type === 'onboard') {
+    path = '/micronets/v1/gateway/micronets/' + subnetId + '/devices';
+    if (deviceId) {
+      path = path + '/' + deviceId + '/onboard';
     }
   }
   else { //Assume subnets

@@ -350,7 +350,7 @@ const onboardDppDevice = async(hook) => {
         if(addedDhcpDevices.length > 0) {
           logger.debug('\n On-board device ... ')
 
-          // PUT request to onboard device
+          // PUT request to on-board device
           const { gatewayUrl } = hook.app.get('mano')
           const mmUrl = `http://${hook.app.get('host')}:${hook.app.get('port')}`
           const deviceId = hook.data.bootstrap.pubkey.split ( '+' )[ 0 ]
@@ -360,17 +360,14 @@ const onboardDppDevice = async(hook) => {
               akms: ["psk"]
             }
           })
-          let emitterResult = ''
-          const onBoardPutReqUrl  = `${mmUrl}/${subnetIdToUpsert}/devices/${deviceId}/onboard`
-          logger.debug('\n onBoardPutReqUrl : ' + JSON.stringify(onBoardPutReqUrl) + '\t\t deviceId : ' + JSON.stringify(deviceId) + '\t\t\t gatewayPutBody : ' + JSON.stringify(gatewayPutBody))
-          const onBoardResponse = await axios.put (`${onBoardPutReqUrl}` ,  gatewayPutBody)
+          // const onBoardPutReqUrl  = `${gatewayUrl}/${subnetIdToUpsert}/devices/${deviceId}/onboard`
+          //const onBoardResponse = await axios.put (`${onBoardPutReqUrl}` ,  gatewayPutBody)
+          logger.debug('\n  deviceId : ' + JSON.stringify(deviceId) + '\t\t\t gatewayPutBody : ' + JSON.stringify(gatewayPutBody))
+          const onBoardResponse =  await dw.send(Object.assign({},gatewayPutBody), 'PUT','onboard',subnetIdToUpsert, deviceId)
           logger.debug('\n On Board Response data : ' + JSON.stringify(onBoardResponse.data) + '\t\t status : ' + JSON.stringify(onBoardResponse.status))
-          logger.debug('\n\n Create dpp object to store stuff')
-          // await postOnboardingResults(hook)
           if(onBoardResponse.status == 200) {
             await postOnboardingResults(hook)
           }
-
         }
       }
     }
