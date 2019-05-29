@@ -15,7 +15,7 @@
                     {
                         "port": 3,
                         "interface": "wlp2s0",
-                        "hwtype": "wireless",
+                        "hwtype": "wifi",
                         "subnet": "10.135.1.0/24",
                         "macAddress": "2c:d0:5a:6e:ca:3c",
                         "vlanId": "0"
