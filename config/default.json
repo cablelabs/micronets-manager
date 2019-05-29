@@ -45,7 +45,7 @@
   "mano":{
     "subscriberId": "7B2A-BE88-08817Z",
     "identityUrl": "http://radius.micronets.in:3230",
-    "webSocketBaseUrl":"wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy",
+    "webSocketBaseUrl":"wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/gw",
     "msoPortalUrl": "http://45.79.13.192:3210"
 
   },
