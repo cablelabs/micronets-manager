@@ -20,7 +20,7 @@ const dw = require ( './../../hooks/dhcpWrapperPromise' )
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v', '_id' ] );
 var child_process = require('child_process');
 const defaultDPPMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
-
+const staticPSK = 'a0c7896d60f60008207629ff65e6bf755a8b76ea892c791836f5833116105da7'
 
 const wait = function ( ms ) {
   var start = new Date().getTime();
@@ -48,8 +48,6 @@ const generateDevicePSK = async ( hook , len ) => {
   logger.debug('\n Length : ' + JSON.stringify(length))
   const generatedPSK =  randHex ( length )
   logger.debug('\n Generated PSK : ' + JSON.stringify(generatedPSK))
-  const staticPSK = 'a0c7896d60f60008207629ff65e6bf755a8b76ea892c791836f5833116105da7'
-  logger.debug('\n Returning Static PSK : ' + JSON.stringify(staticPSK))
   return generatedPSK
 }
 
