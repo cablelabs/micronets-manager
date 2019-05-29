@@ -45,7 +45,7 @@ const randHex = (len) => {
 const generateDevicePSK = async ( hook , len ) => {
   // A 32-bit PSK (64 hex digits) hex-encoded WPA key or 6-63 character ASCII password
   let length = len ? len : 64
-  logger.debug('\n Length : ' + JSON.stringify(length))
+  logger.debug('\n Length of psk to generate : ' + JSON.stringify(length))
   const generatedPSK =  randHex ( length )
   logger.debug('\n Generated PSK : ' + JSON.stringify(generatedPSK))
   return generatedPSK
@@ -260,7 +260,7 @@ const onboardDppDevice = async(hook) => {
   const dppMudUrl = await getMudUri(hook)
 
   //Generate PSK for device
-  const dppDevicePsk = await generateDevicePSK(hook,'63')
+  const dppDevicePsk = await generateDevicePSK(hook, 64)
   logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk))
 
   //Add device to users api
