@@ -30,10 +30,27 @@ const wait = function ( ms ) {
   }
 }
 
+const randHex = (len) => {
+  var maxlen = 8,
+      min = Math.pow(16,Math.min(len,maxlen)-1)
+  max = Math.pow(16,Math.min(len,maxlen)) - 1,
+    n   = Math.floor( Math.random() * (max-min+1) ) + min,
+    r   = n.toString(16);
+  while ( r.length < len ) {
+    r = r + randHex( len - maxlen );
+  }
+  return r;
+};
+
 const generateDevicePSK = async ( hook , len ) => {
   // A 32-bit PSK (64 hex digits) hex-encoded WPA key or 6-63 character ASCII password
   let length = len ? len : 64
-  return random.RandomHax ( length )
+  logger.debug('\n Length : ' + JSON.stringify(length))
+  const generatedPSK =  randHex ( length )
+  logger.debug('\n Generated PSK : ' + JSON.stringify(generatedPSK))
+  const staticPSK = 'a0c7896d60f60008207629ff65e6bf755a8b76ea892c791836f5833116105da7'
+  logger.debug('\n Returning Static PSK : ' + JSON.stringify(staticPSK))
+  return generatedPSK
 }
 
 const getDeviceId = async(hook) => {
@@ -171,8 +188,8 @@ const postOnboardingResults = async(hook) => {
   const deviceId = await getDeviceId(hook)
 
 
-  await dw.eventEmitter.on ( `${DPPOnboardingStartedEvent}` , async ( message ) => {
-   logger.debug(`${DPPOnboardingStartedEvent} emitted : ` + JSON.stringify(message))
+  await dw.eventEmitter.on ( 'DPPOnboardingStartedEvent' , async ( message ) => {
+   logger.debug(`Event  ${DPPOnboardingStartedEvent} emitted : ` + JSON.stringify(message))
     const { body: { DPPOnboardingStartedEvent : {macAddress, micronetId} }} = message
     onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
        deviceId: deviceId,
@@ -186,8 +203,8 @@ const postOnboardingResults = async(hook) => {
     await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
   })
 
-  await dw.eventEmitter.on ( `${DPPOnboardingProgressEvent}` , async ( message ) => {
-    logger.debug(`${DPPOnboardingProgressEvent} emitted ... ` + JSON.stringify(message))
+  await dw.eventEmitter.on ( 'DPPOnboardingProgressEvent' , async ( message ) => {
+    logger.debug(`Event ${DPPOnboardingProgressEvent} emitted ... ` + JSON.stringify(message))
     const { body: { DPPOnboardingProgressEvent : {macAddress, micronetId} }} = message
     onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
       deviceId: deviceId,
@@ -200,8 +217,8 @@ const postOnboardingResults = async(hook) => {
     await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
   })
 
-  await dw.eventEmitter.on ( `${DPPOnboardingFailedEvent}` , async ( message ) => {
-    logger.debug(`${DPPOnboardingFailedEvent} emitted ... ` + JSON.stringify(message))
+  await dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
+    logger.debug(`Event ${DPPOnboardingFailedEvent} emitted ... ` + JSON.stringify(message))
     const { body: { DPPOnboardingFailedEvent : {macAddress, micronetId} }} = message
     onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
       deviceId: deviceId,
@@ -218,8 +235,8 @@ const postOnboardingResults = async(hook) => {
     // }
   })
 
-  await dw.eventEmitter.on ( `${DPPOnboardingCompleteEvent}` , async ( message ) => {
-    logger.debug(`${DPPOnboardingCompleteEvent} emitted ... ` + JSON.stringify(message))
+  await dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
+    logger.debug(`Event ${DPPOnboardingCompleteEvent} emitted ... ` + JSON.stringify(message))
     const { body: { DPPOnboardingCompleteEvent : {macAddress, micronetId} }} = message
     onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
       deviceId: deviceId,
@@ -386,8 +403,10 @@ const reInitializeDppOnboarding = async(hook) => {
     const { msoPortalUrl } = hook.app.get('mano')
     if(dppDeviceIndex > -1){
       await hook.app.service(`${DPP_PATH}`).remove(data.subscriberId)
+      // await hook.app.service(`${DPP_PATH}`).remove(null)
       await axios.delete(`http://${hook.app.get('host')}:${hook.app.get('port')}/${MICRONETS_PATH}/${data.subscriberId}/micronets`)
       await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}/${data.subscriberId}`)
+      // await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}`)
     }
   }
 }
