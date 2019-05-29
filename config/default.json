@@ -1,5 +1,5 @@
 {
-  "host": "45.56.76.21",
+  "host": "10.70.17.163",
   "port": 3030,
   "public": "../public/",
   "paginate": {
@@ -35,8 +35,8 @@
   "subnets": {
     "subnetMin": 10,
     "subnetMax": 254,
-    "octetA": 192,
-    "octetB": 168,
+    "octetA": 10,
+    "octetB": 135,
     "gateway": 1,
     "offset": 2,
     "ipMin": 2,
@@ -44,9 +44,9 @@
   },
   "mano":{
     "subscriberId": "7B2A-BE88-08817Z",
-    "identityUrl": "http://radius.micronets.in:3230",
-    "webSocketBaseUrl":"wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/gw",
-    "msoPortalUrl": "http://45.79.13.192:3210"
+    "identityUrl": "http://10.70.17.163:3230",
+    "webSocketBaseUrl":"wss://10.70.17.163:5050/micronets/v1/ws-proxy",
+    "msoPortalUrl": "http://10.70.17.163:3210"
 
   },
   "mud" : {
