@@ -23,6 +23,5 @@ module.exports = function (app) {
   app.use(`${servicePath}/:id/devices/:deviceId`, service);
   app.use(`${servicePath}/:id/devices`, service);
   app.use(`${servicePath}/:id`, service);
-  // app.use(`${servicePath}/:id/devices/:deviceId/onboard`, service);
 
 };

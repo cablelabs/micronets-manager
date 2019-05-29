@@ -8,51 +8,49 @@ const logger = require ( './../../logger' );
 const paths = require('./../../hooks/servicePaths')
 const { REGISTRY_PATH } = paths
 const getRegistry = async(hook,subscriberId) => {
-    const registry = await hook.app.service ( `${REGISTRY_PATH}` ).get ( subscriberId )
-    return registry
+  const registry = await hook.app.service ( `${REGISTRY_PATH}` ).get ( subscriberId )
+  return registry
 }
 
 module.exports = {
   before: {
     all: [
-       async(hook) => {
-         const mano = hook.app.get('mano')
-         const registry = await getRegistry(hook,mano.subscriberId)
-         const { webSocketUrl } = registry
-         const dhcpAddress = await dw.setAddress(webSocketUrl)
-         const dhcpConnection = await dw.connect().then(()=> {return true})
-    }
+      async(hook) => {
+        const mano = hook.app.get('mano')
+        const registry = await getRegistry(hook,mano.subscriberId)
+        const { webSocketUrl } = registry
+        const dhcpAddress = await dw.setAddress(webSocketUrl)
+        const dhcpConnection = await dw.connect().then(()=> {return true})
+      }
     ],
     find: [
       async (hook) => {
         const {params, id, data, path} = hook;
         const {route} = params
-        const { requestUrl, requestHeaders } = params
-        logger.debug('\n Request Url : ' + JSON.stringify(requestUrl))
         const subnetId = route.hasOwnProperty('id') ? route.id : id
         logger.debug('\n FIND DHCP HOOK ROUTE : ' + JSON.stringify(route) + '\t\t PARAMS : ' + JSON.stringify(params) + '\t\t PATH : ' + JSON.stringify(path) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data) )
-          // Get specific device in subnet
-          if((subnetId) && route.deviceId) {
-            logger.debug('\n Find specific device in subnet ')
-            const dhcpResponse = await dw.send({}, "GET", "device",subnetId,route.deviceId)
-            hook.result =  dhcpResponse
-            return Promise.resolve(hook)
-          }
-          // Get all devices in subnet
-          if((subnetId) )
-          {
-            logger.debug('\n Find all devices in subnet ')
-            const dhcpResponse = await dw.send({}, "GET", "device",subnetId)
-            hook.result =  dhcpResponse
-            return Promise.resolve(hook)
-          }
-          // Get specific subnet
-          if ((subnetId) ) {
-            logger.debug('\n Find specific subnet ')
-            const dhcpResponse = await dw.send({}, "GET", "subnet",subnetId)
-            hook.result =  dhcpResponse
-            return Promise.resolve(hook)
-          }
+        // Get specific device in subnet
+        if((subnetId) && route.deviceId) {
+          logger.debug('\n Find specific device in subnet ')
+          const dhcpResponse = await dw.send({}, "GET", "device",subnetId,route.deviceId)
+          hook.result =  dhcpResponse
+          return Promise.resolve(hook)
+        }
+        // Get all devices in subnet
+        if((subnetId) )
+        {
+          logger.debug('\n Find all devices in subnet ')
+          const dhcpResponse = await dw.send({}, "GET", "device",subnetId)
+          hook.result =  dhcpResponse
+          return Promise.resolve(hook)
+        }
+        // Get specific subnet
+        if ((subnetId) ) {
+          logger.debug('\n Find specific subnet ')
+          const dhcpResponse = await dw.send({}, "GET", "subnet",subnetId)
+          hook.result =  dhcpResponse
+          return Promise.resolve(hook)
+        }
         // Get all subnets
         if ((!subnetId && !route.deviceId) && path == `mm/v1/dhcp/subnets`) {
           logger.debug('\n Find all subnets ')
@@ -64,10 +62,8 @@ module.exports = {
     ],
     get: [
       async (hook) => {
-       const {params, id, data, path} = hook;
-       const {route} = params
-        const { requestUrl, requestHeaders } = params
-        logger.debug('\n Request Url : ' + JSON.stringify(requestUrl))
+        const {params, id, data, path} = hook;
+        const {route} = params
         const subnetId = route.hasOwnProperty('id') ? route.id : id
         logger.debug('\n GET HOOK Subnet ID : ' + JSON.stringify(subnetId))
         logger.debug('\n GET DHCP HOOK ROUTE : ' + JSON.stringify(route) + '\t\t PARAMS : ' + JSON.stringify(params) + '\t\t PATH : ' + JSON.stringify(path) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data) )
@@ -106,8 +102,6 @@ module.exports = {
       async (hook) => {
         const {params, id, data, method} = hook;
         const {route} = params
-        const { requestUrl, requestHeaders } = params
-        logger.debug('\n Request Url : ' + JSON.stringify(requestUrl))
         const subnetId = route.hasOwnProperty('id') ? route.id : id
         logger.debug('\n CREATE DHCP HOOK ROUTE : ' + JSON.stringify(route) + '\t\t PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data))
         if(!subnetId && !route.deviceId) {
@@ -128,18 +122,8 @@ module.exports = {
       async(hook) => {
         const { data,id,params } = hook;
         const {route} = params
-        const { requestHeaders , requestUrl } = params
-        logger.debug('\n Request Url : ' + JSON.stringify(requestUrl))
         const subnetId = route.hasOwnProperty('id') ? route.id : id
         logger.debug('\n UPDATE DHCP HOOK ROUTE : ' + JSON.stringify(route) + '\t\t PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data))
-
-        // if(requestUrl.indexOf('onboard') > -1 && subnetId && route.deviceId) {
-        //   logger.debug(`\n Onboard device ${route.deviceId} in subnet ${subnetId}`)
-        //   const dhcpResponse =  await dw.send({device:data}, 'PUT','device',subnetId, route.deviceId)
-        //   hook.result = dhcpResponse.data
-        //   return Promise.resolve(hook)
-        // }
-
         // Update existing device in subnet
         if( subnetId && route.deviceId ) {
           const dhcpResponse =  await dw.send({device:data}, 'PUT','device',subnetId, route.deviceId)
@@ -164,8 +148,6 @@ module.exports = {
       async(hook) => {
         const { data,id,params, path } = hook;
         const {route} = params
-        const { requestHeaders , requestUrl } = params
-        logger.debug('\n Request Url : ' + JSON.stringify(requestUrl))
         const subnetId = route.hasOwnProperty('id') ? route.id : id
         logger.debug('\n REMOVE DHCP HOOK ROUTE : ' + JSON.stringify(route) + '\t\t PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data))
         // Remove specific device in subnet
@@ -194,7 +176,7 @@ module.exports = {
           hook.result = dhcpResponse
           return Promise.resolve(hook)
         }
-    }
+      }
     ]
   },
 
@@ -204,7 +186,7 @@ module.exports = {
     get: [],
     create: [
       async (hook) => {
-      const { data, id, params } = hook;
+        const { data, id, params } = hook;
         const {subnet} = hook.result.body
         if(subnet) {
           hook.app.service ( '/mm/v1/dhcp/subnets' ).emit ( 'dhcpSubnetCreated' , {
