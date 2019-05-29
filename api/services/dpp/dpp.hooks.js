@@ -351,7 +351,7 @@ const onboardDppDevice = async(hook) => {
           logger.debug('\n On-board device ... ')
 
           // PUT request to on-board device
-          const { gatewayUrl } = hook.app.get('mano')
+          // const { gatewayUrl } = hook.app.get('mano')
           const mmUrl = `http://${hook.app.get('host')}:${hook.app.get('port')}`
           const deviceId = hook.data.bootstrap.pubkey.split ( '+' )[ 0 ]
           const gatewayPutBody = Object.assign({},{

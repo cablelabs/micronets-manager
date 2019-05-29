@@ -13,7 +13,7 @@ const paths = require ( './hooks/servicePaths' )
 const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH, REGISTRY_PATH  } = paths
 const dotenv = require('dotenv');
 dotenv.config();
-// const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl, gatewayUrl} = require('./config')
+// const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl} = require('./config')
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
 );
