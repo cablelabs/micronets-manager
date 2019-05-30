@@ -11,8 +11,8 @@ const DPPOnboardingProgressEvent = 'DPPOnboardingProgressEvent'
 const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
 const paths = require ( './hooks/servicePaths' )
 const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH, REGISTRY_PATH  } = paths
-const dotenv = require('dotenv');
-dotenv.config();
+// const dotenv = require('dotenv');
+// dotenv.config();
 // const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl} = require('./config')
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
@@ -25,6 +25,7 @@ server.on ( 'listening' , async () => {
   // Create default registry on bootup of micronets-manager
   if(registryIndex == -1 ) {
     logger.debug('\n No Registry found. Initializing Registry ... ')
+    logger.debug('\n Mano web socket base url : ' + JSON.stringify(mano.webSocketBaseUrl) + '\t\t MSO Portal url : ' + JSON.stringify(mano.msoPortalUrl))
     if(mano.hasOwnProperty('subscriberId') && mano.hasOwnProperty('identityUrl') && mano.hasOwnProperty('msoPortalUrl')) {
       const postRegistry = Object.assign({},{
         subscriberId : mano.subscriberId,
