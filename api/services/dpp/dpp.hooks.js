@@ -312,13 +312,14 @@ const postOnboardingResults = async(hook) => {
 
   await dw.eventEmitter.on ( 'DPPOnboardingStartedEvent' , async ( message ) => {
    logger.debug(`Event  ${DPPOnboardingStartedEvent} emitted : ` + JSON.stringify(message))
-    const { body: { DPPOnboardingStartedEvent : {macAddress, micronetId} }} = message
+    const { body: { DPPOnboardingStartedEvent : {macAddress, micronetId, reason} }} = message
     onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
        deviceId: deviceId,
        events : onboardingEvents.concat(Object.assign({},{
          type: `${DPPOnboardingStartedEvent}`,
          macAddress: macAddress,
-         micronetId: micronetId
+         micronetId: micronetId,
+         reason:reason
        }))
     }))
     logger.debug('\n onboardingDevicesWithEvents : ' + JSON.stringify(onboardingDevicesWithEvents))
@@ -327,13 +328,14 @@ const postOnboardingResults = async(hook) => {
 
   await dw.eventEmitter.on ( 'DPPOnboardingProgressEvent' , async ( message ) => {
     logger.debug(`Event ${DPPOnboardingProgressEvent} emitted ... ` + JSON.stringify(message))
-    const { body: { DPPOnboardingProgressEvent : {macAddress, micronetId} }} = message
+    const { body: { DPPOnboardingProgressEvent : {macAddress, micronetId, reason} }} = message
     onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
       deviceId: deviceId,
       events : onboardingEvents.concat(Object.assign({},{
         type: `${DPPOnboardingProgressEvent}`,
         macAddress: macAddress,
-        micronetId: micronetId
+        micronetId: micronetId,
+        reason:reason
       }))
     }))
     await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
@@ -341,13 +343,14 @@ const postOnboardingResults = async(hook) => {
 
   await dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
     logger.debug(`Event ${DPPOnboardingFailedEvent} emitted ... ` + JSON.stringify(message))
-    const { body: { DPPOnboardingFailedEvent : {macAddress, micronetId} }} = message
+    const { body: { DPPOnboardingFailedEvent : {macAddress, micronetId, reason} }} = message
     onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
       deviceId: deviceId,
       events : onboardingEvents.concat(Object.assign({},{
         type: `${DPPOnboardingFailedEvent}`,
         macAddress: macAddress,
-        micronetId: micronetId
+        micronetId: micronetId,
+        reason:reason
       }))
     }))
     const patchResult = await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
@@ -359,13 +362,14 @@ const postOnboardingResults = async(hook) => {
 
   await dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
     logger.debug(`Event ${DPPOnboardingCompleteEvent} emitted ... ` + JSON.stringify(message))
-    const { body: { DPPOnboardingCompleteEvent : {macAddress, micronetId} }} = message
+    const { body: { DPPOnboardingCompleteEvent : {macAddress, micronetId, reason} }} = message
     onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
       deviceId: deviceId,
       events : onboardingEvents.concat(Object.assign({},{
         type: `${DPPOnboardingCompleteEvent}`,
         macAddress: macAddress,
-        micronetId: micronetId
+        micronetId: micronetId,
+        reason:reason
       }))
     }))
     const patchResult = await upsertOnboardingResults(hook,onboardingDevicesWithEvents)

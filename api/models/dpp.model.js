@@ -10,7 +10,8 @@ module.exports = function (app) {
     _id:false,
     type: { type: String, required: true },
     macAddress: { type: String, required: true },
-    micronetId: { type: String, required: true }
+    micronetId: { type: String, required: true },
+    reason: { type: String, required: false }
   })
 
   const device = new Schema({
