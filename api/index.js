@@ -156,20 +156,20 @@ dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => {
 } )
 
 dw.eventEmitter.on ( 'DPPOnboardingStartedEvent' , async ( message ) => {
-  io.emit('DPPOnboardingStartedEvent', message)
+ // io.emit('DPPOnboardingStartedEvent', message)
 })
 
 dw.eventEmitter.on ( 'DPPOnboardingProgressEvent' , async ( message ) => {
-  io.emit('DPPOnboardingProgressEvent', message)
+  // io.emit('DPPOnboardingProgressEvent', message)
 } )
 
 dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
-  io.emit('DPPOnboardingCompleteEvent', message)
+ // io.emit('DPPOnboardingCompleteEvent', message)
   await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingCompleteEvent')
 } )
 
 dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
-  io.emit('DPPOnboardingFailedEvent', message)
+ // io.emit('DPPOnboardingFailedEvent', message)
   await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingFailedEvent' )
 })
 

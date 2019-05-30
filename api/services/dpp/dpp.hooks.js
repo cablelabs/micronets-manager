@@ -20,7 +20,131 @@ const dw = require ( './../../hooks/dhcpWrapperPromise' )
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v', '_id' ] );
 var child_process = require('child_process');
 const defaultDPPMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
-const staticPSK = 'a0c7896d60f60008207629ff65e6bf755a8b76ea892c791836f5833116105da7'
+
+const fetchAndPostOnboardingResults = async(hook) => {
+  const { onBoardCompleteEvents, onBoardFailedEvents } = await fetchGatewayOnboardingEvents(hook)
+}
+
+const fetchGatewayOnboardingEvents = async(hook) => {
+  const onboardingCompleteEvents = [
+    {
+      eventType: 'DPPOnboardingStartedEvent'
+    },
+    {
+      eventType: 'DPPOnboardingProgressEvent'
+    },
+    {
+      eventType: 'DPPOnboardingCompleteEvent'
+    }
+  ]
+
+  const onboardingFailedEvents = [
+    {
+      eventType: 'DPPOnboardingStartedEvent'
+    },
+    {
+      eventType: 'DPPOnboardingProgressEvent'
+    },
+    {
+      eventType: 'DPPOnboardingFailedEvent'
+    }
+  ]
+
+  const eventOnboardingCompletePromises = onboardingCompleteEvents.map(async(onBoardEvent) => {
+    let eventDeviceId  = '', eventMacAddress = '', eventMicronetId = '' , eventReason = '', onboardingDevicesWithEvents = [], onboardingEvents = []
+    logger.debug('\n Current on-board event being processed ... ' + JSON.stringify(onBoardEvent.eventType))
+    return await dw.eventEmitter.on ( `${onBoardEvent.eventType}` , async ( message ) => {
+      logger.debug(`Event  ${onBoardEvent.eventType} emitted with data : ` + JSON.stringify(message))
+  return message
+      // if(onBoardEvent.eventType ==  'DPPOnboardingStartedEvent'){
+      //   const { body: { DPPOnboardingStartedEvent : { deviceId, macAddress, micronetId, reason } }} = message
+      //   eventDeviceId = deviceId
+      //   eventMacAddress = macAddress
+      //   eventMicronetId = micronetId
+      //   eventReason = reason
+      // }
+      //
+      // if(onBoardEvent.eventType ==  'DPPOnboardingProgressEvent'){
+      //   const { body: { DPPOnboardingProgressEvent : { deviceId, macAddress, micronetId, reason } }} = message
+      //   eventDeviceId = deviceId
+      //   eventMacAddress = macAddress
+      //   eventMicronetId = micronetId
+      //   eventReason = reason
+      // }
+      //
+      // if(onBoardEvent.eventType ==  'DPPOnboardingCompleteEvent'){
+      //   const { body: { DPPOnboardingCompleteEvent : { deviceId, macAddress, micronetId, reason } }} = message
+      //   eventDeviceId = deviceId
+      //   eventMacAddress = macAddress
+      //   eventMicronetId = micronetId
+      //   eventReason = reason
+      // }
+      // onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
+      //   deviceId: eventDeviceId,
+      //   events : onboardingEvents.concat(Object.assign({},{
+      //     type: `${onBoardEvent.eventType}`,
+      //     macAddress: eventMacAddress,
+      //     micronetId: eventMicronetId,
+      //     reason: eventReason
+      //   }))
+      // }))
+
+      // return onboardingDevicesWithEventslogger.debug('\n onboardingDevicesWithEvents : ' + JSON.stringify(onboardingDevicesWithEvents))
+      // await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
+    })
+  })
+
+  const eventOnboardingFailedPromises = onboardingCompleteEvents.map(async(onBoardEvent) => {
+    let eventDeviceId  = '', eventMacAddress = '', eventMicronetId = '' , eventReason = '', onboardingDevicesWithEvents = [], onboardingEvents = []
+    logger.debug('\n Current on-board event being processed ... ' + JSON.stringify(onBoardEvent.eventType))
+    return await dw.eventEmitter.on ( `${onBoardEvent.eventType}` , async ( message ) => {
+      logger.debug(`Event  ${onBoardEvent.eventType} emitted : ` + JSON.stringify(message))
+      return message
+      // if(onBoardEvent.eventType ==  'DPPOnboardingStartedEvent'){
+      //   const { body: { DPPOnboardingStartedEvent : { deviceId, macAddress, micronetId, reason } }} = message
+      //   eventDeviceId = deviceId
+      //   eventMacAddress = macAddress
+      //   eventMicronetId = micronetId
+      //   eventReason = reason
+      // }
+      //
+      // if(onBoardEvent.eventType ==  'DPPOnboardingProgressEvent'){
+      //   const { body: { DPPOnboardingProgressEvent : { deviceId, macAddress, micronetId, reason } }} = message
+      //   eventDeviceId = deviceId
+      //   eventMacAddress = macAddress
+      //   eventMicronetId = micronetId
+      //   eventReason = reason
+      // }
+      //
+      // if(onBoardEvent.eventType ==  'DPPOnboardingFailedEvent'){
+      //   const { body: { DPPOnboardingFailedEvent : { deviceId, macAddress, micronetId, reason } }} = message
+      //   eventDeviceId = deviceId
+      //   eventMacAddress = macAddress
+      //   eventMicronetId = micronetId
+      //   eventReason = reason
+      // }
+      onboardingDevicesWithEvents = onboardingDevicesWithEvents.concat(Object.assign({},{
+        deviceId: eventDeviceId,
+        events : onboardingEvents.concat(Object.assign({},{
+          type: `${onBoardEvent.eventType}`,
+          macAddress: eventMacAddress,
+          micronetId: eventMicronetId,
+          reason: eventReason
+        }))
+      }))
+      // logger.debug('\n onboardingDevicesWithEvents : ' + JSON.stringify(onboardingDevicesWithEvents))
+      // return onboardingDevicesWithEvents
+      // await upsertOnboardingResults(hook,onboardingDevicesWithEvents)
+    })
+  })
+
+  const onboardingSuccessResults = await Promise.all(eventOnboardingCompletePromises)
+  const onboardingFailedResults = await Promise.all(eventOnboardingFailedPromises)
+
+  logger.debug('\n onboardingSuccessResults : ' + JSON.stringify(onboardingSuccessResults))
+  logger.debug('\n onboardingFailedResults : ' + JSON.stringify(onboardingFailedResults))
+  return Object.assign({ onBoardCompleteEvents: onboardingSuccessResults, onBoardFailedEvents:  onboardingFailedResults})
+}
 
 const wait = function ( ms ) {
   var start = new Date().getTime();
@@ -134,7 +258,7 @@ const validateDppRequest = async(hook) => {
 }
 
 const upsertOnboardingResults = async(hook,onboardingEvents) => {
-  logger.debug('\n\n On-boarding events : ' + JSON.stringify(onboardingEvents))
+  logger.debug('\n upsertOnboardingResults  On-boarding events  : ' + JSON.stringify(onboardingEvents))
   const { data } = hook
   const { subscriberId, bootstrap, device, user } = data
   const deviceId = await getDeviceId(hook)
@@ -173,7 +297,7 @@ const postOnboardingResultsToMSO = async(hook) => {
   const msoDppPost = omitMeta(onBoardResult)
   logger.debug('\n MSO DPP Post : ' + JSON.stringify(msoDppPost))
   const { msoPortalUrl } = hook.app.get('mano')
-  logger.debug('\n MSO POST URI : ' + JSON.stringify(`${msoPortalUrl}${MSO_DPP_API_ONBOARD}`))
+  logger.debug('\n MSO POST URI : ' + JSON.stringify(`${msoPortalUrl}/${MSO_DPP_API_ONBOARD}`))
   const onBoardResponse = await axios.post (`${msoPortalUrl}/portal/v1/status` ,  msoDppPost)
 }
 
@@ -400,11 +524,11 @@ const reInitializeDppOnboarding = async(hook) => {
     logger.debug('\n Dpp Device Index : ' + JSON.stringify(dppDeviceIndex))
     const { msoPortalUrl } = hook.app.get('mano')
     if(dppDeviceIndex > -1){
-      await hook.app.service(`${DPP_PATH}`).remove(data.subscriberId)
-      // await hook.app.service(`${DPP_PATH}`).remove(null)
+      // await hook.app.service(`${DPP_PATH}`).remove(data.subscriberId)
+       await hook.app.service(`${DPP_PATH}`).remove(null)
       await axios.delete(`http://${hook.app.get('host')}:${hook.app.get('port')}/${MICRONETS_PATH}/${data.subscriberId}/micronets`)
-      await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}/${data.subscriberId}`)
-      // await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}`)
+      // await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}/${data.subscriberId}`)
+       await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}`)
     }
   }
 }
@@ -476,7 +600,7 @@ module.exports = {
 
               // TODO : Initiate Delete sequence and re-onboard device
                 await reInitializeDppOnboarding(hook)
-                wait(4000) // 4 seconds in milliseconds wait
+                wait(3000) // 3 seconds in milliseconds wait
                 await startDppOnBoarding(hook)
                // hook.result = Object.assign({},{message: `Device ${data.bootstrap.mac} on-boarded already`})
                // return Promise.resolve(hook)
@@ -504,7 +628,6 @@ module.exports = {
       async(hook) => {
       const {data} = hook
        logger.debug('\n Patch Hook.result :  ' + JSON.stringify(hook.result) +'\t\t for post data : ' + JSON.stringify(data))
-        // await pushDataToMsoPortal(hook)
       }
     ] ,
     remove : []
