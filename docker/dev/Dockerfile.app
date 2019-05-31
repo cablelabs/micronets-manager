@@ -6,8 +6,6 @@ WORKDIR /usr/src/app
 COPY app .
 RUN ls -a
 
-ENV MONGO_URL=
-
 RUN npm install
 
 EXPOSE 8080

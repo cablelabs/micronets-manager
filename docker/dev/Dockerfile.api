@@ -10,7 +10,6 @@ WORKDIR /usr/src/micronets-manager
 COPY . .
 RUN ls -a
 
-ENV MONGO_URL=
 RUN npm install
 
 EXPOSE 3030
