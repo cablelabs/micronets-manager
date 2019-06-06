@@ -40,7 +40,7 @@ module.exports = {
           hook.result = Object.assign({},specificSubnet)
         }
 
-        // Generate subnet and add devices to subnet
+        // Generate specific subnet and add devices to subnet
         if( requestUrl == `${RANDOM_SUBNET_URL}/${params.route.id}/devices`) {
           const specificSubnet = await subnetAllocation.getNewSubnet(0,params.route.id)
           logger.debug('\n Specific subnet : ' + JSON.stringify(specificSubnet))
