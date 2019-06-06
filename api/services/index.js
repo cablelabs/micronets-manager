@@ -10,6 +10,8 @@ const mockMicronets = require('./mock-micronets/mock-micronets.service.js');
 const dhcp = require('./dhcp/dhcp.service.js');
 const dpp = require('./dpp/dpp.service.js');
 
+const subnetAllocator = require('./subnet-allocator/subnet-allocator.service.js');
+
 // eslint-disable-next-line no-unused-vars
 module.exports = function (app) {
   app.configure(token);
@@ -23,4 +25,5 @@ module.exports = function (app) {
   app.configure(mockMicronets);
   app.configure(dhcp);
   app.configure(dpp);
+  app.configure(subnetAllocator);
 };
