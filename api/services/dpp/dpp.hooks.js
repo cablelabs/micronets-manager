@@ -430,8 +430,10 @@ const onboardDppDevice = async(hook) => {
       logger.debug("\n\n ODL Response : " + JSON.stringify(odlResponse))
       if ( odlResponse.data && odlResponse.status == 201 ) {
         const patchResult = await hook.app.service (`${MICRONETS_PATH}`).patch ( data.subscriberId , { micronets :  odlResponse.data.micronets } );
+        logger.debug('\n PATCH RESULT : ' + JSON.stringify(patchResult))
         if ( patchResult ) {
           const dhcpSubnets = await addDhcpSubnets ( hook , postMicronetBody )
+          logger.debug('\n DHCP SUBNETS : ' + JSON.stringify(dhcpSubnets))
          // return { dhcpSubnets, patchResult } // Comment later
         }
       }

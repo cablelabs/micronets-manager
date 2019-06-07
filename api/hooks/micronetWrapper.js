@@ -705,8 +705,10 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
     url : `${mmUrl}/${paths.DHCP_PATH}` ,
   } )
   const { body } = dhcpSubnets.data
+  logger.debug('\n DHCP SUBNETS BODY : ' + JSON.stringify(body))
   const dhcpSubnetPromises = await Promise.all ( dhcpSubnetsPostBody.map ( async ( subnetToPost , index ) => {
-    const dhcpSubnetIndex = body.micronets.findIndex ( ( micronet ) => micronet.micronetId == subnetToPost.subnetId )
+    const dhcpSubnetIndex = body.micronets.length > 0 ? body.micronets.findIndex ( ( micronet ) => micronet.micronetId == subnetToPost.subnetId ) : -1
+    logger.debug('\n DHCP SUBNET INDEX : ' + JSON.stringify(dhcpSubnetIndex))
     if ( dhcpSubnetIndex == -1 && subnetToPost != null ) {
       const dhcpSubnetResponse = await axios ( {
         ...apiInit ,
@@ -714,6 +716,7 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
         url : `${mmUrl}/${paths.DHCP_PATH}` ,
         data : subnetToPost
       } )
+      logger.debug('\n DHCP SUBNET RESPONSE : ' + JSON.stringify(dhcpSubnetResponse.data))
       return dhcpSubnetResponse.data
     }
   } ) )
