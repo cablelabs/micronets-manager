@@ -1,12 +1,9 @@
 const { authenticate } = require ( '@feathersjs/authentication' ).hooks;
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
-const errors = require('@feathersjs/errors')
-const mongoose = require('mongoose');
-const axios = require ( 'axios' );
 const logger = require ( './../../logger' );
 const paths = require('./../../hooks/servicePaths')
-const { USERS_PATH, REGISTRY_PATH  } = paths
+const { USERS_PATH  } = paths
 
 module.exports = {
   before : {
@@ -33,10 +30,6 @@ module.exports = {
           ssid: data.ssid,
           devices : Array.isArray(data.devices) ? data.devices: [data.devices]
         })
-        // hook.app.service ( '/mm/v1/micronets/users' ).emit ( 'userCreate' , {
-        //   type : 'userCreate' ,
-        //   data : { subscriberId : hook.data.id  }
-        // } );
       }
     ] ,
     update : [] ,
@@ -99,38 +92,7 @@ module.exports = {
     all : [] ,
     find : [] ,
     get : [] ,
-    create : [
-      async(hook) => {
-        const { params  , payload } = hook;
-
-        // const { headers: { Authorization }} = params
-       //  let axiosConfig = { headers : { 'Authorization' : Authorization , crossDomain: true } };
-        const user = hook.result
-        // const micronet = await hook.app.service('/mm/v1/micronets').get({id:user.id})
-        // const postMicronet = await hook.app.service('/mm/v1/micronets').create(Object.assign({},{
-        //   type: 'userCreate',
-        //   id : user.id ,
-        //   name : user.name ,
-        //   ssid : user.ssid ,
-        //   micronets : Object.assign ( {} , {
-        //     micronet : []
-        //   } )
-        // }))
-        const registry = await hook.app.service(`${REGISTRY_PATH}`).get(user.id)
-        const userPostData = Object.assign({
-          id : user.id ,
-          name : user.name ,
-          ssid : user.ssid ,
-          mmUrl:registry.mmClientUrl
-        })
-        // const msoPortalUser = await axios ( {
-        //   ...axiosConfig ,
-        //   method : 'POST' ,
-        //   url : `${registry.msoPortalUrl}/portal/users` ,
-        //   data : userPostData
-        // } )
-      }
-    ] ,
+    create : [] ,
     update : [
       async(hook) => {
         hook.app.service (`${USERS_PATH}`).emit ( 'userDeviceUpdate' , {

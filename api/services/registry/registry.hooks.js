@@ -11,9 +11,9 @@ const { REGISTRY_PATH, ODL_PATH, USERS_PATH, MICRONETS_PATH } = paths
 
 const createDefaultMicronet = async(hook, result) => {
  const subscriber = await hook.app.service(`${MICRONETS_PATH}`).find({})
-  logger.debug('\n Subscriber : ' + JSON.stringify(subscriber.data))
+  // logger.debug('\n Subscriber : ' + JSON.stringify(subscriber.data))
   const micronetIndex =  subscriber.data.length > 0 ? subscriber.data.findIndex((subscriber) => subscriber.id == result.data.id) : -1
-  logger.debug('\n Micronet Index : ' + JSON.stringify(micronetIndex) + '\t\t Subscriber.data.length : ' + JSON.stringify(subscriber.data.length))
+ // logger.debug('\n Micronet Index : ' + JSON.stringify(micronetIndex) + '\t\t Subscriber.data.length : ' + JSON.stringify(subscriber.data.length))
 
   // Create default Micronet
   if(micronetIndex == -1) {
@@ -27,7 +27,6 @@ const createDefaultMicronet = async(hook, result) => {
       gatewayId : result.data.gatewayId,
       micronets: micronets
     } )
-
     const micronet = await hook.app.service ( `${MICRONETS_PATH}` ).create ( postMicronetBody )
   }
 }
@@ -73,7 +72,6 @@ module.exports = {
     get : [] ,
     create : [
       async ( hook ) => {
-        logger.debug('\n Created registry after hook : ' + JSON.stringify(hook.result))
 
         // Update registry to include mano configuration parameters
         if(!hook.result.hasOwnProperty('identityUrl')) {
@@ -92,7 +90,7 @@ module.exports = {
           // Register registry url for subscriber on MSO PORTAL
           let register = await axios.get ( `${hook.result.msoPortalUrl}/portal/v1/register` )
           const registerIndex = register.data.data.length > 0 ? register.data.data.findIndex((register) => register.subscriberId == hook.result.subscriberId) : -1
-          logger.debug ( '\n Register : ' + JSON.stringify ( register.data.data ) + '\t\t RegisterIndex : ' + JSON.stringify(registerIndex) )
+         // logger.debug ( '\n Register : ' + JSON.stringify ( register.data.data ) + '\t\t RegisterIndex : ' + JSON.stringify(registerIndex) )
 
             const upsertResult =  registerIndex == -1 ? await axios.post ( `${hook.result.msoPortalUrl}/portal/v1/register` , Object.assign ( {} , {
               subscriberId : hook.result.subscriberId ,
@@ -109,7 +107,7 @@ module.exports = {
 
             let subscribers = await axios.get ( `${hook.result.msoPortalUrl}/portal/v1/subscriber` )
             const subscriberIndex =  subscribers.data.data.length > 0 ? subscribers.data.data.findIndex((subscriber) => subscriber.id == hook.result.subscriberId ) : -1
-            logger.debug ( '\n Subscribers : ' + JSON.stringify ( subscribers.data.data ) + '\t\t SubscriberIndex : ' + JSON.stringify(subscriberIndex) )
+         // logger.debug ( '\n Subscribers : ' + JSON.stringify ( subscribers.data.data ) + '\t\t SubscriberIndex : ' + JSON.stringify(subscriberIndex) )
 
             if(subscriberIndex == -1) {
               logger.debug ( '\n Creating associated subscriber for registry ' )
@@ -131,7 +129,7 @@ module.exports = {
                 registry : hook.result.mmUrl ,
                 gatewayId : hook.result.gatewayId
               } )
-              logger.debug ( '\n Updating associated subscriber for registry ' + JSON.stringify(putSubscriberBody))
+            //  logger.debug ( '\n Updating associated subscriber for registry ' + JSON.stringify(putSubscriberBody))
               const result = await axios.patch ( `${hook.result.msoPortalUrl}/portal/v1/subscriber/${hook.result.subscriberId}` , putSubscriberBody )
               logger.debug ( '\n Subscriber updated on MSO Portal : ' + JSON.stringify ( result.data ) )
               await createDefaultMicronet(hook,result)

@@ -2,7 +2,6 @@
 // See https://github.com/winstonjs/winston for documentation
 // about the logger.
 const logger = require('../logger');
-//const logger = require('winston')
 const util = require('util');
 
 // To see more detailed messages, uncomment the following line:

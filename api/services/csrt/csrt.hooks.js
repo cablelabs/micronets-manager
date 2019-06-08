@@ -21,28 +21,16 @@ module.exports = {
         console.log('\n ')
         let registry = await hook.app.service (`${REGISTRY_PATH}`).get(hook.data.subscriberId);
         logger.debug( '\n Registry from MM :' + JSON.stringify ( registry ) )
-       // let registry = await axios.get(`${hook.data.registryUrl}/micronets/v1/mm/registry/${hook.data.subscriberId}`,allHeaders)
-        // Call configure url
-        // console.log('\n registry : ' + JSON.stringify(registry))
         const jwtToken = params.headers.authorization.split ( ' ' )[ 1 ]
-        // const configureIdentityService =  await axios({
-        //   // ...apiInit,
-        //   method: 'post',
-        //   url: `${registry.identityUrl}/configure`,
-        //   data: data
-        // })
-        //console.log('\n configureIdentityService : ' + JSON.stringify(configureIdentityService.data))
-        // if(configureIdentityService.data.result) {
-        logger.debug( '\n Identity URL  :' + JSON.stringify ( registry.identityUrl ) )
           const csrTemplate = await axios({
             ...apiInit,
             method: 'post',
             url: `${registry.identityUrl}/csrt`
           })
-          logger.debug( '\n Identity URL  :' + JSON.stringify ( registry.identityUrl )  + '\n\n CSR Template : ' + JSON.stringify(csrTemplate.data))
+        //  logger.debug( '\n Identity URL  :' + JSON.stringify ( registry.identityUrl )  + '\n\n CSR Template : ' + JSON.stringify(csrTemplate.data))
           // const csrTemplate = await axios.post (`${registry.identityUrl}/csrt`, ...apiInit)
           const subscriber = await axios.get(`${registry.msoPortalUrl}/portal/v1/subscriber/${hook.data.subscriberId}`,allHeaders)
-          logger.debug( '\n MSO URL  :' + JSON.stringify ( registry.msoPortalUrl )  + '\n\n Subscriber : ' + JSON.stringify(subscriber.data))
+         // logger.debug( '\n MSO URL  :' + JSON.stringify ( registry.msoPortalUrl )  + '\n\n Subscriber : ' + JSON.stringify(subscriber.data))
           if(subscriber.data) {
             // Creating updating user information
             const sessionData = Object.assign ( {} , {
@@ -88,7 +76,6 @@ module.exports = {
                 }
               }
             } );
-       // }
       }
     ],
     update: [],

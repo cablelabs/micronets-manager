@@ -6,17 +6,18 @@ const server = app.listen ( port );
 const mano = app.get('mano')
 const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
-const DPPOnboardingStartedEvent = 'DPPOnboardingStartedEvent'
-const DPPOnboardingProgressEvent = 'DPPOnboardingProgressEvent'
-const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
 const paths = require ( './hooks/servicePaths' )
-const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH, REGISTRY_PATH  } = paths
+const { USERS_PATH, REGISTRY_PATH  } = paths
 // const dotenv = require('dotenv');
 // dotenv.config();
 // const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl} = require('./config')
+
+
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
 );
+
+
 server.on ( 'listening' , async () => {
   logger.info ('Feathers application started on ' + JSON.stringify(`http://${app.get('host')}:${app.get('port')}`))
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
@@ -36,7 +37,7 @@ server.on ( 'listening' , async () => {
         msoPortalUrl: mano.msoPortalUrl,
         gatewayId: `default-gw-${mano.subscriberId}`
       })
-      const result = await app.service ( '/mm/v1/micronets/registry' ).create ( postRegistry )
+      const result = await app.service ( `${REGISTRY_PATH}` ).create ( postRegistry )
       if(result.data) {
         logger.debug('\n Default registry on instantiation : ' + JSON.stringify(result.data))
       }
@@ -69,7 +70,7 @@ server.on ( 'listening' , async () => {
 
 io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )
 
-app.service ('/mm/v1/micronets/registry').on('gatewayReconnect', async( data ) => {
+app.service (`${REGISTRY_PATH}`).on('gatewayReconnect', async( data ) => {
   if(data.data.hasOwnProperty('webSocketUrl')) {
     logger.debug('\n Gateway Reconnect event fired for url : ' + JSON.stringify(data.data.webSocketUrl))
     await dw.setAddress ( data.data.webSocketUrl );
@@ -84,7 +85,7 @@ async function upsertDeviceLeaseStatus ( message , type ) {
   logger.info ( '\n DeviceLease message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
   const eventDeviceId = isLeaseAcquired ? message.body.leaseAcquiredEvent.deviceId : message.body.leaseExpiredEvent.deviceId
-  let user = await app.service ( '/mm/v1/micronets/users' ).find ( {} )
+  let user = await app.service ( `${USERS_PATH}` ).find ( {} )
   user = user.data[ 0 ]
   const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
   const updatedDevice = Object.assign ( {} ,
@@ -93,7 +94,7 @@ async function upsertDeviceLeaseStatus ( message , type ) {
       deviceLeaseStatus : isLeaseAcquired ? 'positive' : 'intermediary'
     } )
   user.devices[ deviceIndex ] = updatedDevice
-  const updateResult = await app.service ( '/mm/v1/micronets/users' ).update ( user._id , Object.assign ( {} , {
+  const updateResult = await app.service ( `${USERS_PATH}` ).update ( user._id , Object.assign ( {} , {
     id : user.id ,
     name : user.name ,
     ssid : user.ssid ,
@@ -156,21 +157,11 @@ dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseExpiredEvent' )
 } )
 
-dw.eventEmitter.on ( 'DPPOnboardingStartedEvent' , async ( message ) => {
- // io.emit('DPPOnboardingStartedEvent', message)
-})
-
-dw.eventEmitter.on ( 'DPPOnboardingProgressEvent' , async ( message ) => {
-  // io.emit('DPPOnboardingProgressEvent', message)
-} )
-
 dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
- // io.emit('DPPOnboardingCompleteEvent', message)
   await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingCompleteEvent')
 } )
 
 dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
- // io.emit('DPPOnboardingFailedEvent', message)
   await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingFailedEvent' )
 })
 
