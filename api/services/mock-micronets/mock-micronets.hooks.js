@@ -18,20 +18,10 @@ module.exports = {
     create: [
       async (hook) => {
         const { params, data , id, path, headers, url } = hook
-        logger.debug('\n PARAMS.ID : ' + JSON.stringify(params.id))
-        logger.debug('\n PARAMS.ROUTE.ID : ' + JSON.stringify(params.route.id))
         const subscriberId = !params.id && params.route.id ? params.route.id : params.id
-        logger.debug('\n Subscriber ID : ' + JSON.stringify(subscriberId))
         const { route  } = params
-
-        logger.debug('\n hook.data.micronets : ' + JSON.stringify(hook.data.micronets))
-        logger.debug('\n hook.id : ' + JSON.stringify(hook.id))
-        logger.debug('\n hook.params : ' + JSON.stringify(hook.params))
-
         const mockMicronetsFromDb = await hook.app.service(`${MOCK_MICRONET_PATH}`).find({})
         const mockMicronetIndex = mockMicronetsFromDb.data.length > 0 ? mockMicronetsFromDb.data.findIndex((subscriber) => subscriber.id == subscriberId) : -1
-
-        logger.debug('\n mockMicronets : ' + JSON.stringify(mockMicronetsFromDb.data) + '\t\t mockMicronetIndex : ' + JSON.stringify(mockMicronetIndex))
 
         // Create or update micronet
         if (hook.data.micronets  && !hook.params.route.micronetId) {
@@ -51,7 +41,6 @@ module.exports = {
               { micronets :  mockMicronets  } ,
               { query : {} , mongoose : { upsert : true } }  );
             hook.result = Object.assign({},{ micronets:patchResult.micronets })
-            logger.debug('\n\n Mock micronets hook.result : ' + JSON.stringify(hook.result))
             return Promise.resolve(hook)
           }
           if(mockMicronetsFromDb.data.length == 0 &&  mockMicronetIndex == -1) {
@@ -59,7 +48,6 @@ module.exports = {
               id: subscriberId,
               micronets:mockMicronets
             })
-            logger.debug('\n\n Mock micronets hook.data : ' + JSON.stringify(hook.data))
             return Promise.resolve(hook)
           }
         }
@@ -72,7 +60,6 @@ module.exports = {
               { micronets :  micronetsPostData.micronets  } ,
               { query : {} , mongoose : { upsert : true } }  );
             hook.result = Object.assign({},{ micronets:patchResult.micronets })
-            logger.debug('\n\n Mock micronets hook.result : ' + JSON.stringify(hook.result))
             return Promise.resolve(hook)
           }
 
@@ -86,21 +73,18 @@ module.exports = {
         const { params, data , id, path, headers } = hook
         const {   micronetId } = params.route ;
         const subscriberId =  !params.id && params.route.id ? params.route.id : params.id
-        logger.debug('\n MOCK MICRONET REMOVE HOOK subscriberId : ' + JSON.stringify(subscriberId) + '\t\t PARAMS : ' + JSON.stringify(params) + '\t\t MicronetID : ' + JSON.stringify(micronetId))
+
         if(subscriberId && micronetId) {
           const micronetFromDB = await hook.app.service(`${MOCK_MICRONET_PATH}`).get(subscriberId)
-          logger.debug('\n micronetFromDB : ' + JSON.stringify(micronetFromDB))
+
           const filteredMicronet = micronetFromDB.micronets.filter((foundMicronet) => foundMicronet['micronet-id']!= micronetId)
-          logger.debug('\n filteredMicronet : ' + JSON.stringify(filteredMicronet))
           const patchResult = await hook.app.service('/mm/v1/mock/subscriber').patch(subscriberId, { micronets:  filteredMicronet  }  )
-          logger.debug('\n patchResult : ' + JSON.stringify(patchResult))
           hook.result = Object.assign({},{ micronets:patchResult.micronets })
           return Promise.resolve(hook)
         }
 
         if(subscriberId && !micronetId) {
           const micronetFromDB = await hook.app.service(`${MOCK_MICRONET_PATH}`).get(subscriberId)
-          logger.debug('\n micronetFromDB : ' + JSON.stringify(micronetFromDB))
           const patchResult = await hook.app.service(`${MOCK_MICRONET_PATH}`).patch(subscriberId, { micronets:  []  }  )
           hook.result = Object.assign({},{ micronets:patchResult.micronets })
           return Promise.resolve(hook)
@@ -112,7 +96,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [ hook => {} ],
+    create: [ ],
     update: [],
     patch: [],
     remove: []

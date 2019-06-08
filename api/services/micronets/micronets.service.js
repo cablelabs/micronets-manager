@@ -18,17 +18,12 @@ module.exports = function ( app ) {
 
   // Initialize our service with any options it requires
   app.use ( `${servicePath}` , createService ( options ) );
-
   // Get our initialized service so that we can register hooks
   const service = app.service ( `${servicePath}` );
   service.hooks ( hooks );
-
-  // app.use ( '/mm/v1/micronets/init', service  );
-
   app.use ( `${servicePath}/:id/micronets/:micronetId/devices`, service  );
   app.use ( `${servicePath}/:id/micronets/:micronetId`, service  );
   app.use ( `${servicePath}/:id/micronets`, service  );
-
   app.service (`${USERS_PATH}`).on ( 'userDeviceRegistered' , ( data ) => {
     service.create ( { ...data } , { params : service.hooks.params } )
   } )
