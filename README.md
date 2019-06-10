@@ -59,9 +59,8 @@ This project uses MongoDB, a NoSQL document store, for persisting data. In order
   
 ###### Note : Make sure your connected to respective Micronets websocket proxy , Identity Server and MSO Portal before booting Micronets Manager up.
 ###### Detailed instructions to start the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)  
-###### By default the Micronets Manager is configured to connect to wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/micronets-gw-0001 websocket proxy. 
-###### To change this configuration please update the websockrtUrl parameter in default.json file present in config directory.When the micronets manager boots up and registry associated with respective subscriber is not populated its uses config.json to locate the corresponding websocket proxy.
-###### Registry api associated with subscriber once populated is used to derive the respective websocket proxy configuration.Websocket proxy configuration in registry api and in config/default.json should match.
+###### By default the Micronets Manager is configured to connect to wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/gw/default-gw-${SubscriberId} websocket proxy. 
+###### When the micronets manager boots up and registry associated with respective subscriber is not populated its uses config.json to locate the corresponding websocket proxy base url and appends the same with gatewayId to construct the web socket proxy url.
 ###### Detailed instructions to start the MSO Portal can be found [here](https://github.com/cablelabs/micronets-mso-portal#getting-started)  
 ###### Detailed instructions to start the Identity Server can be found [here](https://github.com/cablelabs/identity-service#getting-started)  
    
@@ -73,12 +72,12 @@ To build the Docker images for api and client and start the container :
 
    ```
     cd micronets-manager/docker/dev
-    docker-compose up --build
+   ./compose-create.sh
    ```
 ###### Note : Make sure your connected to respective Micronets websocket proxy , Identity Server and MSO Portal before booting Micronets Manager up.
 ###### Detailed instructions to start the Micronets websocket proxy can be found [here](https://github.com/cablelabs/micronets-ws-proxy#1-quick-start)  
-###### By default the Micronets Manager is configured to connect to wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/micronets-gw-0001 websocket proxy. 
-###### To change this configuration please update the webSocketUrl parameter in default.json file present in config directory.When the micronets manager boots up and registry associated with respective subscriber is not populated its uses config.json to locate the corresponding websocket proxy.
+###### By default the Micronets Manager is configured to connect to wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/gw/default-gw-${SubscriberId} websocket proxy. 
+###### To change this configuration please update the webSocketBaseUrl parameter in default.json file present in config directory.When the micronets manager boots up and registry associated with respective subscriber is not populated its uses config.json to locate the construct websocket proxy connection url.
 ###### Registry api associated with subscriber once populated is used to derive the respective websocket proxy configuration.Websocket proxy configuration in registry api and in config/default.json should match.
 ###### Detailed instructions to start the MSO Portal can be found [here](https://github.com/cablelabs/micronets-mso-portal#getting-started)  
 ###### Detailed instructions to start the Identity Server can be found [here](https://github.com/cablelabs/identity-service#getting-started)  
@@ -107,32 +106,10 @@ No credential should be required to pull the Docker image.
 
 #### 1.5 Running the Micronets Manager
 
-The Micronets Manager distro includes database population scripts that can be used for the initial setup.
+The scripts/data folder contain examples to populate the switch config database associated with subscriber.
 
-The scripts/data folder contain examples to populate the switch config and registry database associated with subscriber.
-
-Before running the populate_db script make sure Micronets Manager is up and running along with MSO Portal and Identity server.
 ###### Detailed instructions to start the MSO Portal can be found at [here](https://github.com/cablelabs/micronets-mso-portal/blob/master/README.md#getting-started)
 ###### Detailed instructions to start the Identity server can be found at [here](https://github.com/cablelabs/identity-service)
-
-To change permissions of the scripts directory please run the following command :
-
-```chmod -R +x .```
-
-To populate the database please run the following command :
-
- ```./populate_db.sh```
- 
-   OR
-    
- ```sh populate_db.sh```
-   
-   OR
-      
- ```bash populate_db.sh```
-
-###### Note : The json files in scripts/data used to populate the database are samples.Please change accordingly.Having a valid switch config, registry database with respect to associated subscriber is mandatory.
-###### Note : The MSO_PORTAL_HOSTNAME and MM_HOSTNAME in populate_db.sh script are samples.Please change to point to respective instances.
 ###### Note : Before consuming Micronets Manager API's it is mandatory to have respective MSO Portal , Identity server and Micronets websocket proxy for the associated subscriber running.
 ###### Detailed instructions to start the MSO Portal can be found at [here](https://github.com/cablelabs/micronets-mso-portal/blob/master/README.md#getting-started)
 ###### Detailed instructions to start the Identity server can be found at [here](https://github.com/cablelabs/identity-service)
