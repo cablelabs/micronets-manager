@@ -11,9 +11,9 @@ module.exports = function (app) {
     'device-name': { type: String, required: true },
      class: { type: String, required: false },
     'device-mac': { type: String, required: true },
-    'device-ip': { type: String, required: true, unique:true },
+    'device-ip': { type: String, required: true },
     'device-openflow-port': { type: String, required: false },
-    'device-id': { type: String, required: true, unique:true  }
+    'device-id': { type: String, required: true  }
   });
 
   const subnet = new Schema({
@@ -28,24 +28,20 @@ module.exports = function (app) {
     "dhcp-zone" : { type: String, required: true  } ,
     "micronet-id" : { type: String, required: true } ,
     'micronet-bridge-nodeid': { type:String, required: false  },  // Is this required ?
-    'connected-devices': [{type:connectedDevices}],
+    'connected-devices': [{type:connectedDevices, required: true}],
     'micronet-subnet': { type: String, required: true },
     'micronet-gateway-ip': { type: String, required: false },
     'ovs-bridge-name':{ type: String, required: false },
     'trunk-gateway-ip': { type: String, required: true  },
   });
 
-  const Subnets = new Schema({
-    _id:false,
-    micronet: [{ type: subnet, required: true }],
-  });
 
   const micronets = new Schema({
     id: { type: String, required: true, primaryKey: true,  unique:true, sparse: true },
     name: { type: String, required: true },
     ssid: { type: String, required: false },
     gatewayId: {type: String, required: true },
-    micronets: [{ type:subnet , required:true }]
+    micronets: [{ type:subnet, required: true }]
   }, {
     timestamps: true
   });
