@@ -281,33 +281,33 @@ module.exports.getNewSubnet2 = function allocateSubnet2(subnetRanges, requestedS
           let subnetBits = 24
 
           if (!sr.octetC) {
-            minC =  maxC = 0
+            minC = maxC = 0
             subnetBits = 16
           } else if (sr.octetC instanceof Object) {
-            minC =  sr.octetC.min
+            minC = sr.octetC.min
             maxC = sr.octetC.max
           } else {
             minC =  maxC = sr.octetC
           }
 
           if (!sr.octetB) {
-            minB =  maxB = 0
+            minB = maxB = 0
             subnetBits = 8
           } else if (sr.octetB instanceof Object) {
-            minB =  sr.octetB.min
+            minB = sr.octetB.min
             maxB = sr.octetB.max
           } else {
-            minB =  maxB = sr.octetB
+            minB = maxB = sr.octetB
           }
 
           if (!sr.octetA) {
-            minA = maxA = 0
-            subnetBits = 0
+            reject(new Error('The provided subnet range must contain an octetA element'))
+            return
           } else if (sr.octetA instanceof Object) {
-            minA =  sr.octetA.min
+            minA = sr.octetA.min
             maxA = sr.octetA.max
           } else {
-            minA =  maxA = sr.octetA
+            minA = maxA = sr.octetA
           }
 
           found = false
@@ -330,10 +330,7 @@ module.exports.getNewSubnet2 = function allocateSubnet2(subnetRanges, requestedS
                   // console.log("Subnet " + curSubnetAddress + " already in use")
                 } else {
                   // console.log("Found unused subnet address: " + curSubnetAddress)
-                  newSubnet = {
-                    subnetAddress: curSubnetAddress
-                  };
-                  me.db.insertOne(newSubnet, function (err, res) {
+                  me.db.insertOne({subnetAddress: curSubnetAddress}, function (err, res) {
                     resolve(curSubnetAddress)
                   })
                   found = true
@@ -348,15 +345,16 @@ module.exports.getNewSubnet2 = function allocateSubnet2(subnetRanges, requestedS
       })
     } else {
       me.db.find({subnetAddress: requestedSubnet}).toArray(function (err, results) {
-      if (err) {
-        console.log(err);
-        reject(err)
-      } else {
-        if (!results.length === 0) {
-          reject(new Error('That Subnet " + requestedSubnet + " is already taken'))
-        }
-        let subnet = new ipaddress.Address4(requestedSubnet);
-        resolve(subnet)
+        if (err) {
+          console.log(err);
+          reject(err)
+        } else {
+          if (!results.length === 0) {
+            reject(new Error('That Subnet " + requestedSubnet + " is already taken'))
+          }
+          me.db.insertOne({subnetAddress: requestedSubnet}, function (err, res) {
+            resolve(requestedSubnet)
+          })
         }
       })
     }
