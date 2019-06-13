@@ -262,6 +262,107 @@ function allocateSubnet(me, requestedSubnet) {
   })
 }
 
+/**
+ *
+ * @returns {Promise<Subnet>}
+ */
+module.exports.getNewSubnet2 = function allocateSubnet2(subnetRanges, requestedSubnet) {
+  me = this; // The Promise won't get this without using nn intermediate var
+  return new Promise(async function (resolve, reject) {
+    if (!requestedSubnet) {
+      me.db.find({}).toArray(function (err, results) {
+        if (err) {
+          console.log(err);
+          reject(err)
+        } else {
+          allocatedSubnets = results
+
+          let sr = subnetRanges
+          let subnetBits = 24
+
+          if (!sr.octetC) {
+            minC =  maxC = 0
+            subnetBits = 16
+          } else if (sr.octetC instanceof Object) {
+            minC =  sr.octetC.min
+            maxC = sr.octetC.max
+          } else {
+            minC =  maxC = sr.octetC
+          }
+
+          if (!sr.octetB) {
+            minB =  maxB = 0
+            subnetBits = 8
+          } else if (sr.octetB instanceof Object) {
+            minB =  sr.octetB.min
+            maxB = sr.octetB.max
+          } else {
+            minB =  maxB = sr.octetB
+          }
+
+          if (!sr.octetA) {
+            minA = maxA = 0
+            subnetBits = 0
+          } else if (sr.octetA instanceof Object) {
+            minA =  sr.octetA.min
+            maxA = sr.octetA.max
+          } else {
+            minA =  maxA = sr.octetA
+          }
+
+          found = false
+          for (let a = minA; a <= maxA && !found; a++) {
+            for (let b = minB; b <= maxB && !found; b++) {
+              for (let c = minC; c <= maxC && !found; c++) {
+                curSubnetAddress = a + '.' + b + '.' + c + '.0/' + subnetBits
+                // console.log("Considering: " + curSubnetAddress)
+                // let subnet = new ipaddress.Address4(a + '.' + b + '.' + c + '.0/' + subnetBits);
+                // console.log(subnet)
+                subnetInUse = false
+                for (let i=0; i<allocatedSubnets.length; i++) {
+                  inUseAddress = allocatedSubnets[i].subnetAddress
+                  if (curSubnetAddress === inUseAddress) {
+                    subnetInUse = true
+                    break
+                  }
+                }
+                if (subnetInUse) {
+                  // console.log("Subnet " + curSubnetAddress + " already in use")
+                } else {
+                  // console.log("Found unused subnet address: " + curSubnetAddress)
+                  newSubnet = {
+                    subnetAddress: curSubnetAddress
+                  };
+                  me.db.insertOne(newSubnet, function (err, res) {
+                    resolve(curSubnetAddress)
+                  })
+                  found = true
+                }
+              }
+            }
+          }
+          if (!found) {
+            resolve(null)
+          }
+        }
+      })
+    } else {
+      me.db.find({subnetAddress: requestedSubnet}).toArray(function (err, results) {
+      if (err) {
+        console.log(err);
+        reject(err)
+      } else {
+        if (!results.length === 0) {
+          reject(new Error('That Subnet " + requestedSubnet + " is already taken'))
+        }
+        let subnet = new ipaddress.Address4(requestedSubnet);
+        resolve(subnet)
+        }
+      })
+    }
+  })
+}
+
 function deAllocateSubnet(me, requestedSubnet) {
   return new Promise(async function (resolve, reject) {
     me.db.deleteOne({subnet: requestedSubnet}, function(err, obj) {
