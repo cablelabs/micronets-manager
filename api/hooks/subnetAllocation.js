@@ -20,7 +20,7 @@ module.exports.setup = function (app, config) {
  *
  * @returns {Promise<Subnet>}
  */
-module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet) {
+module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet, subnetGateway) {
   me = this; // The Promise won't get this without using nn intermediate var
   return new Promise(async function (resolve, reject) {
     if (!requestedSubnet) {
@@ -32,6 +32,7 @@ module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet) {
           allocatedSubnets = results
 
           let sr = subnetRange
+          let gw = subnetGateway
           let subnetBits = 24
 
           if (!sr.octetC) {
@@ -64,6 +65,23 @@ module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet) {
             minA = maxA = sr.octetA
           }
 
+          if (sr.octetC && gw.octetC) {
+            reject(new Error('The subnet and gateway both have octetC set (' 
+                             + sr.octetC +' vs ' + gw.octetC + ')'))
+            return
+          }
+
+          if (sr.octetB && gw.octetB) {
+            reject(new Error('The subnet and gateway both have octetB set (' 
+                             + sr.octetB +' vs ' + gw.octetB + ')'))
+            return
+          }
+
+          if (!gw.octetD) {
+            reject(new Error('The gateway must have octetD set'))
+            return
+          }
+
           found = false
           for (let a = minA; a <= maxA && !found; a++) {
             for (let b = minB; b <= maxB && !found; b++) {
@@ -83,8 +101,12 @@ module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet) {
                   // console.log("Subnet " + curSubnetAddress + " already in use")
                 } else {
                   // console.log("Found unused subnet address: " + curSubnetAddress)
-                  me.db.insertOne({subnetAddress: curSubnetAddress}, function (err, res) {
-                    resolve(curSubnetAddress)
+                  gwAddress = a + '.' + (b || gw.octetB) + '.'
+                              + (c || gw.octetC) + '.' + gw.octetD
+                  dbRecord = {subnetAddress: curSubnetAddress, subnetGateway: gwAddress}
+                  // console.log("subnet dbRecord: " + JSON.stringify(dbRecord)) 
+                  me.db.insertOne(dbRecord, function (err, res) {
+                    resolve(dbRecord)
                   })
                   found = true
                 }
@@ -141,7 +163,7 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange) {
       reject(new Error('The provided subnet cannot be parsed (' + subnetAddress + ')'))
       return
     }
-    console.log("subnet: " + subnet)
+    console.log("device subnet: " + subnet)
     subnetA = subnet.parsedAddress[0]
     subnetB = subnet.parsedAddress[1]
     subnetC = subnet.parsedAddress[2]
