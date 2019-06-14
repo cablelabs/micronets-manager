@@ -1,48 +1,11 @@
 const ipaddress = require('ip-address');
 
-// const SUBNET_SIZE = 256;
-// const HOSTS_SIZE = 256;
-//
-// const MIN_NETWORK = 0;
-// const MAX_NETWORK = 254;
-// const MIN_HOSTS = 2; // Reserve 0 for subnet, 1 for gateway.
-// const MAX_HOSTS = 254;
-// const OCTET_MAX = 254;
-
-module.exports = {
-  OCTET_A: 10,
-  OCTET_B: 20,
-  SUBNET_MAX: 254,
-  SUBNET_MIN: 1,
-  GATEWAY_HOST: 1,
-  SUBNET_OFFSET: 1,
-  IP_MIN: 2,
-  IP_MAX: 254,
-
-  lock: false,
-  currentSubnet: {},
-  nextSubnet: 0,
-  db: {},
-  nextAvailableHost: 1
-};
-
 module.exports.setup = function (app, config) {
   me = this;
   return new Promise(async function (resolve, reject) {
-    if (config) {
-      if (config.octetA) me.OCTET_A = config.octetA;
-      if (config.octetB) me.OCTET_B = config.octetB;
-      if (config.subnetMax) me.SUBNET_MAX = config.subnetMax;
-      if (config.subnetMin) me.SUBNET_MIN = config.subnetMin;
-      if (config.gateway) me.GATEWAY_HOST = config.gateway;
-      if (config.offset) me.SUBNET_OFFSET = config.offset;
-      if (config.ipMin) me.IP_MIN = config.ipMin;
-      if (config.ipMax) me.IP_MAX = config.ipMax;
-      me.nextAvailableHost = me.IP_MIN;
-    }
     app.get('mongoClient')
       .then((dbP) => {
-        console.log('connected');
+        console.log('subnet allocator connected');
         me.db = dbP.db().collection('subnetAllocation');
         resolve(me)
       })
@@ -53,220 +16,11 @@ module.exports.setup = function (app, config) {
   })
 };
 
-module.exports.getNewSubnet = function (vlan, requestedSubnet) {
-  let me = this;
-  return new Promise(async function (resolve, reject) {
-    if (me.lock) {
-      resolve(me.getSyncNewSubnet(vlan, requestedSubnet))
-    }
-    else {
-      const intervalObj = setInterval(() => {
-        if (me.lock === false) {
-          clearInterval(intervalObj)
-          resolve(me.getSyncNewSubnet(vlan, requestedSubnet))
-        }
-        else {
-          // console.log('no lock for me')
-        }
-      }, 10);
-    }
-  })
-}
-
-module.exports.deallocateSubnet = function (vlan, requestedSubnet) {
-  let me = this
-  return new Promise(async function (resolve, reject) {
-    if (me.lock) {
-      resolve(me.removeSyncNewSubnet(vlan, requestedSubnet))
-    }
-    else {
-      const intervalObj2 = setInterval(() => {
-        if (me.lock === false) {
-          clearInterval(intervalObj2)
-          resolve(me.removeSyncNewSubnet(vlan, requestedSubnet))
-        }
-        else {
-          // console.log('no lock for me')
-        }
-      }, 10);
-    }
-  })
-};
-
-module.exports.getSyncNewSubnet = function (vlan, requestedSubnet) {
-  if (this.lock) console.log('Error:  Lock System Broke')
-  this.lock = true
-  // console.log('I have the lock')
-  let me = this;
-  return new Promise(async function (resolve, reject) {
-    allocateSubnet(me, requestedSubnet)
-      .then((blob) => {
-        let network = blob[0];
-        let gateway = blob[1];
-        let mask = getNetworkMask(network);
-        me.currentSubnet = {
-          subnet: me.nextSubnet,
-          micronetSubnet: network.address,
-          cidr: network.subnetMask,
-          mask: mask.addressMinusSuffix,
-          micronetGatewayIp: gateway.addressMinusSuffix,
-          vlan: vlan
-        };
-        me.db.insertOne(me.currentSubnet, function (err, res) {
-          resolve(me.currentSubnet)
-          me.lock = false
-          // console.log('I have released the lock')
-        })
-      })
-      .catch((err) => {
-        me.lock = false;
-        reject(err)
-      })
-  })
-};
-
-
-module.exports.removeSyncNewSubnet = function (vlan, requestedSubnet) {
-  if (this.lock) console.log('Error:  Lock System Broke')
-  this.lock = true
-  // console.log('I have the lock')
-  let me = this;
-  return new Promise(async function (resolve, reject) {
-    deAllocateSubnet(me, requestedSubnet)
-      .then(() => {
-        // console.log('deleted ' + requestedSubnet)
-        me.lock = false;
-        resolve()
-      })
-      .catch((err) => {
-        me.lock = false;
-        console.log(err);
-        reject(err)
-      })
-  })
-};
-
-module.exports.getNewIps = function (subnet, devices) {
-  console.log('\n GetNewIps method passed Subnet : ' + JSON.stringify(subnet) + '\t\t Passed Devices : ' + JSON.stringify(devices))
-  let me = this;
-  return new Promise(async function (resolve, reject) {
-    if (!subnet) {
-      reject(new Error("Subnet cannot be undefined"))
-    }
-    getSubnet(subnet, me)
-      .then(subnet => {
-        me.currentSubnet = subnet
-        for (let i = 0; i < devices.length; i++) {
-          me.nextAvailableHost = getNextAvailableIp(me);
-          let tempHost = allocateHost(devices[i], me);
-          if (tempHost.message) {
-            reject(tempHost);
-          }
-          me.currentSubnet.connectedDevices.push(tempHost)
-          me.nextAvailableHost++
-        }
-        saveSubnet(me)
-          .then((newSubnet) => {
-            resolve(newSubnet);
-          })
-          .catch((err) => {
-            console.log(err);
-            reject(err);
-          })
-      })
-      .catch(err => {
-        reject(new Error('Subnet '  + subnet + ' does not exist'))
-      })
-  })
-};
-
-function getNextAvailableIp(me) {
-  let tempId = me.IP_MIN
-  if (!me.currentSubnet.connectedDevices) {
-    me.currentSubnet.connectedDevices = []
-  }
-  else {
-    for (let i = 0; i < me.currentSubnet.connectedDevices.length; i++) {
-      if (me.currentSubnet.connectedDevices[i].host >= tempId) {
-        tempId = me.currentSubnet.connectedDevices[i].host + 1
-      }
-    }
-  }
-  return tempId;
-}
-
-function saveSubnet(me) {
-  let me2 = me
-  return new Promise(async function (resolve, reject) {
-    me2.db.replaceOne({subnet: me2.currentSubnet.subnet}, me2.currentSubnet, {}, function (err, res) {
-      if (err) {
-        console.log(err);
-        reject(err)
-      }
-      else {
-        resolve(res.ops[0])
-      }
-    })
-  })
-}
-
 /**
  *
  * @returns {Promise<Subnet>}
  */
-function allocateSubnet(me, requestedSubnet) {
-  return new Promise(async function (resolve, reject) {
-    if (!requestedSubnet) {
-      me.db.find({}).toArray(function (err, results) {
-        if (err) {
-          console.log(err);
-          reject(err)
-        }
-        else {
-          if (results.length === 0) {
-            me.nextSubnet = me.SUBNET_MIN;
-          }
-          else {
-            me.nextSubnet = me.SUBNET_MIN;
-            for (let i = 0; i < results.length; i++) {
-              if (results[i].subnet >= me.nextSubnet) {
-                me.nextSubnet = results[i].subnet + me.SUBNET_OFFSET
-              }
-            }
-          }
-          let network = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.nextSubnet + '.' + 0 + '/24');
-          let gateway = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.nextSubnet + '.' + me.GATEWAY_HOST + '/24');
-          resolve([network, gateway])
-        }
-      })
-    }
-    else {
-      me.db.find({subnet: requestedSubnet}).toArray(function (err, results) {
-        if (err) {
-          console.log(err);
-          reject(err)
-        }
-        else {
-          if (results.length === 0) {
-            me.nextSubnet = requestedSubnet;
-          }
-          else {
-            reject(new Error('That Subnet is already taken'))
-          }
-          let network = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.nextSubnet + '.' + 0 + '/24');
-          let gateway = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.nextSubnet + '.' + me.GATEWAY_HOST + '/24');
-          resolve([network, gateway])
-        }
-      })
-    }
-  })
-}
-
-/**
- *
- * @returns {Promise<Subnet>}
- */
-module.exports.getNewSubnet2 = function allocateSubnet2(subnetRanges, requestedSubnet) {
+module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet) {
   me = this; // The Promise won't get this without using nn intermediate var
   return new Promise(async function (resolve, reject) {
     if (!requestedSubnet) {
@@ -277,7 +31,7 @@ module.exports.getNewSubnet2 = function allocateSubnet2(subnetRanges, requestedS
         } else {
           allocatedSubnets = results
 
-          let sr = subnetRanges
+          let sr = subnetRange
           let subnetBits = 24
 
           if (!sr.octetC) {
@@ -315,9 +69,8 @@ module.exports.getNewSubnet2 = function allocateSubnet2(subnetRanges, requestedS
             for (let b = minB; b <= maxB && !found; b++) {
               for (let c = minC; c <= maxC && !found; c++) {
                 curSubnetAddress = a + '.' + b + '.' + c + '.0/' + subnetBits
-                // console.log("Considering: " + curSubnetAddress)
+                // console.log("Considering subnet address: " + curSubnetAddress)
                 // let subnet = new ipaddress.Address4(a + '.' + b + '.' + c + '.0/' + subnetBits);
-                // console.log(subnet)
                 subnetInUse = false
                 for (let i=0; i<allocatedSubnets.length; i++) {
                   inUseAddress = allocatedSubnets[i].subnetAddress
@@ -361,56 +114,147 @@ module.exports.getNewSubnet2 = function allocateSubnet2(subnetRanges, requestedS
   })
 }
 
-function deAllocateSubnet(me, requestedSubnet) {
+module.exports.releaseSubnet = function (subnetAddress) {
+  let me = this
   return new Promise(async function (resolve, reject) {
-    me.db.deleteOne({subnet: requestedSubnet}, function(err, obj) {
-      if (err) reject(err);
-      resolve()
+    console.log("Deleting " + subnetAddress)
+    count = me.db.deleteOne({subnetAddress: subnetAddress}, function(err, obj) {
+      if (err) {
+        reject(err)
+      } else {
+        if (obj.deletedCount === 1) {
+          resolve(subnetAddress)
+        } else {
+          resolve(null)
+        }
+      }
     });
   })
 }
 
-function getSubnet(subnet, me) {
+module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange) {
+  let me = this
   return new Promise(async function (resolve, reject) {
-    me.db.find({subnet: subnet}).toArray(function (err, records) {
+    console.log("Getting device address for subnet " + subnetAddress)
+    let subnet = new ipaddress.Address4(subnetAddress);
+    if (!subnet) {
+      reject(new Error('The provided subnet cannot be parsed (' + subnetAddress + ')'))
+      return
+    }
+    console.log("subnet: " + subnet)
+    subnetA = subnet.parsedAddress[0]
+    subnetB = subnet.parsedAddress[1]
+    subnetC = subnet.parsedAddress[2]
+
+    let dr = deviceRange
+
+    if (dr.octetA) {
+      reject(new Error('The provided device range cannot contain an octetA element'))
+      return
+    }
+    
+    if (dr.octetB && subnetB) {
+      reject(new Error('The device range contains an octetB (' + dr.octetB 
+                       + '), but so does the provided subnet (' + subnetB + ')'))
+      return
+    }
+
+    if (dr.octetC && subnetC) {
+      reject(new Error('The device range contains an octetC (' + dr.octetC 
+                       + '), but so does the provided subnet (' + subnetC + ')'))
+      return
+    }
+
+    if (!dr.octetD) {
+      reject(new Error('The device range must contain an octetD'))
+      return
+    }
+
+    me.db.find({subnetAddress: subnetAddress}).toArray(function (err, results) {
       if (err) {
         console.log(err);
         reject(err)
-      }
-      else {
-        if (records.length == 0) {
-          reject(new Error("No such subnet as " + subnet))
-        }
-        else {
-          resolve(records[0])
+      } else {
+        if (results.length !== 1) {
+          reject(new Error('Cannot find subnet record for ' + subnetAddress))
+        } else {
+          devices = results[0].devices
+          if (!devices) devices = []
+
+          if (dr.octetD instanceof Object) {
+            minD = dr.octetD.min
+            maxD = dr.octetD.max
+          } else {
+            minD = maxD = dr.octetD
+          }
+
+          if (!dr.octetC) {
+            minC = maxC = subnetC
+          } else if (dr.octetC instanceof Object) {
+            minC = dr.octetC.min
+            maxC = dr.octetC.max
+          } else {
+            minC = maxC = dr.octetC
+          }
+
+          if (!dr.octetB) {
+            minB = maxB = subnetB
+          } else if (dr.octetB instanceof Object) {
+            minB = dr.octetB.min
+            maxB = dr.octetB.max
+          } else {
+            minB = maxB = dr.octetB
+          }
+
+          console.log("deviceA: " + subnetA)
+          console.log("deviceB: minB " + minB + ", maxA " + maxB)
+          console.log("deviceC: minC " + minC + ", maxA " + maxC)
+          console.log("deviceD: minD " + minD + ", maxA " + maxD)
+
+          found = false
+          for (let b = minB; b <= maxB && !found; b++) {
+            for (let c = minC; c <= maxC && !found; c++) {
+              for (let d = minD; d <= maxD && !found; d++) {
+                curDeviceAddress = subnetA + '.' + b + '.' + c + '.' + d
+                console.log("Considering device address: " + curDeviceAddress)
+                deviceInUse = false
+                for (let i=0; i<devices.length; i++) {
+                  inUseAddress = devices[i]
+                  if (curDeviceAddress === inUseAddress) {
+                    deviceInUse = true
+                    break
+                  }
+                }
+                if (deviceInUse) {
+                  console.log("Device address " + curDeviceAddress + " already in use")
+                } else {
+                  console.log("Found unused device address: " + curDeviceAddress)
+                  // TODO
+                  devices.push(curDeviceAddress)
+                  me.db.updateOne({subnetAddress: subnetAddress}, 
+                                  {$set: {devices: devices}}, function (err, res) {
+                    if (err) {
+                      reject(err)
+                    } else {
+                      if (res.modifiedCount === 1) {
+                        resolve(curDeviceAddress)
+                      } else {
+                        resolve(null)
+                      }
+                    }
+                  })
+                  found = true
+                }
+              }
+            }
+          }
+          if (!found) {
+            resolve(null)
+          }
         }
       }
     })
   })
 }
 
-function allocateHost(device, me) {
-  if (me.nextAvailableHost > me.IP_MAX) {
-    return (new Error('No Host IPs available on subnet ' + me.currentSubnet.subnet))
-  }
-  else {
-    let host = new ipaddress.Address4(me.OCTET_A + '.' + me.OCTET_B + '.' + me.currentSubnet.subnet + '.' + me.nextAvailableHost + '/' + me.currentSubnet.cidr);
-    device.deviceIp = host.addressMinusSuffix;
-    device.host = me.nextAvailableHost;
-    return device;
-  }
-}
 
-
-function getNetworkMask(subnet) {
-  let tempBinary = '';
-  for (i = 0; i < subnet.subnetMask; i++) {
-    tempBinary += '1'
-  }
-  for (let j = subnet.subnetMask; j < 32; j++) {
-    tempBinary += '0'
-  }
-  let binary = parseInt(tempBinary, 2);
-  let mask = new ipaddress.Address4.fromInteger(binary);
-  return mask
-}
