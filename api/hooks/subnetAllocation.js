@@ -136,7 +136,7 @@ module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet, sub
   })
 }
 
-module.exports.releaseSubnet = function (subnetAddress) {
+module.exports.releaseSubnetAddress = function (subnetAddress) {
   let me = this
   return new Promise(async function (resolve, reject) {
     console.log("Deleting " + subnetAddress)
@@ -154,8 +154,11 @@ module.exports.releaseSubnet = function (subnetAddress) {
   })
 }
 
-module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange) {
+module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, deviceObj) {
   let me = this
+  if (!deviceObj) {
+    deviceObj = {}
+  }
   return new Promise(async function (resolve, reject) {
     console.log("Getting device address for subnet " + subnetAddress)
     let subnet = new ipaddress.Address4(subnetAddress);
@@ -199,6 +202,7 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange) {
       } else {
         if (results.length !== 1) {
           reject(new Error('Cannot find subnet record for ' + subnetAddress))
+          return
         } else {
           devices = results[0].devices
           if (!devices) devices = []
@@ -241,7 +245,7 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange) {
                 console.log("Considering device address: " + curDeviceAddress)
                 deviceInUse = false
                 for (let i=0; i<devices.length; i++) {
-                  inUseAddress = devices[i]
+                  inUseAddress = devices[i].deviceAddress
                   if (curDeviceAddress === inUseAddress) {
                     deviceInUse = true
                     break
@@ -251,15 +255,15 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange) {
                   console.log("Device address " + curDeviceAddress + " already in use")
                 } else {
                   console.log("Found unused device address: " + curDeviceAddress)
-                  // TODO
-                  devices.push(curDeviceAddress)
+                  deviceObj.deviceAddress = curDeviceAddress
+                  devices.push(deviceObj)
                   me.db.updateOne({subnetAddress: subnetAddress}, 
                                   {$set: {devices: devices}}, function (err, res) {
                     if (err) {
                       reject(err)
                     } else {
                       if (res.modifiedCount === 1) {
-                        resolve(curDeviceAddress)
+                        resolve(deviceObj)
                       } else {
                         resolve(null)
                       }
@@ -279,4 +283,51 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange) {
   })
 }
 
+module.exports.releaseDeviceAddress = function (subnetAddress, deviceAddress) {
+  let me = this
+  return new Promise(async function (resolve, reject) {
+    console.log("Deleting device " + deviceAddress + " from subnet " + subnetAddress)
 
+    me.db.find({subnetAddress: subnetAddress}).toArray(function (err, results) {
+      if (err) {
+        console.log(err);
+        reject(err)
+        return
+      }
+      if (results.length !== 1) {
+        reject(new Error('Cannot find subnet record for ' + subnetAddress))
+        return
+      }
+      devices = results[0].devices
+      if (!devices) devices = []
+      let devOffset = -1
+      for (let i=0; i<devices.length; i++) {
+        dev = devices[i]
+        if (dev.deviceAddress === deviceAddress) {
+          devOffset = i
+          break
+        }
+      }
+      if (devOffset < 0) {
+        reject(new Error('Cannot find device with address ' + deviceAddress 
+                         + ' in subnet ' + subnetAddress))
+        return
+      }
+      removedDev = devices.splice(devOffset, 1)[0]
+      me.db.updateOne({subnetAddress: subnetAddress}, 
+                      {$set: {devices: devices}}, function (err, res) {
+        if (err) {
+          reject(err)
+        } else {
+          if (res.modifiedCount === 1) {
+            console.log("Removed device " + JSON.stringify(removedDev) 
+                        + " from subnet " + subnetAddress)
+            resolve(removedDev)
+          } else {
+            resolve(null)
+          }
+        }
+      })
+    })
+  })
+}
