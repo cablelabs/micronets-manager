@@ -128,7 +128,7 @@ module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet, sub
             reject(new Error('That Subnet " + requestedSubnet + " is already taken'))
           }
           me.db.insertOne({subnetAddress: requestedSubnet}, function (err, res) {
-            resolve(requestedSubnet)
+                          resolve(requestedSubnet)
           })
         }
       })
@@ -204,7 +204,8 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, devic
           reject(new Error('Cannot find subnet record for ' + subnetAddress))
           return
         } else {
-          devices = results[0].devices
+          subnet = results[0]
+          devices = subnet.devices
           if (!devices) devices = []
 
           if (dr.octetD instanceof Object) {
@@ -242,7 +243,7 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, devic
             for (let c = minC; c <= maxC && !found; c++) {
               for (let d = minD; d <= maxD && !found; d++) {
                 curDeviceAddress = subnetA + '.' + b + '.' + c + '.' + d
-                console.log("Considering device address: " + curDeviceAddress)
+                // console.log("Considering device address: " + curDeviceAddress)
                 deviceInUse = false
                 for (let i=0; i<devices.length; i++) {
                   inUseAddress = devices[i].deviceAddress
@@ -252,9 +253,9 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, devic
                   }
                 }
                 if (deviceInUse) {
-                  console.log("Device address " + curDeviceAddress + " already in use")
+                  // console.log("Device address " + curDeviceAddress + " already in use")
                 } else {
-                  console.log("Found unused device address: " + curDeviceAddress)
+                  // console.log("Found unused device address: " + curDeviceAddress)
                   deviceObj.deviceAddress = curDeviceAddress
                   devices.push(deviceObj)
                   me.db.updateOne({subnetAddress: subnetAddress}, 
@@ -263,7 +264,7 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, devic
                       reject(err)
                     } else {
                       if (res.modifiedCount === 1) {
-                        resolve(deviceObj)
+                        resolve(subnet)
                       } else {
                         resolve(null)
                       }
