@@ -20,119 +20,103 @@ module.exports.setup = function (app, config) {
  *
  * @returns {Promise<Subnet>}
  */
-module.exports.getNewSubnetAddress = function (subnetRange, requestedSubnet, subnetGateway) {
+module.exports.getNewSubnetAddress = function (subnetRange, subnetGateway) {
   me = this; // The Promise won't get this without using nn intermediate var
   return new Promise(async function (resolve, reject) {
-    if (!requestedSubnet) {
-      me.db.find({}).toArray(function (err, results) {
-        if (err) {
-          console.log(err);
-          reject(err)
+    me.db.find({}).toArray(function (err, results) {
+      if (err) {
+        console.log(err);
+        reject(err)
+      } else {
+        allocatedSubnets = results
+
+        let sr = subnetRange
+        let gw = subnetGateway
+        let subnetBits = 24
+
+        if (!sr.octetC) {
+          minC = maxC = 0
+          subnetBits = 16
+        } else if (sr.octetC instanceof Object) {
+          minC = sr.octetC.min
+          maxC = sr.octetC.max
         } else {
-          allocatedSubnets = results
+          minC =  maxC = sr.octetC
+        }
 
-          let sr = subnetRange
-          let gw = subnetGateway
-          let subnetBits = 24
+        if (!sr.octetB) {
+          minB = maxB = 0
+          subnetBits = 8
+        } else if (sr.octetB instanceof Object) {
+          minB = sr.octetB.min
+          maxB = sr.octetB.max
+        } else {
+          minB = maxB = sr.octetB
+        }
 
-          if (!sr.octetC) {
-            minC = maxC = 0
-            subnetBits = 16
-          } else if (sr.octetC instanceof Object) {
-            minC = sr.octetC.min
-            maxC = sr.octetC.max
-          } else {
-            minC =  maxC = sr.octetC
-          }
+        if (!sr.octetA) {
+          reject(new Error('The provided subnet range must contain an octetA element'))
+          return
+        } else if (sr.octetA instanceof Object) {
+          minA = sr.octetA.min
+          maxA = sr.octetA.max
+        } else {
+          minA = maxA = sr.octetA
+        }
 
-          if (!sr.octetB) {
-            minB = maxB = 0
-            subnetBits = 8
-          } else if (sr.octetB instanceof Object) {
-            minB = sr.octetB.min
-            maxB = sr.octetB.max
-          } else {
-            minB = maxB = sr.octetB
-          }
+        if (sr.octetC && gw.octetC) {
+          reject(new Error('The subnet and gateway both have octetC set (' 
+                           + sr.octetC +' vs ' + gw.octetC + ')'))
+          return
+        }
 
-          if (!sr.octetA) {
-            reject(new Error('The provided subnet range must contain an octetA element'))
-            return
-          } else if (sr.octetA instanceof Object) {
-            minA = sr.octetA.min
-            maxA = sr.octetA.max
-          } else {
-            minA = maxA = sr.octetA
-          }
+        if (sr.octetB && gw.octetB) {
+          reject(new Error('The subnet and gateway both have octetB set (' 
+                           + sr.octetB +' vs ' + gw.octetB + ')'))
+          return
+        }
 
-          if (sr.octetC && gw.octetC) {
-            reject(new Error('The subnet and gateway both have octetC set (' 
-                             + sr.octetC +' vs ' + gw.octetC + ')'))
-            return
-          }
+        if (!gw.octetD) {
+          reject(new Error('The gateway must have octetD set'))
+          return
+        }
 
-          if (sr.octetB && gw.octetB) {
-            reject(new Error('The subnet and gateway both have octetB set (' 
-                             + sr.octetB +' vs ' + gw.octetB + ')'))
-            return
-          }
-
-          if (!gw.octetD) {
-            reject(new Error('The gateway must have octetD set'))
-            return
-          }
-
-          found = false
-          for (let a = minA; a <= maxA && !found; a++) {
-            for (let b = minB; b <= maxB && !found; b++) {
-              for (let c = minC; c <= maxC && !found; c++) {
-                curSubnetAddress = a + '.' + b + '.' + c + '.0/' + subnetBits
-                // console.log("Considering subnet address: " + curSubnetAddress)
-                // let subnet = new ipaddress.Address4(a + '.' + b + '.' + c + '.0/' + subnetBits);
-                subnetInUse = false
-                for (let i=0; i<allocatedSubnets.length; i++) {
-                  inUseAddress = allocatedSubnets[i].subnetAddress
-                  if (curSubnetAddress === inUseAddress) {
-                    subnetInUse = true
-                    break
-                  }
+        found = false
+        for (let a = minA; a <= maxA && !found; a++) {
+          for (let b = minB; b <= maxB && !found; b++) {
+            for (let c = minC; c <= maxC && !found; c++) {
+              curSubnetAddress = a + '.' + b + '.' + c + '.0/' + subnetBits
+              // console.log("Considering subnet address: " + curSubnetAddress)
+              // let subnet = new ipaddress.Address4(a + '.' + b + '.' + c + '.0/' + subnetBits);
+              subnetInUse = false
+              for (let i=0; i<allocatedSubnets.length; i++) {
+                inUseAddress = allocatedSubnets[i].subnetAddress
+                if (curSubnetAddress === inUseAddress) {
+                  subnetInUse = true
+                  break
                 }
-                if (subnetInUse) {
-                  // console.log("Subnet " + curSubnetAddress + " already in use")
-                } else {
-                  // console.log("Found unused subnet address: " + curSubnetAddress)
-                  gwAddress = a + '.' + (b || gw.octetB) + '.'
-                              + (c || gw.octetC) + '.' + gw.octetD
-                  dbRecord = {subnetAddress: curSubnetAddress, subnetGateway: gwAddress}
-                  // console.log("subnet dbRecord: " + JSON.stringify(dbRecord)) 
-                  me.db.insertOne(dbRecord, function (err, res) {
-                    resolve(dbRecord)
-                  })
-                  found = true
-                }
+              }
+              if (subnetInUse) {
+                // console.log("Subnet " + curSubnetAddress + " already in use")
+              } else {
+                // console.log("Found unused subnet address: " + curSubnetAddress)
+                gwAddress = a + '.' + (b || gw.octetB) + '.'
+                            + (c || gw.octetC) + '.' + gw.octetD
+                dbRecord = {subnetAddress: curSubnetAddress, subnetGateway: gwAddress}
+                // console.log("subnet dbRecord: " + JSON.stringify(dbRecord)) 
+                me.db.insertOne(dbRecord, function (err, res) {
+                  resolve(dbRecord)
+                })
+                found = true
               }
             }
           }
-          if (!found) {
-            resolve(null)
-          }
         }
-      })
-    } else {
-      me.db.find({subnetAddress: requestedSubnet}).toArray(function (err, results) {
-        if (err) {
-          console.log(err);
-          reject(err)
-        } else {
-          if (!results.length === 0) {
-            reject(new Error('That Subnet " + requestedSubnet + " is already taken'))
-          }
-          me.db.insertOne({subnetAddress: requestedSubnet}, function (err, res) {
-                          resolve(requestedSubnet)
-          })
+        if (!found) {
+          resolve(null)
         }
-      })
-    }
+      }
+    })
   })
 }
 
