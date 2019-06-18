@@ -20,7 +20,7 @@ module.exports.setup = function (app, config) {
  *
  * @returns {Promise<Subnet>}
  */
-module.exports.getNewSubnetAddress = function (subnetRange, subnetGateway) {
+module.exports.allocateSubnetAddress = function (subnetRange, subnetGateway) {
   me = this; // The Promise won't get this without using nn intermediate var
   return new Promise(async function (resolve, reject) {
     me.db.find({}).toArray(function (err, results) {
@@ -138,7 +138,7 @@ module.exports.releaseSubnetAddress = function (subnetAddress) {
   })
 }
 
-module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, deviceObj) {
+module.exports.allocateDeviceAddress = function (subnetAddress, deviceRange, deviceObj) {
   let me = this
   if (!deviceObj) {
     deviceObj = {}
@@ -189,8 +189,7 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, devic
           return
         } else {
           subnet = results[0]
-          devices = subnet.devices
-          if (!devices) devices = []
+          if (!subnet.devices) subnet.devices = []
 
           if (dr.octetD instanceof Object) {
             minD = dr.octetD.min
@@ -229,8 +228,8 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, devic
                 curDeviceAddress = subnetA + '.' + b + '.' + c + '.' + d
                 // console.log("Considering device address: " + curDeviceAddress)
                 deviceInUse = false
-                for (let i=0; i<devices.length; i++) {
-                  inUseAddress = devices[i].deviceAddress
+                for (let i=0; i<subnet.devices.length; i++) {
+                  inUseAddress = subnet.devices[i].deviceAddress
                   if (curDeviceAddress === inUseAddress) {
                     deviceInUse = true
                     break
@@ -241,9 +240,9 @@ module.exports.getNewDeviceAddress = function (subnetAddress, deviceRange, devic
                 } else {
                   // console.log("Found unused device address: " + curDeviceAddress)
                   deviceObj.deviceAddress = curDeviceAddress
-                  devices.push(deviceObj)
+                  subnet.devices.push(deviceObj)
                   me.db.updateOne({subnetAddress: subnetAddress}, 
-                                  {$set: {devices: devices}}, function (err, res) {
+                                  {$set: {devices: subnet.devices}}, function (err, res) {
                     if (err) {
                       reject(err)
                     } else {
