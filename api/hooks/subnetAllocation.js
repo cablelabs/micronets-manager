@@ -7,6 +7,7 @@ module.exports.setup = function (app, config) {
       .then((dbP) => {
         console.log('subnet allocator connected');
         me.db = dbP.db().collection('subnetAllocation');
+        me.db.createIndex({"subnetAddress": 1}, {unique: true})
         resolve(me)
       })
       .catch(err => {
@@ -20,7 +21,7 @@ module.exports.setup = function (app, config) {
  *
  * @returns {Promise<Subnet>}
  */
-module.exports.allocateSubnetAddress = function (subnetRange, subnetGateway) {
+module.exports.allocateSubnetAddress = function (subnetSpec, gatewaySpec) {
   me = this; // The Promise won't get this without using nn intermediate var
   return new Promise(async function (resolve, reject) {
     me.db.find({}).toArray(function (err, results) {
@@ -30,8 +31,8 @@ module.exports.allocateSubnetAddress = function (subnetRange, subnetGateway) {
       } else {
         allocatedSubnets = results
 
-        let sr = subnetRange
-        let gw = subnetGateway
+        let sr = subnetSpec
+        let gw = gatewaySpec
         let subnetBits = 24
 
         if (!sr.octetC) {
@@ -64,6 +65,12 @@ module.exports.allocateSubnetAddress = function (subnetRange, subnetGateway) {
           minA = maxA = sr.octetA
         }
 
+        if (!gw || !gw.octetD) {
+          reject(new Error('The gateway pattern must be provided and must have octetD set'))
+          return
+        }
+
+
         if (sr.octetC && gw.octetC) {
           reject(new Error('The subnet and gateway both have octetC set (' 
                            + sr.octetC +' vs ' + gw.octetC + ')'))
@@ -76,34 +83,30 @@ module.exports.allocateSubnetAddress = function (subnetRange, subnetGateway) {
           return
         }
 
-        if (!gw.octetD) {
-          reject(new Error('The gateway must have octetD set'))
-          return
-        }
-
         found = false
         for (let a = minA; a <= maxA && !found; a++) {
           for (let b = minB; b <= maxB && !found; b++) {
             for (let c = minC; c <= maxC && !found; c++) {
               curSubnetAddress = a + '.' + b + '.' + c + '.0/' + subnetBits
-              // console.log("Considering subnet address: " + curSubnetAddress)
+              console.log("Considering subnet address: " + curSubnetAddress)
               // let subnet = new ipaddress.Address4(a + '.' + b + '.' + c + '.0/' + subnetBits);
               subnetInUse = false
               for (let i=0; i<allocatedSubnets.length; i++) {
                 inUseAddress = allocatedSubnets[i].subnetAddress
+                console.log("  Found in-use address: " + inUseAddress )
                 if (curSubnetAddress === inUseAddress) {
                   subnetInUse = true
                   break
                 }
               }
               if (subnetInUse) {
-                // console.log("Subnet " + curSubnetAddress + " already in use")
+                console.log("Subnet " + curSubnetAddress + " already in use")
               } else {
-                // console.log("Found unused subnet address: " + curSubnetAddress)
+                console.log("Found unused subnet address: " + curSubnetAddress)
                 gwAddress = a + '.' + (b || gw.octetB) + '.'
                             + (c || gw.octetC) + '.' + gw.octetD
-                dbRecord = {subnetAddress: curSubnetAddress, subnetGateway: gwAddress}
-                // console.log("subnet dbRecord: " + JSON.stringify(dbRecord)) 
+                dbRecord = {subnetAddress: curSubnetAddress, gatewayAddress: gwAddress}
+                console.log("subnet dbRecord: " + JSON.stringify(dbRecord)) 
                 me.db.insertOne(dbRecord, function (err, res) {
                   resolve(dbRecord)
                 })
@@ -114,6 +117,32 @@ module.exports.allocateSubnetAddress = function (subnetRange, subnetGateway) {
         }
         if (!found) {
           resolve(null)
+        }
+      }
+    })
+  })
+}
+
+module.exports.getSubnet = function (subnetAddress) {
+  let me = this
+  return new Promise(async function (resolve, reject) {
+    let subnet = new ipaddress.Address4(subnetAddress);
+    if (!subnet) {
+      reject(new Error('The provided subnet cannot be parsed (' + subnetAddress + ')'))
+      return
+    }
+
+    me.db.find({subnetAddress: subnetAddress}).toArray(function (err, results) {
+      if (err) {
+        console.log(err);
+        reject(err)
+      } else {
+        if (results.length !== 1) {
+          reject(new Error('Cannot find subnet record for ' + subnetAddress))
+          return
+        } else {
+          subnet = results[0]
+          resolve(subnet)
         }
       }
     })
