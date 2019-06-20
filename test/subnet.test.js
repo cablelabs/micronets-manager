@@ -186,4 +186,14 @@ describe('Test Subnet Allocation', function() {
         done()
       })
   })
+
+  it('Remove an Allocated Device', (done) => {
+    sa.releaseDeviceAddress('192.168.111.0/24', '192.168.111.10')
+      .then((dev) => {
+        dev.deviceMac.should.equal("b8:27:eb:df:ae:a9")
+        dev.deviceId.should.equal("pib")
+        dev.modelName.should.equal("Raspberry-Pi3-Model-B-v1.2")
+        dev.deviceAddress.should.equal('192.168.111.10')
+      }).then(done, done)
+  })
 })

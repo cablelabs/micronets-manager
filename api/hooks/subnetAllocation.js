@@ -24,12 +24,10 @@ module.exports.setup = function (app, config) {
  * @returns {Promise<Subnet>}
  */
 module.exports.allocateSubnetAddress = function (subnetSpec, gatewaySpec) {
-  console.log(`allocateSubnetAddress(${JSON.stringify(subnetSpec)},${JSON.stringify(gatewaySpec)})`)
+  // console.log(`allocateSubnetAddress(${JSON.stringify(subnetSpec)},${JSON.stringify(gatewaySpec)})`)
   me = this; // The Promise won't get this without using nn intermediate var
   return new Promise(async function (resolve, reject) {
-    console.log("allocateSubnetAddress: waiting for lock... ")
     await me.lock.acquireAsync()
-    console.log("allocateSubnetAddress: lock acquired. ")
     me.db.find({}).toArray(function (err, results) {
       if (err) {
         console.log(err);
@@ -115,7 +113,7 @@ module.exports.allocateSubnetAddress = function (subnetSpec, gatewaySpec) {
                 gwAddress = a + '.' + (b || gw.octetB) + '.'
                             + (c || gw.octetC) + '.' + gw.octetD
                 dbRecord = {subnetAddress: curSubnetAddress, gatewayAddress: gwAddress}
-                console.log("subnet dbRecord: " + JSON.stringify(dbRecord)) 
+                // console.log("subnet dbRecord: " + JSON.stringify(dbRecord)) 
                 me.db.insertOne(dbRecord, function (err, res) {
                   if (err) {
                     console.log("Error adding subnet " + JSON.stringify(dbRecord)
@@ -172,11 +170,10 @@ module.exports.releaseSubnetAddress = function (subnetAddress) {
   let me = this
   return new Promise(async function (resolve, reject) {
     await me.lock.acquireAsync()
-    console.log("Releasing " + subnetAddress)
+    // console.log("Releasing " + subnetAddress)
     count = me.db.deleteOne({subnetAddress: subnetAddress}, function(err, obj) {
       if (err) {
-        console.log("Error releasing subnet address " + subnetAddress
-                    + ": " + err)
+        // console.log("Error releasing subnet address " + subnetAddress + ": " + err)
         reject(err)
       } else {
         if (obj.deletedCount === 1) {
@@ -191,21 +188,21 @@ module.exports.releaseSubnetAddress = function (subnetAddress) {
 }
 
 module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, deviceObj) {
-  console.log(`allocateDeviceAddress(${subnetAddress},${JSON.stringify(deviceSpec)},${JSON.stringify(deviceObj)})`)
+      //console.log(`allocateDeviceAddress(${subnetAddress},${JSON.stringify(deviceSpec)},${JSON.stringify(deviceObj)})`)
   let me = this
   if (!deviceObj) {
     deviceObj = {}
   }
   return new Promise(async function (resolve, reject) {
     await me.lock.acquireAsync()
-    console.log("Getting device address for subnet " + subnetAddress)
+    // ("Getting device address for subnet " + subnetAddress)
     let subnet = new ipaddress.Address4(subnetAddress);
     if (!subnet) {
       reject(new Error('The provided subnet cannot be parsed (' + subnetAddress + ')'))
       me.lock.release()
       return
     }
-    console.log("device subnet: " + JSON.stringify(subnet))
+    // console.log("device subnet: " + JSON.stringify(subnet))
     subnetA = subnet.parsedAddress[0]
     subnetB = subnet.parsedAddress[1]
     subnetC = subnet.parsedAddress[2]
@@ -240,7 +237,7 @@ module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, devi
 
     me.db.find({subnetAddress: subnetAddress}).toArray(function (err, results) {
       if (err) {
-        console.log("Could not finding subnet " + subnetAddress + ": " + err)
+        console.log("Could not find subnet " + subnetAddress + ": " + err)
         reject(err)
         me.lock.release()
       } else {
@@ -277,10 +274,10 @@ module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, devi
             minB = maxB = dr.octetB
           }
 
-          console.log("deviceA: " + subnetA)
-          console.log("deviceB: minB " + minB + ", maxA " + maxB)
-          console.log("deviceC: minC " + minC + ", maxA " + maxC)
-          console.log("deviceD: minD " + minD + ", maxA " + maxD)
+          // console.log("deviceA: " + subnetA)
+          // console.log("deviceB: minB " + minB + ", maxA " + maxB)
+          // console.log("deviceC: minC " + minC + ", maxA " + maxC)
+          // console.log("deviceD: minD " + minD + ", maxA " + maxD)
 
           found = false
           for (let b = minB; b <= maxB && !found; b++) {
@@ -299,7 +296,7 @@ module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, devi
                 if (deviceInUse) {
                   console.log("Device address " + curDeviceAddress + " already in use")
                 } else {
-                  console.log("Found unused device address: " + curDeviceAddress)
+                  // console.log("Found unused device address: " + curDeviceAddress)
                   deviceObj.deviceAddress = curDeviceAddress
                   subnet.devices.push(deviceObj)
                   me.db.updateOne({subnetAddress: subnetAddress}, 
@@ -310,7 +307,7 @@ module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, devi
                       reject(err)
                     } else {
                       if (res.modifiedCount === 1) {
-                        console.log(`Updated subnet for device ${curDeviceAddress}: ${JSON.stringify(subnet)}`)
+                        // console.log(`Updated subnet for device ${curDeviceAddress}: ${JSON.stringify(subnet)}`)
                         resolve(subnet)
                       } else {
                         reject(new Error(`DB record for ${subnetAddress} could not be modified`))
@@ -335,11 +332,50 @@ module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, devi
   })
 }
 
+module.exports.getDevice = function (subnetAddress, deviceAddress) {
+  let me = this
+  return new Promise(async function (resolve, reject) {
+    await me.lock.acquireAsync()
+
+    me.db.find({subnetAddress: subnetAddress}).toArray(function (err, results) {
+      if (err) {
+        console.log(err);
+        reject(err)
+        me.lock.release()
+        return
+      }
+      if (results.length !== 1) {
+        reject(new Error('Cannot find subnet record for ' + subnetAddress))
+        me.lock.release()
+        return
+      }
+      devices = results[0].devices
+      if (!devices) devices = []
+      let devOffset = -1
+      for (let i=0; i<devices.length; i++) {
+        dev = devices[i]
+        if (dev.deviceAddress === deviceAddress) {
+          devOffset = i
+          break
+        }
+      }
+      if (devOffset < 0) {
+        reject(new Error('Cannot find device with address ' + deviceAddress 
+                         + ' in subnet ' + subnetAddress))
+        me.lock.release()
+        return
+      }
+      device = devices[devOffset]
+      accept(device)
+    })
+  })
+}
+
 module.exports.releaseDeviceAddress = function (subnetAddress, deviceAddress) {
   let me = this
   return new Promise(async function (resolve, reject) {
     await me.lock.acquireAsync()
-    console.log("Deleting device " + deviceAddress + " from subnet " + subnetAddress)
+    // console.log("Deleting device " + deviceAddress + " from subnet " + subnetAddress)
 
     me.db.find({subnetAddress: subnetAddress}).toArray(function (err, results) {
       if (err) {
