@@ -1,4 +1,4 @@
-const subnetAllocation = require('./hooks/subnetAllocaiton')
+const subnetAllocation = require('./hooks/subnetAllocation')
 
 module.exports = function () {
   const app = this;

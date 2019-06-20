@@ -2,7 +2,7 @@
 // var newSubnet = {}
 const app = require('./app');
 const logger = require('./logger');
-const subnetAllocation = require ( './hooks/subnetAllocaiton' );
+const subnetAllocation = require ( './hooks/subnetAllocation' );
 
 // Get random subnet
 (module.exports.getRandomSubnet = async() => {

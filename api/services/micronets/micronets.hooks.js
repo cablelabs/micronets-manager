@@ -1,4 +1,4 @@
-const subnetAllocation = require ( '../../hooks/subnetAllocaiton' )
+const subnetAllocation = require ( '../../hooks/subnetAllocation' )
 const micronetOperationalConfig = require ( '../../mock-data/micronetsOperationalConfig' );
 const micronetNotifications = require ( '../../mock-data/micronetNotifications' );
 const axios = require ( 'axios' );
