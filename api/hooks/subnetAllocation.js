@@ -215,16 +215,18 @@ module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, devi
       return
     }
     
-    if (dr.octetB && subnetB) {
-      reject(new Error('The device range contains an octetB (' + dr.octetB 
-                       + '), but so does the provided subnet (' + subnetB + ')'))
+    if (dr.octetB != 0 && subnetB != 0) {
+      reject(new Error('The device range contains an octetB (' + JSON.stringify(dr.octetB)
+                       + '), but so does the provided subnet (' + JSON.stringify(subnetB) 
+                       + ')'))
       me.lock.release()
       return
     }
 
-    if (dr.octetC && subnetC) {
-      reject(new Error('The device spec contains an octetC (' + dr.octetC 
-                       + '), but so does the provided subnet (' + subnetC + ')'))
+    if (dr.octetC != 0 && subnetC != 0) {
+      reject(new Error('The device spec contains an octetC (' + JSON.stringify(dr.octetC) 
+                       + '), but so does the provided subnet (' + JSON.stringify(subnetC) 
+                       + ')'))
       me.lock.release()
       return
     }
