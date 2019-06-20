@@ -1,6 +1,6 @@
 const logger = require ( './../../logger' );
 const RANDOM_SUBNET_URL = '/mm/v1/allocator/subnets'
-const subnetAllocation = require ( '../../hooks/subnetAllocaiton' )
+const subnetAllocation = require ( '../../hooks/subnetAllocation' )
 const errors = require('@feathersjs/errors');
 const postTestDevices =  [
   {

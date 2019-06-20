@@ -1,5 +1,5 @@
 const logger = require ( './../../api/logger' );
-const subnetAllocation = require ( './../hooks/subnetAllocaiton' )
+const subnetAllocation = require ( './../hooks/subnetAllocation' )
 const axios = require ( 'axios' );
 const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application/json' } }
 const omit = require ( 'ramda/src/omit' );
