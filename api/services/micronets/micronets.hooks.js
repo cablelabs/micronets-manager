@@ -1140,7 +1140,8 @@ module.exports = {
          logger.debug(`\n Device ID to remove ${deviceId} from micronet ${micronetId}`)
           const registry = await getRegistry ( hook , {} )
           const { mmUrl } = registry
-          let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , ipSubnets = []
+          let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , subnetAllocator = Object.assign({}) , deviceToDeleteIndex = ''
+          const micronetFromDB = await getMicronet ( hook , {} )
           // ODL and Gateway checks
           const isGtwyAlive = await isGatewayAlive ( hook )
           const isOdlAlive = await isODLAlive ( hook )
@@ -1160,7 +1161,7 @@ module.exports = {
                 micronetToDelete = micronets[ micronetToDeleteIndex ]
                 ipSubnets = [].concat ( micronetToDelete[ 'micronet-subnet' ].split ( '.' )[ 2 ] )
                 registeredDevicesToDelete = micronetToDelete[ 'connected-devices' ]
-                let deviceToDeleteIndex = registeredDevicesToDelete.findIndex((device)=> device['device-id'] == deviceId)
+                deviceToDeleteIndex = registeredDevicesToDelete.findIndex((device)=> device['device-id'] == deviceId)
                 logger.debug('\n deviceToDeleteIndex : ' + JSON.stringify(deviceToDeleteIndex))
 
                 // Valid Index. Device Exists
@@ -1172,16 +1173,15 @@ module.exports = {
                 }
               }
 
+              // Delete specific device from subnet allocator
+              if ( isEmpty(subnetAllocator) ) {
+                subnetAllocator.deviceAddress = registeredDevicesToDelete[deviceToDeleteIndex]['device-ip']
+                subnetAllocator.subnetAddress = micronetToDelete[ 'micronet-subnet' ]
+                logger.debug('\n SubnetAllocator for deleting a device : ' + JSON.stringify(subnetAllocator))
+              }
             }
 
-            // Delete all micro-nets
-            const micronetFromDB = await getMicronet ( hook , {} )
-            if ( ipSubnets.length == 0 ) {
-              ipSubnets = micronetFromDB.micronets.map ( ( micronet ) => {
-                return micronet[ 'micronet-subnet' ].split ( '.' )[ 2 ]
-              } )
-            }
-            logger.debug ( '\n Remove hook postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ) + '\t\t IP Subnets : ' + JSON.stringify ( ipSubnets ) )
+            logger.debug ( '\n Remove hook postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ))
             const patchResult = await hook.app.service ( `${MICRONETS_PATH}` ).patch ( id ,
               {
                 micronets : postBodyForDelete
@@ -1200,7 +1200,7 @@ module.exports = {
                   } )
                 }
 
-                // Deallocate subnets
+                // TODO: Delete specific device in subnet allocator.
                 // if ( ipSubnets.length > 0 ) {
                 //   deallocateIPSubnets ( hook , ipSubnets )
                 // }
@@ -1208,15 +1208,10 @@ module.exports = {
                 let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
                 if ( !(isEmpty ( users.data )) ) {
                   users = users.data[ 0 ]
-                  let updatedDevices = users.devices.map ( ( registeredDevice , index ) => {
-                    const deviceToDeleteIndex = registeredDevicesToDelete.findIndex ( ( deviceFromMicronet ) => registeredDevice.macAddress == deviceFromMicronet[ 'device-mac' ] && registeredDevice.deviceId == deviceFromMicronet[ 'device-id' ] )
-                    if ( deviceToDeleteIndex == -1 ) {
-                      return registeredDevice
-                    }
-                  } )
-                  updatedDevices = updatedDevices.filter ( Boolean )
+                  let deviceToDeleteIndex = users.devices.findIndex((registeredDevice, index) => registeredDevice.deviceId == hook.params.route.deviceId)
+                  let filteredDevices =  users.devices.filter((registeredDevice,index) => index != deviceToDeleteIndex)
                   const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( null , Object.assign ( {
-                    devices : updatedDevices ,
+                    devices : filteredDevices ,
                     deleteRegisteredDevices : true
                   } ) , { query : { id : users.id } , mongoose : { upsert : true } } )
                 }
@@ -1231,10 +1226,6 @@ module.exports = {
                     url : `${mmUrl}/mm/v1/mock/subscriber/${id}/micronets` ,
                     data : Object.assign ( {} , { micronets : [] } )
                   } )
-                }
-                // De-allocate subnets
-                if ( ipSubnets.length > 0 ) {
-                  deallocateIPSubnets ( hook , ipSubnets )
                 }
 
                 let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
@@ -1254,8 +1245,6 @@ module.exports = {
           }
 
         }
-
-
 
 
         // Delete all micronets or specific micronet
