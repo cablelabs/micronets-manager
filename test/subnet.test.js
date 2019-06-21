@@ -75,7 +75,7 @@ describe('Test Subnet Allocation', function() {
                                                     deviceObj))
     }
     Promise.all(promiseList).then((snArray) => {
-      console.log("Completed allocation of " + snArray.length + " device addresses")
+      // console.log("Completed allocation of " + snArray.length + " device addresses")
       snArray.length.should.equal(devices.length)
       subnet = snArray[devices.length-1]
       subnet.subnetAddress.should.equal('192.168.100.0/24')
@@ -93,12 +93,12 @@ describe('Test Subnet Allocation', function() {
   })
 
   it('Get Second Subnet Object', (done) => {
-    console.log("Getting second subnet...")
-    console.log("subnet: " + JSON.stringify(subnet))
+    // console.log("Getting second subnet...")
+    // console.log("subnet: " + JSON.stringify(subnet))
     sa.allocateSubnetAddress(Object.assign({},{octetA: 192, octetB: 168, octetC: {min:100, max:254}}),
                                  Object.assign({},{octetD: 1}))
       .then((sn) => {
-        console.log("Allocated second subnet " + JSON.stringify(sn))
+        // console.log("Allocated second subnet " + JSON.stringify(sn))
         newSubnet = sn
         newSubnet.subnetAddress.should.equal("192.168.111.0/24")
         newSubnet.gatewayAddress.should.equal('192.168.111.1')
@@ -106,7 +106,7 @@ describe('Test Subnet Allocation', function() {
   })
 
   it('Get Two More Host Objects', (done) => {
-    console.log("Getting 2 more host objects from " + JSON.stringify(newSubnet))
+    // console.log("Getting 2 more host objects from " + JSON.stringify(newSubnet))
     let devices = [
       {
         deviceMac: "b8:27:eb:df:ae:a9",
@@ -144,13 +144,13 @@ describe('Test Subnet Allocation', function() {
   })
 
   it('Fail to allocate device address after device addresses exhausted', (done) => {
-    console.log("subnet: " + JSON.stringify(subnet))
+    // console.log("subnet: " + JSON.stringify(subnet))
     device = {
         deviceMac: "b8:27:eb:df:ae:ab",
         deviceId: "pib2",
         modelName: "Raspberry-Pi3-Model-B-v1.2"
     }
-    console.log("subnet: " + JSON.stringify(subnet))
+    // console.log("subnet: " + JSON.stringify(subnet))
     sa.allocateDeviceAddress(newSubnet.subnetAddress, {octetD: {min:10, max:11}}, device)
       .then((sn) => {
        done(new Error("Should not create a third ip address"))
@@ -161,7 +161,7 @@ describe('Test Subnet Allocation', function() {
   })
 
   it('Get an allocated Subnet', (done) => {
-    console.log("subnet: " + JSON.stringify(subnet))
+    // console.log("subnet: " + JSON.stringify(subnet))
     sa.getSubnet("192.168.101.0/24")
       .then((sn) => {
         subnet = sn

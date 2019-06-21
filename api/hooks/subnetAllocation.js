@@ -61,7 +61,7 @@ module.exports.allocateSubnetAddress = function (subnetSpec, gatewaySpec) {
         }
 
         if (!sr.octetA) {
-          reject(new Error('The provided subnet range must contain an octetA element'))
+          reject(new Error('The provided subnetspec must contain an octetA element'))
           return
         } else if (sr.octetA instanceof Object) {
           minA = sr.octetA.min
@@ -215,16 +215,16 @@ module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, devi
       return
     }
     
-    if (dr.octetB != 0 && subnetB != 0) {
-      reject(new Error('The device range contains an octetB (' + JSON.stringify(dr.octetB)
+    if ((dr.octetB && dr.octetB != 0) && (subnetB && subnetB != 0)) {
+      reject(new Error('The devicespec contains an octetB (' + JSON.stringify(dr.octetB)
                        + '), but so does the provided subnet (' + JSON.stringify(subnetB) 
                        + ')'))
       me.lock.release()
       return
     }
 
-    if (dr.octetC != 0 && subnetC != 0) {
-      reject(new Error('The device spec contains an octetC (' + JSON.stringify(dr.octetC) 
+    if ((dr.octetC && dr.octetC != 0) && (subnetC && subnetC != 0)) {
+      reject(new Error('The devicespec contains an octetC (' + JSON.stringify(dr.octetC) 
                        + '), but so does the provided subnet (' + JSON.stringify(subnetC) 
                        + ')'))
       me.lock.release()
@@ -232,7 +232,7 @@ module.exports.allocateDeviceAddress = function (subnetAddress, deviceSpec, devi
     }
 
     if (!dr.octetD) {
-      reject(new Error('The device range must contain an octetD'))
+      reject(new Error('The devicespec must contain an octetD'))
       me.lock.release()
       return
     }
