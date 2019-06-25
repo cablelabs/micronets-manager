@@ -31,7 +31,7 @@ echo ' Populating switch config on ' $MM_HOST
 
 #! POST SWITCH CONFIG CURL
 
-SWITCH_CONFIG=$(curl -s -X POST -H "Authorization: ${JWT_TOKEN}" -H 'Accept: application/json' -H 'Content-Type: application/json' --data-binary @./data/odlPost.json http://${MM_HOST}/mm/v1/micronets/odl )
+SWITCH_CONFIG=$(curl -s -X POST -H "Authorization: ${JWT_TOKEN}" -H 'Accept: application/json' -H 'Content-Type: application/json' --data-binary @./data/gatewayConfig.json http://${MM_HOST}/mm/v1/micronets/odl )
 
 echo ' Switch Config : ' ${SWITCH_CONFIG}
 

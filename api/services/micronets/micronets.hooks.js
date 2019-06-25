@@ -76,44 +76,52 @@ const getOdlConfig = async ( hook , id ) => {
       return data
     } )
 }
+
 /* Get Switch Config */
 const getODLSwitchDetails = async ( hook , gatewayId ) => {
   const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
   if ( isEmpty ( odlStaticConfig ) ) {
     return Promise.reject ( new errors.GeneralError ( new Error ( 'Missing Switch config' ) ) )
   }
-  const { switchConfig } = odlStaticConfig
-  const bridgeTrunkIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty ( "trunkPort" ) && bridge.hasOwnProperty ( "trunkIp" ) )
-  const bridgeTrunk = switchConfig.bridges[ bridgeTrunkIndex ]
-  const ovsHost = odlStaticConfig.ovsHost
-  const ovsPort = odlStaticConfig.ovsPort
-  let wirelessPorts = bridgeTrunk.ports.map ( ( port ) => {
-    if ( port.hasOwnProperty ( "hwtype" ) && port.hwtype == WIRELESS ) {
-      return port
+  const { micronetInterfaces } = odlStaticConfig
+  // const bridgeTrunkIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty ( "trunkPort" ) && bridge.hasOwnProperty ( "trunkIp" ) )
+  // const bridgeTrunk = switchConfig.bridges[ bridgeTrunkIndex ]
+  const bridgeTrunk = Object.assign({},{
+    "trunkPort": '2',
+    "trunkIp": "10.36.32.124/24",
+    "name": "brmn001"
+  })
+  const ovsHost = '10.36.32.124' // odlStaticConfig.ovsHost
+  const ovsPort = '8181' // odlStaticConfig.ovsPort
+  let wirelessInterfaces = micronetInterfaces.map ( ( interface ) => {
+    logger.debug('\n Current interface : ' + JSON.stringify(interface))
+    if ( interface.hasOwnProperty ( "medium" ) && interface.medium == WIRELESS ) {
+      return interface
     }
   } )
-  wirelessPorts = wirelessPorts.filter ( Boolean )
-  let wiredPorts = bridgeTrunk.ports.map ( ( port ) => {
-    if ( port.hasOwnProperty ( "hwtype" ) && port.hwtype == WIRED ) {
-      return port
+  wirelessInterfaces = wirelessInterfaces.filter ( Boolean )
+
+  let wiredInterfaces = micronetInterfaces.map ( ( interface ) => {
+    logger.debug('\n Current interface : ' + JSON.stringify(interface))
+    if ( interface.hasOwnProperty ( "medium" ) && interface.medium == WIRED ) {
+      return interface
     }
   } )
-  wiredPorts = wiredPorts.filter ( Boolean )
+  wiredInterfaces = wiredInterfaces.filter ( Boolean )
   return {
     odlStaticConfig ,
-    bridgeTrunkIndex ,
     bridgeTrunk ,
-    wiredPorts ,
-    wirelessPorts ,
+    wirelessInterfaces ,
+    wiredInterfaces ,
     ovsHost ,
     ovsPort ,
-    switchConfig
+    micronetInterfaces
   }
 }
 
 const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
   const { micronets } = requestBody;
-  const { odlStaticConfig , bridgeTrunkIndex , bridgeTrunk , wiredPorts , wirelessPorts , ovsHost , ovsPort , switchConfig } = await getODLSwitchDetails ( hook , gatewayId )
+  const { odlStaticConfig ,  bridgeTrunk , wirelessInterfaces , wiredInterfaces  , ovsHost , ovsPort , micronetInterfaces } = await getODLSwitchDetails ( hook , gatewayId )
   const reqBodyWithOdlConfig = micronets.map ( ( micronet , index ) => {
     return {
       ...micronet ,
@@ -127,11 +135,10 @@ const populateOdlConfig = async ( hook , requestBody , gatewayId ) => {
   } );
   return {
     reqBodyWithOdlConfig ,
-    bridgeTrunkIndex ,
     bridgeTrunk ,
-    wirelessPorts ,
-    wiredPorts ,
-    switchConfig ,
+    wirelessInterfaces ,
+    wiredInterfaces ,
+    micronetInterfaces  ,
     ovsHost ,
     ovsPort ,
     requestBody
@@ -144,6 +151,7 @@ const getSubnet = ( hook , index ) => {
   } )
 }
 
+// TODO : Change with Gateway Config
 /* Get Static Subnet IP's */
 const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
 
@@ -160,7 +168,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   if ( isEmpty ( odlStaticConfig ) ) {
     return Promise.reject ( new errors.GeneralError ( new Error ( 'Switch Config not found' ) ) )
   }
-  const { switchConfig } = odlStaticConfig
+  const { micronetInterfaces } = odlStaticConfig
   /* Get SwitchConfig */
 
   /* Get Allocated subnets  */
@@ -169,57 +177,58 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
     return (micronet[ 'micronet-subnet' ])
   } )
 
-  let wiredSwitchConfigSubnets = switchConfig.bridges.map ( ( bridge ) => {
-    return bridge.ports.map ( ( port , index ) => {
-      if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == WIRED ) {
-        return port.subnet
+  let wiredSwitchConfigSubnets = micronetInterfaces.map ( ( interface, index ) => {
+    logger.debug('\n Current Interface : ' + JSON.stringify(interface))
+      if ( interface.hasOwnProperty ( 'medium' ) && interface.medium == WIRED ) {
+        return interface
       }
-    } )
   } )
 
   // Flatten array , filter null values , remove duplicate elements, remove previously allocated subnetNos
   wiredSwitchConfigSubnets = [].concat ( ...wiredSwitchConfigSubnets ).filter ( Boolean )
   wiredSwitchConfigSubnets = [ ...(new Set ( wiredSwitchConfigSubnets )) ]
-  wiredSwitchConfigSubnets = wiredSwitchConfigSubnets.filter ( ( el ) => !allocatedSubnetNos.includes ( el ) );
+  // wiredSwitchConfigSubnets = wiredSwitchConfigSubnets.filter ( ( el ) => !allocatedSubnetNos.includes ( el ) );
 
-  let wirelessSwitchConfigSubnets = switchConfig.bridges.map ( ( bridge ) => {
-    return bridge.ports.map ( ( port , index ) => {
-      if ( port.hasOwnProperty ( 'hwtype' ) && port.hwtype == WIRELESS ) {
-        return port.subnet
-      }
-    } )
+  let wirelessSwitchConfigSubnets =  micronetInterfaces.map ( ( interface, index ) => {
+    logger.debug('\n Current Interface : ' + JSON.stringify(interface))
+    if ( interface.hasOwnProperty ( 'medium' ) && interface.medium == WIRELESS ) {
+      return interface
+    }
   } )
 
   // Flatten array , filter null values , remove duplicate elements, remove previously allocated subnetNos
   wirelessSwitchConfigSubnets = [].concat ( ...wirelessSwitchConfigSubnets ).filter ( Boolean )
   wirelessSwitchConfigSubnets = [ ...(new Set ( wirelessSwitchConfigSubnets )) ]
-  wirelessSwitchConfigSubnets = wirelessSwitchConfigSubnets.filter ( ( el ) => !allocatedSubnetNos.includes ( el ) );
+  // wirelessSwitchConfigSubnets = wirelessSwitchConfigSubnets.filter ( ( el ) => !allocatedSubnetNos.includes ( el ) );
 
-  // logger.debug( '\n Static Subnet IPs wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
+  logger.debug( '\n Static Subnet IPs wiredSwitchConfigSubnets : ' + JSON.stringify ( wiredSwitchConfigSubnets ) + '\t\t wirelessSwitchConfigSubnets : ' + JSON.stringify ( wirelessSwitchConfigSubnets ) )
 
   const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
+    logger.debug('\n Current subnet :  ' + JSON.stringify(subnet))
     let switchConfigSubnetType = subnet.connection == WIRELESS ? wirelessSwitchConfigSubnets : wiredSwitchConfigSubnets
-    //  logger.debug('\n Subnet : ' + JSON.stringify(subnet) + '\t\t switchConfigSubnetType : ' + JSON.stringify(switchConfigSubnetType) + '\t\t Index : ' + JSON.stringify(index))
-    if ( isEmpty ( switchConfigSubnetType ) && isEmpty ( wiredSwitchConfigSubnets ) ) {
+    logger.debug('\n Subnet : ' + JSON.stringify(subnet) + '\t\t switchConfigSubnetType : ' + JSON.stringify(switchConfigSubnetType) + '\t\t Index : ' + JSON.stringify(index))
+    if ( isEmpty ( switchConfigSubnetType )  ) {
       return Promise.reject ( new errors.GeneralError ( new Error ( 'Micronet cannot be created.No wired subnet available' ) ) )
-    }
-    else if ( isEmpty ( switchConfigSubnetType ) && isEmpty ( wirelessSwitchConfigSubnets ) ) {
-      return Promise.reject ( new errors.GeneralError ( new Error ( 'Micronet cannot be created.No wireless subnet available' ) ) )
     }
     else if ( subnetDetails.length > switchConfigSubnetType.length ) {
       const connectionType = subnet.connection == WIRELESS ? 'wifi' : 'wired'
       // logger.debug('\n ConnectionType : ' + JSON.stringify(connectionType))
-      const availableSubnetLength = connectionType == 'wifi' ? wirelessSwitchConfigSubnets.length : wiredSwitchConfigSubnets.length
-      return Promise.reject ( new errors.GeneralError ( new Error ( `Cannot add ${subnetDetails.length} ${connectionType} micronets. Only ${availableSubnetLength} ${connectionType} micronet can be added.Please update switch config to add more.` ) ) )
+      // const availableSubnetLength = connectionType == 'wifi' ? wirelessSwitchConfigSubnets.length : wiredSwitchConfigSubnets.length
+      // return Promise.reject ( new errors.GeneralError ( new Error ( `Cannot add ${subnetDetails.length} ${connectionType} micronets. Only ${availableSubnetLength} ${connectionType} micronet can be added.Please update switch config to add more.` ) ) )
     }
-    const subnetNo = parseInt ( switchConfigSubnetType[ index ].split ( '.' )[ 2 ] )
-    const subnets = await subnetAllocation.getNewSubnet ( index , subnetNo )
-    return Object.assign ( {} , subnets )
+   // const interfaceSubnets =  subnet.connection == 'wired' && switchConfigSubnetType[ index ].hasOwnProperty('ipv4Subnets') ? switchConfigSubnetType[ index ].ipv4Subnets : switchConfigSubnetType[ index ].ipv4SubnetRanges
+    const interfaceSubnets = switchConfigSubnetType
+    logger.debug('\n interfaceSubnets : ' + JSON.stringify(interfaceSubnets) + '\t\t subnet.connection : ' + JSON.stringify(subnet.connection))
+    const subnets = subnet.connection == 'wired' ? await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4Subnets[index].subnetRange , interfaceSubnets[index].ipv4Subnets[index].deviceGateway ) :
+      await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4SubnetRanges[index].subnetRange , interfaceSubnets[index].ipv4SubnetRanges[index].deviceGateway )
+    const result = Object.assign ( {} , { subnets: subnets ,  interface: interfaceSubnets[index], connectionType: subnet.connection } )
+    logger.debug('\n Ashwini Result : ' + JSON.stringify(result))
+    return result
   } ) )
   return promises
 
 }
-
+// TODO : Change with Gateway Config
 /* Get Dynamic Subnet IP's */
 const getSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   const promises = await Promise.all ( subnetDetails.map ( async ( subnet , index ) => {
@@ -228,13 +237,19 @@ const getSubnetIps = async ( hook , subnetDetails , requestBody ) => {
   } ) )
   return promises
 }
-
-const getDeviceForSubnet = async ( hook , subnetDetails , subnets ) => {
+// TODO : Change with Gateway Config
+const getDeviceForSubnet = async ( hook , subnetDetails , subnets, interface, connectionType ) => {
+  logger.debug('\n\n GetDeviceForSubnet subnetDetails : ' + JSON.stringify(subnetDetails)
+    + '\t\t subnets : ' + JSON.stringify(subnets)
+    + '\t\t interface : ' + JSON.stringify(interface)
+    + '\t\t connectionType : ' + JSON.stringify(connectionType))
   subnetDetails = [].concat ( ...subnetDetails );
   let devicesWithIp = await Promise.all ( subnets.map ( async ( subnet , subnetIndex ) => {
+    logger.debug('\n Current subnet : ' + JSON.stringify(subnet))
+    const deviceAddressSpec = connectionType == 'wifi' ? interface.ipv4SubnetRanges[0].deviceRange : interface.ipv4Subnets[0].deviceRange
     if ( subnetIndex < subnetDetails.length && subnetDetails[ subnetIndex ].devices.length >= 1 ) {
       const devices = subnetDetails[ subnetIndex ].devices
-      const subnetAndDeviceIpData = await subnetAllocation.getNewIps ( subnet.subnet , devices )
+      const subnetAndDeviceIpData = await subnetAllocation.allocateDeviceAddress ( subnet.subnetAddress , deviceAddressSpec , devices )
       return {
         ...subnetAndDeviceIpData
       }
@@ -256,12 +271,16 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
       devices : micronet[ 'connected-devices' ] || []
     } )
   } )
+  logger.debug('\n SubnetDetails : ' + JSON.stringify(subnetDetails) )
 
   // Gets random subnets
   // const subnets = await getSubnetIps ( hook , subnetDetails , requestBody )
 
   // Gets static subnets
-  const subnets = await getStaticSubnetIps ( hook , subnetDetails , requestBody )
+  const  result = await getStaticSubnetIps ( hook , subnetDetails , requestBody )
+  logger.debug('\n Ashwini Obtained result : ' + JSON.stringify(result))
+  const { subnets, interface, connectionType } = result[0]
+  logger.debug('\n Ashwini Obtained subnets from IP Allocator : ' + JSON.stringify(subnets) + '\t\t Interface Subnets : ' + JSON.stringify(interface) + '\t\t Connection Type : ' + JSON.stringify(connectionType))
 
   /* Add check for devices length in subnetDetails array */
   let subnetDetailsWithDevices = subnetDetails.map ( ( subnetDetail , index ) => {
@@ -269,13 +288,14 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
       return subnetDetail
     }
   } )
-
+  logger.debug('\n\n subnetDetailsWithDevices : ' + JSON.stringify(subnetDetailsWithDevices))
   subnetDetailsWithDevices = subnetDetailsWithDevices.filter ( Boolean )
+  logger.debug('\n\n subnetDetailsWithDevices after filter : ' + JSON.stringify(subnetDetailsWithDevices))
 
   /* All Subnets have Devices */
   if ( subnets.length == subnetDetailsWithDevices.length ) {
-    const subnetsWithDevices = await getDeviceForSubnet ( hook , subnetDetails , subnets )
-    // logger.debug( '\n All subnets with devices : ' + JSON.stringify ( subnetsWithDevices ) )
+    const subnetsWithDevices = await getDeviceForSubnet ( hook , subnetDetails , subnets, interface, connectionType )
+    logger.debug( '\n All subnets with devices : ' + JSON.stringify ( subnetsWithDevices ) )
     return subnetsWithDevices
   }
 
@@ -285,7 +305,7 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
       return subnets[ index ]
     } )
 
-    const subnetsWithDevices = await getDeviceForSubnet ( hook , subnetDetailsWithDevices , subnetsWithDevicesSubset )
+    const subnetsWithDevices = await getDeviceForSubnet ( hook , subnetDetailsWithDevices , subnetsWithDevicesSubset, interface, connectionType )
 
     const subnetsWithoutDevices = subnets.map ( ( subnet , index ) => {
       if ( index < subnetsWithDevices.length && subnet.subnet != subnetsWithDevices[ index ].subnet ) {
@@ -298,13 +318,13 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
 
     let allSubnets = subnetsWithoutDevices.concat ( subnetsWithDevices )
     allSubnets = allSubnets.filter ( Boolean )
-    // logger.debug( '\n All subnets with and without devices : ' + JSON.stringify ( allSubnets ) )
+    logger.debug( '\n Ashwini All subnets with and without devices : ' + JSON.stringify ( allSubnets ) )
     return allSubnets
 
   }
 
   /* No subnets have devices */
-  if ( subnets.length > 0 && subnetDetailsWithDevices.length == 0 ) {
+  if ( !isEmpty(subnets) && subnetDetailsWithDevices.length == 0 ) {
     return subnets
   }
 
@@ -369,11 +389,12 @@ const populatePostObj = async ( hook , reqBody ) => {
 
   /* Populate Sub-nets and Devices Config */
   const subnetAndDeviceIps = await getSubnetAndDeviceIps ( hook , reqBodyWithOdlConfig )
+  logger.debug('\n Ashwini 390 Obtained subnetAndDeviceIps : ' + JSON.stringify(subnetAndDeviceIps))
   let updatedReqPostBody = reqBodyWithOdlConfig.map ( ( reqPostBody , index ) => {
 
     let connectedDevicesFull = []
-    if ( subnetAndDeviceIps[ index ].hasOwnProperty ( 'connectedDevices' ) && subnetAndDeviceIps[ index ].connectedDevices.length > 0 ) {
-      connectedDevicesFull = subnetAndDeviceIps[ index ].connectedDevices.map ( ( device , index ) => {
+    if ( !isEmpty(subnetAndDeviceIps) && subnetAndDeviceIps.hasOwnProperty ( 'connectedDevices' ) && subnetAndDeviceIps.connectedDevices.length > 0 ) {
+      connectedDevicesFull = subnetAndDeviceIps.connectedDevices.map ( ( device , index ) => {
         const wiredPortsLength = wiredPorts.length
         return {
           "device-mac" : device[ "device-mac" ] ,
@@ -386,9 +407,9 @@ const populatePostObj = async ( hook , reqBody ) => {
     }
     return {
       ...reqPostBody ,
-      "micronet-subnet" : subnetAndDeviceIps[ index ].micronetSubnet ,
-      "micronet-gateway-ip" : subnetAndDeviceIps[ index ].micronetGatewayIp ,
-      "dhcp-zone" : subnetAndDeviceIps[ index ].micronetSubnet ,
+      "micronet-subnet" : subnetAndDeviceIps.subnetAddress ,
+      "micronet-gateway-ip" : subnetAndDeviceIps.gatewayAddress,
+      "dhcp-zone" : subnetAndDeviceIps.subnetAddress ,
       "connected-devices" : connectedDevicesFull
     }
   } )
@@ -569,7 +590,11 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
 
 // Add Devices in Subnet from registration process and otherwise
 const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
-  // logger.debug('\n Micronet hook addDevicesInSubnet : ' + JSON.stringify(devices))
+  const { data, params } = hook
+
+ logger.debug('\n Micronet hook addDevicesInSubnet : ' + JSON.stringify(devices) + '\t\t hook data : ' + JSON.stringify(data))
+ logger.debug('\n Micronet hook  micronetId : ' + JSON.stringify(micronetId) + '\t\t subnetId : ' + JSON.stringify(subnetId))
+
   devices = [].concat ( devices )
   let formattedDevices = devices.map ( ( device , index ) => {
     if ( device.hasOwnProperty ( "isRegistered" ) ) {
@@ -577,7 +602,8 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
         "device-mac" : device.macAddress ,
         "device-name" : device.hasOwnProperty ( 'deviceName' ) ? device.deviceName : `Test Device` ,
         "device-id" : device.deviceId ,
-        "device-openflow-port" : 2 // TODO: Add device-openflow-port value from switch config
+        "device-openflow-port" : 2, // TODO: Add device-openflow-port value from switch config
+        "device-medium":device.deviceConnection || 'wired'
       }
     }
     else {
@@ -585,7 +611,8 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
         "device-mac" : device[ "device-mac" ] ,
         "device-name" : device[ "device-name" ] || `Test Device` ,
         "device-id" : device[ "device-id" ] ,
-        "device-openflow-port" : device[ "device-openflow-port" ]
+        "device-openflow-port" : device[ "device-openflow-port" ],
+        "device-medium":device.deviceConnection || 'wired'
       }
     }
   } )
@@ -596,28 +623,39 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
 
   const micronetToUpdate = micronetFromDB.micronets[ micronetToUpdateIndex ]
   const micronetSubnet = micronetToUpdate[ 'micronet-subnet' ]
-
+ const { odlStaticConfig , bridgeTrunk , wirelessInterfaces , wiredInterfaces , ovsHost , ovsPort , micronetInterfaces } = await getODLSwitchDetails(hook,micronetFromDB.gatewayId)
+  logger.debug('\n\n Micronet Subnet : ' + JSON.stringify(micronetSubnet) + '\t\t Wireless Interface : ' + JSON.stringify(wirelessInterfaces) + '\t\t Wired Interfaces : ' + JSON.stringify(wiredInterfaces))
+  logger.debug('\n Formatted Devices : ' + JSON.stringify(formattedDevices))
   // Convert subnetNo string to Int
   const subnetNo = parseInt ( micronetSubnet.split ( '.' )[ 2 ] , 10 );
-  const subnetWithDevices = await subnetAllocation.getNewIps ( subnetNo , formattedDevices )
 
+  const deviceInterfaces = devices.length == 1 ? devices[0].deviceConnection == WIRELESS ? wirelessInterfaces : wiredInterfaces : ''
+  logger.debug('\n\n Device Interfaces : ' + JSON.stringify(deviceInterfaces))
+  const deviceSpec = devices.length == 1 ? devices[0].deviceConnection == WIRELESS ? deviceInterfaces[0].ipv4SubnetRanges[0].deviceRange :  deviceInterfaces[0].ipv4Subnets[0].deviceRange : ''
+  logger.debug('\n\n Device Spec : ' + JSON.stringify(deviceSpec) + '\t\t Subnet No : ' + JSON.stringify(micronetSubnet) + '\t\t Formatted Devices : ' + JSON.stringify(formattedDevices))
+
+  const subnetWithDevices = await subnetAllocation.allocateDeviceAddress ( micronetSubnet , deviceSpec, formattedDevices[0] )  // TODO: Ashwini change this function
+  logger.debug('\n\n subnetWithDevices : ' + JSON.stringify(subnetWithDevices))
   const formattedSubnetWithDevices = formattedDevices.map ( ( device , index ) => {
-    let deviceFromIpAllocator = subnetWithDevices.connectedDevices.map ( ( ipAllocatorDevice ) => {
+    let deviceFromIpAllocator = subnetWithDevices.devices.map ( ( ipAllocatorDevice ) => {
       if ( ipAllocatorDevice[ 'device-mac' ] == device[ 'device-mac' ] && ipAllocatorDevice[ 'device-name' ] == device[ 'device-name' ] && ipAllocatorDevice[ 'device-id' ] == device[ 'device-id' ] ) {
         return ipAllocatorDevice
       }
     } )
+    logger.debug('\n DeviceFromIpAllocator : ' + JSON.stringify(deviceFromIpAllocator))
     deviceFromIpAllocator = deviceFromIpAllocator.filter ( Boolean )
+    logger.debug('\n DeviceFromIpAllocator from filter : ' + JSON.stringify(deviceFromIpAllocator))
     if ( deviceFromIpAllocator ) {
       return {
         "device-mac" : device[ "device-mac" ] ,
         "device-name" : device[ "device-name" ] ,
         "device-id" : device[ "device-id" ] ,
         "device-openflow-port" : deviceFromIpAllocator[ 0 ][ "device-openflow-port" ] ,
-        "device-ip" : deviceFromIpAllocator[ 0 ].deviceIp
+        "device-ip" : deviceFromIpAllocator[ 0 ].deviceAddress
       }
     }
   } )
+  logger.debug('\n\n Formatted SubnetWithDevices : ' + JSON.stringify(formattedSubnetWithDevices))
   const updatedMicronetwithDevices = Object.assign ( {} , micronetToUpdate , { 'connected-devices' : micronetToUpdate[ 'connected-devices' ].concat ( formattedSubnetWithDevices ) } )
   const postBodyForODL = micronetFromDB
   postBodyForODL.micronets[ micronetToUpdateIndex ] = updatedMicronetwithDevices
@@ -627,37 +665,34 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
 
 /* Adding subnets & devices to DHCP */
 const addDhcpSubnets = async ( hook , requestBody ) => {
+
   const dhcpSubnetsToAdd = requestBody.micronets.map ( ( micronet , index ) => {
     return {
       class : micronet.class ? micronet.class : micronet.name ,
       subnetId : micronet[ "micronet-subnet-id" ]
     }
   } )
+
+  logger.debug('\n addDhcpSubnets requestBody : ' + JSON.stringify(requestBody) + '\t\t dhcpSubnetsToAdd : ' + JSON.stringify(dhcpSubnetsToAdd))
+
   const dhcpSubnetLength = dhcpSubnetsToAdd.length
   const micronetFromDB = await getMicronet ( hook , {} )
   const { micronets } = micronetFromDB
   const registry = await getRegistry ( hook , {} )
   const { webSocketUrl , mmUrl , gatewayId } = registry
-  const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
-  const { bridges } = odlStaticConfig.switchConfig
-  const bridge = bridges.map ( ( bridge ) => {
-    return bridge
-  } )
+  const {  odlStaticConfig , bridgeTrunk , wirelessInterfaces , wiredInterfaces , ovsHost , ovsPort , micronetInterfaces } = await getODLSwitchDetails ( hook , gatewayId )
+ // const { bridges } = odlStaticConfig.switchConfig
+  // const bridge = bridges.map ( ( bridge ) => {
+  //   return bridge
+  // } )
 
+  // TODO: Retrieve interface name from gateway config
   // Checks if micronet is added to d/b which indicates successful ODL call.
   let dhcpSubnetsPostBody = dhcpSubnetsToAdd.map ( ( dhcpSubnet , index ) => {
     // Original check with class property in request body
     // const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.class.toLowerCase () == dhcpSubnet.class.toLowerCase () && micronet[ "micronet-subnet-id" ].toLowerCase () == dhcpSubnet.subnetId.toLowerCase ()) )
     const matchedMicronetIndex = micronets.findIndex ( ( micronet , index ) => (micronet.class.toLowerCase () == dhcpSubnet.class.toLowerCase ()) )
-
-    return bridges.map ( ( bridge ) => {
-      return bridge.ports.map ( ( port ) => {
-        if ( micronets[ matchedMicronetIndex ][ "micronet-subnet" ] == port.subnet && matchedMicronetIndex > -1 ) {
-          const matchedPortForSubnet = Object.assign ( {} , {
-            ovsBridge : bridge.name ,
-            ovsPort : port.port ,
-            interface : port.interface
-          } )
+        if ( micronets[ matchedMicronetIndex ][ "micronet-subnet" ]  && matchedMicronetIndex > -1 ) {
           return {
             micronetId : dhcpSubnet.subnetId ,
             ipv4Network : {
@@ -665,12 +700,10 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
               mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
               gateway : micronets[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
             } ,
-            ovsBridge : bridge.name ,
-            interface : port.interface
+            ovsBridge: 'wlp2s0',
+            interface : 'brmn001'
           }
         }
-      } )
-    } )
   } )
 
   dhcpSubnetsPostBody = flattenArray ( dhcpSubnetsPostBody );
