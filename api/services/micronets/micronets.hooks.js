@@ -910,8 +910,9 @@ const deleteDhcpDeviceInSubnet = async ( hook , micronet  ) => {
 
 /* Adding subnets & devices to DHCP */
 const deallocateIPSubnets = async ( hook , ipSubnets ) => {
+  logger.debug('\n Deallocate IP Subnets called : ' + JSON.stringify(ipSubnets))
   const deallocateSubnetPromises = await Promise.all ( ipSubnets.map ( async ( subnetNo ) => {
-    return await subnetAllocation.deallocateSubnet ( 0 , parseInt ( subnetNo ) )
+    return await subnetAllocation.releaseSubnetAddress (  ( subnetNo ) )
   } ) )
   return deallocateSubnetPromises
 }
@@ -1164,16 +1165,16 @@ module.exports = {
     remove : [
       async ( hook ) => {
         const { data , params } = hook;
-        const { route } = params
+        const { route, requestHeaders, requestUrl } = params
         const { id , micronetId, deviceId } = route
-        //  logger.debug('\n  Route params  : ' + JSON.stringify(route))
+       logger.debug('\n  Params  : ' + JSON.stringify(params) + '\t\t RequestUrl : ' + JSON.stringify(requestUrl))
 
         // Delete a specific device from micronet
-        if ( id || (id && micronetId && deviceId) ) {
+        if ( (id && micronetId && deviceId) || requestUrl ==`/mm/v1/subscriber/${id}/micronets/${micronetId}/devices/${deviceId}` ) {
          logger.debug(`\n Device ID to remove ${deviceId} from micronet ${micronetId}`)
           const registry = await getRegistry ( hook , {} )
           const { mmUrl } = registry
-          let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , subnetAllocator = Object.assign({}) , deviceToDeleteIndex = ''
+          let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , subnetAllocator = Object.assign({}) , deviceToDeleteIndex = '', ipSubnets = []
           const micronetFromDB = await getMicronet ( hook , {} )
           // ODL and Gateway checks
           const isGtwyAlive = await isGatewayAlive ( hook )
@@ -1203,15 +1204,19 @@ module.exports = {
                   logger.debug('\n Updated Devices : ' + JSON.stringify(updatedDevices))
                   micronets[ micronetToDeleteIndex ]['connected-devices'] = updatedDevices
                   postBodyForDelete =   micronets
+
+                  // Delete specific device from subnet allocator
+                  if ( isEmpty(subnetAllocator) ) {
+                    subnetAllocator.deviceAddress = registeredDevicesToDelete[deviceToDeleteIndex]['device-ip']
+                    subnetAllocator.subnetAddress = micronetToDelete[ 'micronet-subnet' ]
+                    logger.debug('\n SubnetAllocator for deleting a device : ' + JSON.stringify(subnetAllocator))
+
+                  }
+
                 }
               }
 
-              // Delete specific device from subnet allocator
-              if ( isEmpty(subnetAllocator) ) {
-                subnetAllocator.deviceAddress = registeredDevicesToDelete[deviceToDeleteIndex]['device-ip']
-                subnetAllocator.subnetAddress = micronetToDelete[ 'micronet-subnet' ]
-                logger.debug('\n SubnetAllocator for deleting a device : ' + JSON.stringify(subnetAllocator))
-              }
+
             }
 
             logger.debug ( '\n Remove hook postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ))
@@ -1234,9 +1239,9 @@ module.exports = {
                 }
 
                 // TODO: Delete specific device in subnet allocator.
-                // if ( ipSubnets.length > 0 ) {
-                //   deallocateIPSubnets ( hook , ipSubnets )
-                // }
+                 if ( !isEmpty(subnetAllocator)) {
+                   await subnetAllocation.releaseDeviceAddress(subnetAllocator.subnetAddress, subnetAllocator.deviceAddress)
+                }
 
                 let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
                 if ( !(isEmpty ( users.data )) ) {
@@ -1281,7 +1286,8 @@ module.exports = {
 
 
         // Delete all micronets or specific micronet
-        if ( id || (id && micronetId) && !deviceId) {
+        if (  ( id && micronetId && !deviceId) || requestUrl ==`/mm/v1/subscriber/${id}/micronets` || requestUrl ==`/mm/v1/subscriber/${id}/micronets/${micronetId}` ) {
+          logger.debug(`\n Micronet ID to remove ${micronetId} from id ${id}`)
           const registry = await getRegistry ( hook , {} )
           const { mmUrl } = registry
           let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , ipSubnets = []
@@ -1311,7 +1317,7 @@ module.exports = {
             const micronetFromDB = await getMicronet ( hook , {} )
             if ( ipSubnets.length == 0 ) {
               ipSubnets = micronetFromDB.micronets.map ( ( micronet ) => {
-                return micronet[ 'micronet-subnet' ].split ( '.' )[ 2 ]
+                return micronet[ 'micronet-subnet' ]
               } )
             }
             logger.debug ( '\n Remove hook postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ) + '\t\t IP Subnets : ' + JSON.stringify ( ipSubnets ) )
