@@ -1,5 +1,5 @@
 {
-  "host": "127.0.0.1",
+  "host": "45.56.76.21",
   "port": 3030,
   "public": "../public/",
   "paginate": {
@@ -34,9 +34,9 @@
   "mongodbDocker": "mongodb://mm-mongo:27018/micronets",
   "mano":{
     "subscriberId": "7B2A-BE88-08817Z",
-    "identityUrl": "http://127.0.0.1:3230",
-    "webSocketBaseUrl":"wss://127.0.0.1:5050/micronets/v1/ws-proxy/gw",
-    "msoPortalUrl": "http://127.0.0.1:3210"
+    "identityUrl": "http://radius.micronets.in:3230",
+    "webSocketBaseUrl":"wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/gw",
+    "msoPortalUrl": "http://45.79.13.192:3210"
   },
   "mud" : {
     "url": "http://dev.mud-manager-api.micronets.in:8888/getFlowRules",
