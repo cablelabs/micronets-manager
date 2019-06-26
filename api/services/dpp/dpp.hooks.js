@@ -406,11 +406,21 @@ const reInitializeDppOnboarding = async(hook) => {
     if(dppDeviceIndex > -1){
       // Clear DPP DB
       await hook.app.service(`${DPP_PATH}`).remove(data.subscriberId)
-      // Clear Micronets DB
-      await axios.delete(`http://${hook.app.get('host')}:${hook.app.get('port')}/${MICRONETS_PATH}/${data.subscriberId}/micronets`)
       logger.debug('\n MSO Status delete uri : ' + JSON.stringify(`${msoPortalUrl}/${MSO_STATUS_PATH}`))
       // Clear Status DB
       await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}`)
+
+      // Delete specific device from micronet
+      const users = await hook.app.service(`${USERS_PATH}`).get(`${data.subscriberId}`)
+      const requestDeviceId = await getDeviceId(hook)
+      logger.debug('\n requestDeviceId : ' + JSON.stringify(requestDeviceId) + '\t\t users : ' + JSON.stringify(users))
+      const deviceIndex = users.devices.findIndex((device) => device.deviceId == requestDeviceId && device.macAddress == hook.data.bootstrap.mac && device.class == hook.data.device.class)
+      const deviceToDelete = users.devices[deviceIndex]
+      logger.debug('\n deviceIndex : ' + JSON.stringify(deviceIndex) + '\t\t deviceToDelete : ' + JSON.stringify(deviceToDelete))
+      logger.debug('\n Device to delete : ' + JSON.stringify(deviceToDelete) + '\t\t from micronet : ' + JSON.stringify(deviceToDelete.micronetId))
+      if(deviceIndex > -1){
+        await axios.delete(`http://${hook.app.get('host')}:${hook.app.get('port')}/${MICRONETS_PATH}/${data.subscriberId}/micronets/${deviceToDelete.micronetId}/devices/${deviceToDelete.deviceId}`)
+      }
     }
   }
 }
