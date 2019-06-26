@@ -626,6 +626,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
  const { odlStaticConfig , bridgeTrunk , wirelessInterfaces , wiredInterfaces , ovsHost , ovsPort , micronetInterfaces } = await getODLSwitchDetails(hook,micronetFromDB.gatewayId)
   logger.debug('\n\n Micronet Subnet : ' + JSON.stringify(micronetSubnet) + '\t\t Wireless Interface : ' + JSON.stringify(wirelessInterfaces) + '\t\t Wired Interfaces : ' + JSON.stringify(wiredInterfaces))
   logger.debug('\n Formatted Devices : ' + JSON.stringify(formattedDevices))
+
   // Convert subnetNo string to Int
   const subnetNo = parseInt ( micronetSubnet.split ( '.' )[ 2 ] , 10 );
 

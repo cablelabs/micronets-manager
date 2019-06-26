@@ -81,13 +81,13 @@ const getMudUri = async(hook) => {
   logger.debug('\n Register Device Url : ' + JSON.stringify(registerDevice) + '\t\t  MudUrl ' +JSON.stringify(dppRegistryMudUrl))
 
   // Register device with curl commands
-  const registerDeviceCurl = `curl -L -X POST \"${registerDevice}\"`
+  const registerDeviceCurl = `curl -L -X  POST \"${registerDevice}\"`
   const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
   console.log(registerDeviceRes);
 
   // Get MUD URL with curl commands
   if(registerDeviceRes){
-    const getMudUrlCurl = `curl -L -X GET \"${dppRegistryMudUrl}\"`
+    const getMudUrlCurl = `curl -L -X  GET \"${dppRegistryMudUrl}\"`
     const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
     console.log(getMudUrlRes);
     return getMudUrlRes
