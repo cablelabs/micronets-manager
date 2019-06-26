@@ -8,6 +8,6 @@
   "macAddress": "77:80:ae:e2:09:61",
   "class":"Home-Automation",
   "deviceName":"Baby monitor",
-  "deviceConnection":"wired",
+  "deviceConnection":"ethernet",
   "mudURL":"https://alpineseniorcare.com/micronets-mud/CQQPBgMCCwk"
 }

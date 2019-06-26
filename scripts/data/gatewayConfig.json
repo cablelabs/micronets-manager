@@ -1,11 +1,11 @@
 {
   "version" : "1.0",
   "gatewayModel": "proto-gateway",
-  "modelVersion": {"major":1, "minor":0, "micro":0},
-  "name": "grandpa-gw",
+  "gatewayVersion": {"major":1, "minor":0, "micro":0},
+  "gatewayId": "grandpa-gw",
   "configRevision": 2,
   "vlanRanges": [
-    {"min":1000, "max":9999}
+    {"min":1000, "max":4095}
   ],
   "micronetInterfaces": [
     {
@@ -24,7 +24,7 @@
             "octetC": {"min":10, "max":20}
           },
           "deviceRange": {"octetD": {"min":2, "max":254}},
-          "deviceGateway": {"octetD": 1},
+          "subnetGateway": {"octetD": 1},
           "subnetBits": 24
         }
       ]
@@ -38,7 +38,7 @@
         {
           "subnetRange": {"octetA": 192, "octetB": 168, "octetC": 254},
           "deviceRange": {"octetD": {"min":2, "max":254}},
-          "deviceGateway": {"octetD": 1}
+          "subnetGateway": {"octetD": 1}
         }
       ]
     }

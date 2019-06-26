@@ -5,7 +5,7 @@ const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require ( './../hooks//dhcpWrapperPromise' )
-const WIRED = "wired"
+const WIRED = "ethernet"
 const WIRELESS = "wifi"
 const DPP_ON_BOARD_TYPE = 'dpp'
 const START_ON_BOARD = 'initial'
@@ -213,11 +213,11 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
       return Promise.reject ( new errors.GeneralError ( new Error ( 'Micronet cannot be created.No subnets available' ) ) )
     }
     else if ( subnetDetails.length > switchConfigSubnetType.length ) {
-      const connectionType = subnet.connection == WIRELESS ? 'wifi' : 'wired'
+      const connectionType = subnet.connection == WIRELESS ? WIRELESS : WIRED
     }
     const interfaceSubnets = switchConfigSubnetType
     logger.debug('\n InterfaceSubnets : ' + JSON.stringify(interfaceSubnets) + '\t\t subnet.connection : ' + JSON.stringify(subnet.connection))
-    const subnets = subnet.connection == 'wired' ? await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4Subnets[index].subnetRange , interfaceSubnets[index].ipv4Subnets[index].deviceGateway ) :
+    const subnets = subnet.connection == WIRED ? await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4Subnets[index].subnetRange , interfaceSubnets[index].ipv4Subnets[index].deviceGateway ) :
       await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4SubnetRanges[index].subnetRange , interfaceSubnets[index].ipv4SubnetRanges[index].deviceGateway )
     const result = Object.assign ( {} , { subnets: subnets ,  interface: interfaceSubnets[index], connectionType: subnet.connection } )
     return result

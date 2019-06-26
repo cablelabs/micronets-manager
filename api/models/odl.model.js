@@ -142,10 +142,17 @@ module.exports = function (app) {
     max: { type: String, required: true }
   });
 
+  const gwtVersion =  new Schema({
+    _id:false,
+    major: { type: String, required: true },
+    minor: { type: String, required: true },
+    micro: { type: String, required: true },
+  });
   const odl = new Schema({
     version: { type: String, required: true },
     gatewayModel: { type: String, required: true },
-    name: { type: String, required: true, unique: true, primaryKey: true, sparse: true },
+    gatewayVersion: { type: gwtVersion, required: true },
+    gatewayId: { type: String, required: true, unique: true, primaryKey: true, sparse: true },
     configRevision: { type: String, required: true },
     vlanRanges:[{type:vLanRange, required: true}],
     micronetInterfaces: [{ type: micronetInterface, required: true }]

@@ -6,7 +6,7 @@ const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application
 const omit = require ( 'ramda/src/omit' );
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt' , '_id' , '__v' ] );
 const dw = require ( '../../hooks/dhcpWrapperPromise' )
-const WIRED = "wired"
+const WIRED = "ethernet"
 const WIRELESS = "wifi"
 const errors = require ( '@feathersjs/errors' );
 const logger = require ( './../../logger' );
@@ -213,7 +213,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
       return Promise.reject ( new errors.GeneralError ( new Error ( 'Micronet cannot be created.No wired subnet available' ) ) )
     }
     else if ( subnetDetails.length > switchConfigSubnetType.length ) {
-      const connectionType = subnet.connection == WIRELESS ? 'wifi' : 'wired'
+      const connectionType = subnet.connection == WIRELESS ? WIRELESS : WIRED
       // logger.debug('\n ConnectionType : ' + JSON.stringify(connectionType))
       // const availableSubnetLength = connectionType == 'wifi' ? wirelessSwitchConfigSubnets.length : wiredSwitchConfigSubnets.length
       // return Promise.reject ( new errors.GeneralError ( new Error ( `Cannot add ${subnetDetails.length} ${connectionType} micronets. Only ${availableSubnetLength} ${connectionType} micronet can be added.Please update switch config to add more.` ) ) )
@@ -221,7 +221,7 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
    // const interfaceSubnets =  subnet.connection == 'wired' && switchConfigSubnetType[ index ].hasOwnProperty('ipv4Subnets') ? switchConfigSubnetType[ index ].ipv4Subnets : switchConfigSubnetType[ index ].ipv4SubnetRanges
     const interfaceSubnets = switchConfigSubnetType
     logger.debug('\n Interface Subnets : ' + JSON.stringify(interfaceSubnets) + '\t\t subnet.connection : ' + JSON.stringify(subnet.connection))
-    const subnets = subnet.connection == 'wired' ? await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4Subnets[index].subnetRange , interfaceSubnets[index].ipv4Subnets[index].deviceGateway ) :
+    const subnets = subnet.connection == WIRED ? await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4Subnets[index].subnetRange , interfaceSubnets[index].ipv4Subnets[index].deviceGateway ) :
       await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4SubnetRanges[index].subnetRange , interfaceSubnets[index].ipv4SubnetRanges[index].deviceGateway )
     const result = Object.assign ( {} , { subnets: subnets ,  interface: interfaceSubnets[index], connectionType: subnet.connection } )
     return result
@@ -265,7 +265,7 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
   const subnetDetails = requestBody.map ( ( micronet , index ) => {
     return Object.assign ( {} , {
       name : micronet.name ,
-      connection : micronet[ 'device-connection' ] || 'wired' ,
+      connection : micronet[ 'device-connection' ] || WIRED ,
       devices : micronet[ 'connected-devices' ] || []
     } )
   } )
@@ -600,7 +600,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
         "device-name" : device.hasOwnProperty ( 'deviceName' ) ? device.deviceName : `Test Device` ,
         "device-id" : device.deviceId ,
         "device-openflow-port" : 2, // TODO: Add device-openflow-port value from switch config
-        "device-medium":device.deviceConnection || 'wired'
+        "device-medium":device.deviceConnection || WIRED
       }
     }
     else {
@@ -609,7 +609,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
         "device-name" : device[ "device-name" ] || `Test Device` ,
         "device-id" : device[ "device-id" ] ,
         "device-openflow-port" : device[ "device-openflow-port" ],
-        "device-medium":device.deviceConnection || 'wired'
+        "device-medium":device.deviceConnection || WIRED
       }
     }
   } )
