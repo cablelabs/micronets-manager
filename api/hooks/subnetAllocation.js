@@ -91,12 +91,14 @@ module.exports.allocateSubnetAddress = function (subnetSpec, gatewaySpec) {
         }
 
         found = false
+        let subnetCount = 0
         for (let a = minA; a <= maxA && !found; a++) {
           for (let b = minB; b <= maxB && !found; b++) {
             for (let c = minC; c <= maxC && !found; c++) {
               curSubnetAddress = a + '.' + b + '.' + c + '.0/' + subnetBits
               // console.log("Considering subnet address: " + curSubnetAddress)
               // let subnet = new ipaddress.Address4(a + '.' + b + '.' + c + '.0/' + subnetBits);
+              subnetCount++
               subnetInUse = false
               for (let i=0; i<allocatedSubnets.length; i++) {
                 inUseAddress = allocatedSubnets[i].subnetAddress
@@ -131,6 +133,7 @@ module.exports.allocateSubnetAddress = function (subnetSpec, gatewaySpec) {
         }
         if (!found) {
           msg = `Could not allocate a subnet from ${JSON.stringify(subnetSpec)}`
+                + ` - all ${subnetCount} subnets already allocated`
           console.log(msg)
           reject(new Error(msg))
           me.lock.release()
