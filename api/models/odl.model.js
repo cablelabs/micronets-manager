@@ -89,7 +89,7 @@ module.exports = function (app) {
     octetD: { type: octectType, required: true }
   })
 
-  const deviceGatewayType = new Schema({
+  const subnetGatewayType = new Schema({
     _id:false,
     octetD: { type: String, required: true }
   })
@@ -114,7 +114,7 @@ module.exports = function (app) {
     id: { type: String, required: false },
     subnetRange: { type: subnetRangeType, required: true },
     deviceRange: { type: deviceRangeType, required: true },
-    deviceGateway: { type: deviceGatewayType, required: true },
+    subnetGateway: { type: subnetGatewayType, required: true },
     subnetBits: { type: String, required: false }
   });
 
@@ -122,7 +122,7 @@ module.exports = function (app) {
     _id:false,
     subnetRange: { type: subnetType, required: true },
     deviceRange: { type: deviceRangeType, required: true },
-    deviceGateway: { type: deviceGatewayType, required: true }
+    subnetGateway: { type: subnetGatewayType, required: true }
   });
 
   const micronetInterface = new Schema({

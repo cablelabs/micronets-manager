@@ -217,8 +217,8 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
     }
     const interfaceSubnets = switchConfigSubnetType
     logger.debug('\n InterfaceSubnets : ' + JSON.stringify(interfaceSubnets) + '\t\t subnet.connection : ' + JSON.stringify(subnet.connection))
-    const subnets = subnet.connection == WIRED ? await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4Subnets[index].subnetRange , interfaceSubnets[index].ipv4Subnets[index].deviceGateway ) :
-      await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4SubnetRanges[index].subnetRange , interfaceSubnets[index].ipv4SubnetRanges[index].deviceGateway )
+    const subnets = subnet.connection == WIRED ? await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4Subnets[index].subnetRange , interfaceSubnets[index].ipv4Subnets[index].subnetGateway ) :
+      await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4SubnetRanges[index].subnetRange , interfaceSubnets[index].ipv4SubnetRanges[index].subnetGateway )
     const result = Object.assign ( {} , { subnets: subnets ,  interface: interfaceSubnets[index], connectionType: subnet.connection } )
     return result
   } ) )
