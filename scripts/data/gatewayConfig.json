@@ -12,6 +12,7 @@
       "name": "brmn001",
       "macAddress": "c0:d9:62:ae:f0:c2",
       "medium": "wifi",
+      "ssid": "grandpa-gw",
       "dpp": {
         "supportedAkms": ["psk","dpp"]
       },
