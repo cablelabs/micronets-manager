@@ -130,6 +130,7 @@ module.exports = function (app) {
     name: { type: String, required: true },
     macAddress: { type: String, required: true },
     medium: { type: String, required: true },
+    ssid: { type: String, required: false },
     dpp: { type: dppType, required: false },
     ovsPort: { type: String, required: true },
     ipv4SubnetRanges: [{ type: ipv4SubnetRange, required: false }],
