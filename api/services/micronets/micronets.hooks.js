@@ -664,6 +664,16 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
 /* Adding subnets & devices to DHCP */
 const addDhcpSubnets = async ( hook , requestBody ) => {
 
+  const { data } = hook
+  let connectionType = ''
+  logger.debug('\n Hook data addDhcpSubnets : ' + JSON.stringify(data))
+  if(data.hasOwnProperty('type') && data.hasOwnProperty('data') && data.data.hasOwnProperty('device') && data.data.device.hasOwnProperty('deviceConnection')){
+    connectionType =  data.data.device.deviceConnection == WIRELESS ? WIRELESS : WIRED
+  }
+  if(!data.hasOwnProperty('type') && !data.hasOwnProperty('data') && data.hasOwnProperty('device') && data.device.hasOwnProperty('deviceConnection')){
+    connectionType =  data.device.deviceConnection == WIRELESS ? WIRELESS : WIRED
+  }
+  logger.debug('\n Connection Type : ' + JSON.stringify(connectionType))
   const dhcpSubnetsToAdd = requestBody.micronets.map ( ( micronet , index ) => {
     return {
       class : micronet.class ? micronet.class : micronet.name ,
@@ -679,7 +689,11 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   const registry = await getRegistry ( hook , {} )
   const { webSocketUrl , mmUrl , gatewayId } = registry
   const {  odlStaticConfig , bridgeTrunk , wirelessInterfaces , wiredInterfaces , ovsHost , ovsPort , micronetInterfaces } = await getODLSwitchDetails ( hook , gatewayId )
- // const { bridges } = odlStaticConfig.switchConfig
+
+  const subnetInterface = connectionType == WIRELESS ? wirelessInterfaces : wiredInterfaces
+  logger.debug('\n Subnet Interface : ' + JSON.stringify(subnetInterface))
+
+  // const { bridges } = odlStaticConfig.switchConfig
   // const bridge = bridges.map ( ( bridge ) => {
   //   return bridge
   // } )
@@ -698,8 +712,8 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
               mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
               gateway : micronets[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
             } ,
-            ovsBridge: 'wlp2s0',
-            interface : 'brmn001'
+            ovsBridge: subnetInterface[0].name,
+            interface : subnetInterface[0].name
           }
         }
   } )
