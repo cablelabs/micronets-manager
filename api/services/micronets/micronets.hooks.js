@@ -93,6 +93,7 @@ const getODLSwitchDetails = async ( hook , gatewayId ) => {
   })
   const ovsHost = '10.36.32.124' // odlStaticConfig.ovsHost
   const ovsPort = '8181' // odlStaticConfig.ovsPort
+
   let wirelessInterfaces = micronetInterfaces.map ( ( interface ) => {
     logger.debug('\n Current interface : ' + JSON.stringify(interface))
     if ( interface.hasOwnProperty ( "medium" ) && interface.medium == WIRELESS ) {
@@ -108,6 +109,7 @@ const getODLSwitchDetails = async ( hook , gatewayId ) => {
     }
   } )
   wiredInterfaces = wiredInterfaces.filter ( Boolean )
+
   return {
     odlStaticConfig ,
     bridgeTrunk ,
@@ -218,11 +220,10 @@ const getStaticSubnetIps = async ( hook , subnetDetails , requestBody ) => {
     }
    // const interfaceSubnets =  subnet.connection == 'wired' && switchConfigSubnetType[ index ].hasOwnProperty('ipv4Subnets') ? switchConfigSubnetType[ index ].ipv4Subnets : switchConfigSubnetType[ index ].ipv4SubnetRanges
     const interfaceSubnets = switchConfigSubnetType
-    logger.debug('\n interfaceSubnets : ' + JSON.stringify(interfaceSubnets) + '\t\t subnet.connection : ' + JSON.stringify(subnet.connection))
+    logger.debug('\n Interface Subnets : ' + JSON.stringify(interfaceSubnets) + '\t\t subnet.connection : ' + JSON.stringify(subnet.connection))
     const subnets = subnet.connection == 'wired' ? await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4Subnets[index].subnetRange , interfaceSubnets[index].ipv4Subnets[index].deviceGateway ) :
       await subnetAllocation.allocateSubnetAddress ( interfaceSubnets[index].ipv4SubnetRanges[index].subnetRange , interfaceSubnets[index].ipv4SubnetRanges[index].deviceGateway )
     const result = Object.assign ( {} , { subnets: subnets ,  interface: interfaceSubnets[index], connectionType: subnet.connection } )
-    logger.debug('\n Ashwini Result : ' + JSON.stringify(result))
     return result
   } ) )
   return promises
@@ -239,10 +240,7 @@ const getSubnetIps = async ( hook , subnetDetails , requestBody ) => {
 }
 // TODO : Change with Gateway Config
 const getDeviceForSubnet = async ( hook , subnetDetails , subnets, interface, connectionType ) => {
-  logger.debug('\n\n GetDeviceForSubnet subnetDetails : ' + JSON.stringify(subnetDetails)
-    + '\t\t subnets : ' + JSON.stringify(subnets)
-    + '\t\t interface : ' + JSON.stringify(interface)
-    + '\t\t connectionType : ' + JSON.stringify(connectionType))
+  logger.debug('\n\n SubnetDetails : ' + JSON.stringify(subnetDetails) + '\t\t subnets : ' + JSON.stringify(subnets) + '\t\t Interface : ' + JSON.stringify(interface) + '\t\t ConnectionType : ' + JSON.stringify(connectionType))
   subnetDetails = [].concat ( ...subnetDetails );
   let devicesWithIp = await Promise.all ( subnets.map ( async ( subnet , subnetIndex ) => {
     logger.debug('\n Current subnet : ' + JSON.stringify(subnet))
@@ -278,9 +276,9 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
 
   // Gets static subnets
   const  result = await getStaticSubnetIps ( hook , subnetDetails , requestBody )
-  logger.debug('\n Ashwini Obtained result : ' + JSON.stringify(result))
+  logger.debug('\n Obtained result : ' + JSON.stringify(result))
   const { subnets, interface, connectionType } = result[0]
-  logger.debug('\n Ashwini Obtained subnets from IP Allocator : ' + JSON.stringify(subnets) + '\t\t Interface Subnets : ' + JSON.stringify(interface) + '\t\t Connection Type : ' + JSON.stringify(connectionType))
+  logger.debug('\n Obtained subnets from IP Allocator : ' + JSON.stringify(subnets) + '\t\t Interface Subnets : ' + JSON.stringify(interface) + '\t\t Connection Type : ' + JSON.stringify(connectionType))
 
   /* Add check for devices length in subnetDetails array */
   let subnetDetailsWithDevices = subnetDetails.map ( ( subnetDetail , index ) => {
@@ -318,7 +316,7 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
 
     let allSubnets = subnetsWithoutDevices.concat ( subnetsWithDevices )
     allSubnets = allSubnets.filter ( Boolean )
-    logger.debug( '\n Ashwini All subnets with and without devices : ' + JSON.stringify ( allSubnets ) )
+    logger.debug( '\n All subnets with and without devices : ' + JSON.stringify ( allSubnets ) )
     return allSubnets
 
   }
@@ -389,7 +387,7 @@ const populatePostObj = async ( hook , reqBody ) => {
 
   /* Populate Sub-nets and Devices Config */
   const subnetAndDeviceIps = await getSubnetAndDeviceIps ( hook , reqBodyWithOdlConfig )
-  logger.debug('\n Ashwini 390 Obtained subnetAndDeviceIps : ' + JSON.stringify(subnetAndDeviceIps))
+  logger.debug('\n Obtained subnetAndDeviceIps : ' + JSON.stringify(subnetAndDeviceIps))
   let updatedReqPostBody = reqBodyWithOdlConfig.map ( ( reqPostBody , index ) => {
 
     let connectedDevicesFull = []
@@ -562,7 +560,6 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
     const odlResponse = await mockOdlOperationsForUpserts ( hook , postBodyForODL , Object.assign ( {} , { subscriberId } ) )
     //  logger.debug('\n ODL Response : ' + JSON.stringify(odlResponse.data) + '\t\t status : ' + JSON.stringify(odlResponse.status))
     if ( odlResponse.data && odlResponse.status == 201 ) {
-
       const addSubnetPatchResult = await hook.app.service ( `${MICRONETS_PATH}` ).patch ( subscriberId ,
         { micronets : odlResponse.data.micronets } ,
         { query : {} , mongoose : { upsert : true } } );
@@ -592,8 +589,8 @@ const upsertRegisteredDeviceToMicronet = async ( hook , eventData ) => {
 const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   const { data, params } = hook
 
- logger.debug('\n Micronet hook addDevicesInSubnet : ' + JSON.stringify(devices) + '\t\t hook data : ' + JSON.stringify(data))
- logger.debug('\n Micronet hook  micronetId : ' + JSON.stringify(micronetId) + '\t\t subnetId : ' + JSON.stringify(subnetId))
+ logger.debug('\n Micronet hook addDevicesInSubnet : ' + JSON.stringify(devices) + '\t\t Hook data : ' + JSON.stringify(data))
+ logger.debug('\n Micronet hook micronetId : ' + JSON.stringify(micronetId) + '\t\t SubnetId : ' + JSON.stringify(subnetId))
 
   devices = [].concat ( devices )
   let formattedDevices = devices.map ( ( device , index ) => {
@@ -1216,8 +1213,6 @@ module.exports = {
 
                 }
               }
-
-
             }
 
             logger.debug ( '\n Remove hook postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ))
