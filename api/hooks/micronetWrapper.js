@@ -661,7 +661,7 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   const { webSocketUrl , mmUrl , gatewayId } = registry
   const {  odlStaticConfig , bridgeTrunk , wirelessInterfaces , wiredInterfaces , ovsHost , ovsPort , micronetInterfaces } = await getODLSwitchDetails ( hook , gatewayId )
 
-
+  const subnetInterface = wirelessInterfaces
   // Checks if micronet is added to d/b which indicates successful ODL call.
   let dhcpSubnetsPostBody = dhcpSubnetsToAdd.map ( ( dhcpSubnet , index ) => {
     // Original check with class property in request body
@@ -675,8 +675,8 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
               mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
               gateway : micronets[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
             } ,
-            ovsBridge: 'wlp2s0',
-            interface : 'brmn001',
+            ovsBridge: subnetInterface[0].name,
+            interface : subnetInterface[0].name,
             vlan : parseInt ( vLanGen() )
           }
         }

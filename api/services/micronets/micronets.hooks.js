@@ -12,6 +12,10 @@ const errors = require ( '@feathersjs/errors' );
 const logger = require ( './../../logger' );
 const paths = require ( './../../hooks/servicePaths' )
 const { MICRONETS_PATH , REGISTRY_PATH , ODL_PATH , MOCK_MICRONET_PATH , USERS_PATH } = paths
+var rn = require('random-number');
+var vLanGen = rn.generator({
+  min:1000, max:4095,integer: true
+})
 
 /* BootStrap Sequence */
 const isGatewayAlive = async ( hook ) => {
@@ -86,6 +90,7 @@ const getODLSwitchDetails = async ( hook , gatewayId ) => {
   const { micronetInterfaces } = odlStaticConfig
   // const bridgeTrunkIndex = switchConfig.bridges.findIndex ( ( bridge ) => bridge.hasOwnProperty ( "trunkPort" ) && bridge.hasOwnProperty ( "trunkIp" ) )
   // const bridgeTrunk = switchConfig.bridges[ bridgeTrunkIndex ]
+
   const bridgeTrunk = Object.assign({},{
     "trunkPort": '2',
     "trunkIp": "10.36.32.124/24",
@@ -705,17 +710,32 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
     // const matchedMicronetIndex = micronet.findIndex ( ( micronet , index ) => (micronet.class.toLowerCase () == dhcpSubnet.class.toLowerCase () && micronet[ "micronet-subnet-id" ].toLowerCase () == dhcpSubnet.subnetId.toLowerCase ()) )
     const matchedMicronetIndex = micronets.findIndex ( ( micronet , index ) => (micronet.class.toLowerCase () == dhcpSubnet.class.toLowerCase ()) )
         if ( micronets[ matchedMicronetIndex ][ "micronet-subnet" ]  && matchedMicronetIndex > -1 ) {
-          return {
-            micronetId : dhcpSubnet.subnetId ,
-            ipv4Network : {
-              network : micronets[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
-              mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
-              gateway : micronets[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
-            } ,
-            ovsBridge: subnetInterface[0].name,
-            interface : subnetInterface[0].name
-          }
+      if(connectionType == WIRELESS) {
+        return {
+          micronetId : dhcpSubnet.subnetId ,
+          ipv4Network : {
+            network : micronets[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
+            mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
+            gateway : micronets[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
+          } ,
+          ovsBridge: subnetInterface[0].name,
+          interface : subnetInterface[0].name,
+          vlan : parseInt ( vLanGen() )
         }
+      }
+      else{
+        return {
+          micronetId : dhcpSubnet.subnetId ,
+          ipv4Network : {
+            network : micronets[ matchedMicronetIndex ][ "micronet-subnet" ].split ( "/" )[ 0 ] ,
+            mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
+            gateway : micronets[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
+          } ,
+          ovsBridge: subnetInterface[0].name,
+          interface : subnetInterface[0].name
+        }
+      }
+      }
   } )
 
   dhcpSubnetsPostBody = flattenArray ( dhcpSubnetsPostBody );
