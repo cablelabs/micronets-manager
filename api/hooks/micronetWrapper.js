@@ -746,17 +746,17 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         return Promise.reject ( new errors.GeneralError ( new Error ( 'MUD Parser error' ) ) )
       }
       if ( mudParserRes.device.allowHosts.length > 0 ) {
-        // dhcpDeviceToUpsert[ 'inRules' ] = mudParserRes.device.allowHosts
+         dhcpDeviceToUpsert[ 'allowHosts' ] = mudParserRes.device.allowHosts
       }
       if ( mudParserRes.device.denyHosts.length > 0 ) {
-        // dhcpDeviceToUpsert[ 'outRules' ] = mudParserRes.device.denyHosts
+         dhcpDeviceToUpsert[ 'denyHosts' ] = mudParserRes.device.denyHosts
       }
 
       // Device is from DPP Onboarding process and must include PSK property
       if ( userDevices[ userDeviceIndex ].hasOwnProperty ( 'psk' ) ) {
         dhcpDeviceToUpsert[ 'psk' ] = userDevices[ userDeviceIndex ].psk
       }
-
+      logger.debug('\n dhcpDeviceToUpsert : ' + JSON.stringify(dhcpDeviceToUpsert))
       return dhcpDeviceToUpsert
     } else {
       logger.debug ( '\n Empty MUD url.' + JSON.stringify ( mudUrlForDevice ) + ' Do nothing' )
