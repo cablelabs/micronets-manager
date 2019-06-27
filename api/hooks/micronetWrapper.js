@@ -675,7 +675,6 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
               mask : "255.255.255.0" ,  // TODO : Call IPAllocator to get mask.For /24 its 255.255.255.0
               gateway : micronets[ matchedMicronetIndex ][ "micronet-gateway-ip" ]
             } ,
-            ovsBridge: subnetInterface[0].name,
             interface : subnetInterface[0].name,
             vlan : parseInt ( vLanGen() )
           }

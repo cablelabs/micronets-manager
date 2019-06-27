@@ -1,48 +1,48 @@
 {
-  "version" : "1.0",
-  "gatewayModel": "proto-gateway",
-  "gatewayVersion": {"major":1, "minor":0, "micro":0},
-  "gatewayId": "grandpa-gw",
-  "configRevision": 2,
-  "vlanRanges": [
-    {"min":1000, "max":4095}
-  ],
-  "micronetInterfaces": [
-    {
-      "name": "brmn001",
-      "macAddress": "c0:d9:62:ae:f0:c2",
-      "medium": "wifi",
-      "ssid": "grandpa-gw",
-      "dpp": {
-        "supportedAkms": ["psk","dpp"]
-      },
-      "ovsPort": "2",
-      "ipv4SubnetRanges": [
+    "version": "1.0",
+    "gatewayId": "sister-kate",
+    "gatewayModel": "proto-gateway",
+    "gatewayVersion": {"major":1, "minor":0, "micro":0},
+    "configRevision": 1,
+    "vlanRanges": [
+        {"min":1000, "max":4095}
+    ],
+    "micronetInterfaces": [
         {
-          "id": "range001",
-          "subnetRange": {"octetA": 10,
-            "octetB": {"min":130, "max":135},
-            "octetC": {"min":10, "max":20}
-          },
-          "deviceRange": {"octetD": {"min":2, "max":254}},
-          "subnetGateway": {"octetD": 1},
-          "subnetBits": 24
-        }
-      ]
-    },
-    {
-      "name": "enxac7f3ee61832",
-      "macAddress": "ac:7f:3e:e6:18:32",
-      "medium": "ethernet",
-      "ovsPort": "3",
-      "ipv4Subnets": [
+            "name": "wlp2s0",
+            "macAddress": "2c:d0:5a:6e:ca:3c",
+            "medium": "wifi",
+            "ssid": "sisterkate-gw",
+            "dpp": {
+                "supportedAkms": ["psk"]
+            },
+            "ipv4SubnetRanges": [
+                {
+                    "id": "range001",
+                    "subnetRange": {"octetA": 10,
+                                    "octetB": 135,
+                                    "octetC": {"min":1, "max":5}
+                    },
+                    "subnetGateway": {"octetD": 1},
+                    "deviceRange": {"octetD": {"min":2, "max":254}}
+                }
+            ]
+        },
         {
-          "subnetRange": {"octetA": 192, "octetB": 168, "octetC": 254},
-          "deviceRange": {"octetD": {"min":2, "max":254}},
-          "subnetGateway": {"octetD": 1}
+            "name": "enp0s31f6",
+            "macAddress": "00:30:18:0a:ce:3d",
+            "medium": "ethernet",
+            "ipv4Subnets": [
+                {
+                    "id": "range001",
+                    "subnetRange": {"octetA": 10,
+                                    "octetB": 135,
+                                    "octetC": 250
+                    },
+                    "subnetGateway": {"octetD": 1},
+                    "deviceRange": {"octetD": {"min":2, "max":254}}
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
-

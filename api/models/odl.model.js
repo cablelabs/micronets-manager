@@ -97,7 +97,7 @@ module.exports = function (app) {
   const subnetRangeType = new Schema({
     _id:false,
     octetA: { type: String, required: true },
-    octetB: { type: octectType, required: true },
+    octetB: { type: String , required: true },
     octetC: { type: octectType, required: true },
   })
 
@@ -132,7 +132,7 @@ module.exports = function (app) {
     medium: { type: String, required: true },
     ssid: { type: String, required: false },
     dpp: { type: dppType, required: false },
-    ovsPort: { type: String, required: true },
+    ovsPort: { type: String, required: false },
     ipv4SubnetRanges: [{ type: ipv4SubnetRange, required: false }],
     ipv4Subnets: [{ type: ipv4Subnet, required: false }]
   });
