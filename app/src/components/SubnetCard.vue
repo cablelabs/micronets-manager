@@ -62,7 +62,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang="stylus" scoped>
+<style >
   .subnet-card {
     min-width: 100%;
     margin-top: 20px;

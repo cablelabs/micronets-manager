@@ -2,7 +2,8 @@
   <v-app light>
     <v-toolbar color="#3A3A3A" dark fixed app>
       <header class="text-xs-center">
-        <router-link to="/"><img class="logo" src="../assets/cablelabs-logo.png"/></router-link>
+        <router-link to="/"></router-link>
+        <!--<router-link to="/"><img class="logo" src="./../assets/cablelabs-logo.png"/></router-link>-->
       </header>
       <v-toolbar-title class="toolbar-title">Micronets Manager</v-toolbar-title>
       <v-spacer></v-spacer>
@@ -46,7 +47,7 @@
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang="stylus" scoped>
+<style>
   .toolbar-title {
     font-size: 20px;
     font-family: "Roboto";
@@ -57,14 +58,14 @@
     font-size: 10px;
     font-weight: bold;
     margin-top: 5px;
-    margin-bottom 10px;
+    margin-bottom: 10px;
     overflow-wrap: break-word;
     word-wrap: break-word;
-    display inline-block
+    display: inline-block
   }
   .message-list {
     margin-left: 0px;
-    margin-top: 3px
+    margin-top: 3px;
     text-align: left;
     width: 100%
   }
