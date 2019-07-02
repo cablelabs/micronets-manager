@@ -178,79 +178,162 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
     
  POST Data:
     
-        {
-          "gatewayId": "grandma-gw",
-          "hwModelId": "123456-789",
-          "ovsVersion": "2.9.2",
-          "ovsPort": "8181",
-          "switchConfig": {
-            "bridges": [
-              {
-                "name": "brmn001",
-                "macAddress": "80:ee:73:d9:dc:3f",
-                "trunkIp": "192.168.250.0/24",
-                "trunkPort": "2",
-                "ports": [
-                  {
-                    "port": "3",
-                    "interface": "enp0s31f6",
-                    "hwtype": "wired",
-                    "subnet": "192.168.250.0/24",
-                    "macAddress": "80:ee:73:d9:dc:3f",
-                    "vlanId": "0"
-                  },
-                  {
-                     "port": 4,
-                     "interface": "wlp2s0",
-                     "hwtype": "wifi",
-                     "subnet": "192.168.252.0/24",
-                     "macAddress": "24:f5:aa:71:9c:fb",
-                     "vlanId": "0"
-                  }
-                ]
-              }
+        ﻿{
+            "version" : "1.0",
+            "gatewayId" : "default-gw-7B2A-BE88-08817Z",
+            "gatewayModel" : "proto-gateway",
+            "gatewayVersion" : {
+                "major" : "1",
+                "minor" : "0",
+                "micro" : "0"
+            },
+            "configRevision" : "1",
+            "vlanRanges" : [ 
+                {
+                    "min" : "1000",
+                    "max" : "4095"
+                }
+            ],
+            "micronetInterfaces" : [ 
+                {
+                    "name" : "wlp2s0",
+                    "macAddress" : "2c:d0:5a:6e:ca:3c",
+                    "medium" : "wifi",
+                    "ssid" : "sisterkate-gw",
+                    "dpp" : {
+                        "supportedAkms" : [ 
+                            "psk"
+                        ]
+                    },
+                    "ipv4SubnetRanges" : [ 
+                        {
+                            "id" : "range001",
+                            "subnetRange" : {
+                                "octetA" : "10",
+                                "octetB" : "135",
+                                "octetC" : {
+                                    "min" : "1",
+                                    "max" : "5"
+                                }
+                            },
+                            "subnetGateway" : {
+                                "octetD" : "1"
+                            },
+                            "deviceRange" : {
+                                "octetD" : {
+                                    "min" : "2",
+                                    "max" : "254"
+                                }
+                            }
+                        }
+                    ],
+                    "ipv4Subnets" : []
+                }, 
+                {
+                    "name" : "enp0s31f6",
+                    "macAddress" : "00:30:18:0a:ce:3d",
+                    "medium" : "ethernet",
+                    "ipv4Subnets" : [ 
+                        {
+                            "subnetRange" : {
+                                "octetA" : "10",
+                                "octetB" : "135",
+                                "octetC" : "250"
+                            },
+                            "subnetGateway" : {
+                                "octetD" : "1"
+                            },
+                            "deviceRange" : {
+                                "octetD" : {
+                                    "min" : "2",
+                                    "max" : "254"
+                                }
+                            }
+                        }
+                    ],
+                    "ipv4SubnetRanges" : []
+                }
             ]
-          }
-        }
-
-   
+        }   
  #### Response:
      
-      {
-          "gatewayId": "auntbetty-gw",
-          "hwModelId": "123456-789",
-          "ovsVersion": "2.9.2",
-          "ovsHost": "10.36.32.121",
-          "ovsPort": "8181",
-          "switchConfig": {
-              "bridges": [
-                  {
-                      "name": "brmn001",
-                      "macAddress": "80:ee:73:d9:dc:3f",
-                      "trunkIp": "192.168.250.0/24",
-                      "trunkPort": "2",
-                      "ports": [
-                          {
-                              "port": 3,
-                              "interface": "enp0s31f6",
-                              "hwtype": "wired",
-                              "subnet": "192.168.250.0/24",
-                              "macAddress": "80:ee:73:d9:dc:3f",
-                              "vlanId": "0"
+      ﻿{
+                  "version" : "1.0",
+                  "gatewayId" : "default-gw-7B2A-BE88-08817Z",
+                  "gatewayModel" : "proto-gateway",
+                  "gatewayVersion" : {
+                      "major" : "1",
+                      "minor" : "0",
+                      "micro" : "0"
+                  },
+                  "configRevision" : "1",
+                  "vlanRanges" : [ 
+                      {
+                          "min" : "1000",
+                          "max" : "4095"
+                      }
+                  ],
+                  "micronetInterfaces" : [ 
+                      {
+                          "name" : "wlp2s0",
+                          "macAddress" : "2c:d0:5a:6e:ca:3c",
+                          "medium" : "wifi",
+                          "ssid" : "sisterkate-gw",
+                          "dpp" : {
+                              "supportedAkms" : [ 
+                                  "psk"
+                              ]
                           },
-                          {
-                              "port": 4,
-                              "interface": "wlp2s0",
-                              "hwtype": "wifi",
-                              "subnet": "192.168.252.0/24",
-                              "macAddress": "24:f5:aa:71:9c:fb",
-                              "vlanId": "0"
-                          }
-                      ]
-                  }
-              ]
-          }
-      }
+                          "ipv4SubnetRanges" : [ 
+                              {
+                                  "id" : "range001",
+                                  "subnetRange" : {
+                                      "octetA" : "10",
+                                      "octetB" : "135",
+                                      "octetC" : {
+                                          "min" : "1",
+                                          "max" : "5"
+                                      }
+                                  },
+                                  "subnetGateway" : {
+                                      "octetD" : "1"
+                                  },
+                                  "deviceRange" : {
+                                      "octetD" : {
+                                          "min" : "2",
+                                          "max" : "254"
+                                      }
+                                  }
+                              }
+                          ],
+                          "ipv4Subnets" : []
+                      }, 
+                      {
+                          "name" : "enp0s31f6",
+                          "macAddress" : "00:30:18:0a:ce:3d",
+                          "medium" : "ethernet",
+                          "ipv4Subnets" : [ 
+                              {
+                                  "subnetRange" : {
+                                      "octetA" : "10",
+                                      "octetB" : "135",
+                                      "octetC" : "250"
+                                  },
+                                  "subnetGateway" : {
+                                      "octetD" : "1"
+                                  },
+                                  "deviceRange" : {
+                                      "octetD" : {
+                                          "min" : "2",
+                                          "max" : "254"
+                                      }
+                                  }
+                              }
+                          ],
+                          "ipv4SubnetRanges" : []
+                      }
+                  ]
+              }   
       
      
 
