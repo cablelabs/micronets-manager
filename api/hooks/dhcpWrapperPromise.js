@@ -101,7 +101,7 @@ module.exports.connect = function() {
 
       wsp.onUnpackedMessage.addListener(message => {
         if (message.message.messageType === 'CONN:HELLO') {
-          console.log('connected to ' + me.address)
+          console.log('Web socket connection on ' + me.address)
           resolve()
         }
         else if(message.message.messageType === 'EVENT:DHCP:leaseAcquired')
