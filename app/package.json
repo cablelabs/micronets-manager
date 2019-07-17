@@ -1,5 +1,5 @@
 {
-  "name": "micronets-manager-client",
+  "name": "Micronets-Manager-Client",
   "version": "1.0.0",
   "description": "A webapp to view/manage Micro-nets",
   "author": "akadam <a.kadam@cablelabs.com>",
@@ -76,7 +76,7 @@
     "vue-loader": "^13.7.1",
     "vue-style-loader": "^3.1.2",
     "vue-template-compiler": "^2.5.13",
-    "webpack": "^2.6.1",
+    "webpack": "^3.12.0",
     "webpack-bundle-analyzer": ">=3.3.2",
     "webpack-dev-middleware": "^1.10.0",
     "webpack-dev-server": "^3.1.14",
@@ -84,8 +84,14 @@
     "webpack-merge": "^4.1.0"
   },
   "engines": {
-    "node": ">= 4.0.0",
+    "node": ">=6.2.0",
     "npm": ">= 3.0.0"
+  },
+  "babel": {
+    "presets": [
+      "es2015",
+      "stage-2"
+    ]
   },
   "browserslist": [
     "> 1%",

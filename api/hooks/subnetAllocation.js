@@ -7,7 +7,7 @@ module.exports.setup = function (app, config) {
   return new Promise(async function (resolve, reject) {
     app.get('mongoClient')
       .then((dbP) => {
-        console.log('subnet allocator connected');
+        console.log('Subnet allocator connected to database');
         me.db = dbP.db().collection('subnetAllocation');
         me.db.createIndex({"subnetAddress": 1}, {unique: true})
         resolve(me)
