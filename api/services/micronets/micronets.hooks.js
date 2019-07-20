@@ -1214,6 +1214,7 @@ module.exports = {
             const mockMicronetsFromDb = await hook.app.service ( `${MOCK_MICRONET_PATH}` ).find ( {} )
             const mockMicronetIndex = mockMicronetsFromDb.data.length > 0 ? mockMicronetsFromDb.data.findIndex ( ( mockMicronet ) => mockMicronet.id == id ) : -1
             logger.debug ( '\n\n Mock micronet Index : ' + JSON.stringify ( mockMicronetIndex ) )
+
             // Delete single micro-net
             if ( micronetId && deviceId ) {
               const micronetFromDB = await getMicronet ( hook , id )
@@ -1276,10 +1277,10 @@ module.exports = {
                   users = users.data[ 0 ]
                   let deviceToDeleteIndex = users.devices.findIndex((registeredDevice, index) => registeredDevice.deviceId == hook.params.route.deviceId)
                   let filteredDevices =  users.devices.filter((registeredDevice,index) => index != deviceToDeleteIndex)
-                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( null , Object.assign ( {
+                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( users.id , Object.assign ( {
                     devices : filteredDevices ,
                     deleteRegisteredDevices : true
-                  } ) , { query : { id : users.id } , mongoose : { upsert : true } } )
+                  } ) )
                 }
 
               }
@@ -1298,10 +1299,10 @@ module.exports = {
                 if ( !(isEmpty ( users.data )) ) {
                   users = users.data[ 0 ]
                   let updatedDevices = []
-                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( null , Object.assign ( {
+                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( users.id , Object.assign ( {
                     devices : updatedDevices ,
                     deleteRegisteredDevices : true
-                  } ) , { query : { id : users.id } , mongoose : { upsert : true } } )
+                  } ) )
                 }
 
               }
@@ -1382,10 +1383,10 @@ module.exports = {
                     }
                   } )
                   updatedDevices = updatedDevices.filter ( Boolean )
-                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( null , Object.assign ( {
+                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( users.id , Object.assign ( {
                     devices : updatedDevices ,
                     deleteRegisteredDevices : true
-                  } ) , { query : { id : users.id } , mongoose : { upsert : true } } )
+                  } ) )
                 }
 
               }
@@ -1408,10 +1409,10 @@ module.exports = {
                 if ( !(isEmpty ( users.data )) ) {
                   users = users.data[ 0 ]
                   let updatedDevices = []
-                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( null , Object.assign ( {
+                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( users.id , Object.assign ( {
                     devices : updatedDevices ,
                     deleteRegisteredDevices : true
-                  } ) , { query : { id : users.id } , mongoose : { upsert : true } } )
+                  } ) )
                 }
 
               }
