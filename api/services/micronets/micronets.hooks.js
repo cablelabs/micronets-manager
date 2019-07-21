@@ -1336,7 +1336,7 @@ module.exports = {
               // Valid index. Micronet exists
               if ( micronetToDeleteIndex > -1 ) {
                 micronetToDelete = micronets[ micronetToDeleteIndex ]
-                ipSubnets = [].concat ( micronetToDelete[ 'micronet-subnet' ].split ( '.' )[ 2 ] )
+                ipSubnets = [].concat ( micronetToDelete[ 'micronet-subnet' ])
                 registeredDevicesToDelete = micronetToDelete[ 'connected-devices' ]
                 postBodyForDelete = micronets.filter ( ( micronet , index ) => index != micronetToDeleteIndex )
               }
@@ -1370,7 +1370,10 @@ module.exports = {
 
                 // Deallocate subnets
                 if ( ipSubnets.length > 0 ) {
-                  deallocateIPSubnets ( hook , ipSubnets )
+                  logger.debug('\n IP Subnets to deallocate : ' + JSON.stringify(ipSubnets))
+                  ipSubnets.map(async(subnetAddress)=> {
+                     return await subnetAllocation.releaseSubnetAddress(subnetAddress)
+                  })
                 }
 
                 let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
@@ -1402,7 +1405,10 @@ module.exports = {
                 }
                 // De-allocate subnets
                 if ( ipSubnets.length > 0 ) {
-                  deallocateIPSubnets ( hook , ipSubnets )
+                  logger.debug('\n IP Subnets to deallocate : ' + JSON.stringify(ipSubnets))
+                  ipSubnets.map(async(subnetAddress)=> {
+                    return await subnetAllocation.releaseSubnetAddress(subnetAddress)
+                  })
                 }
 
                 let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
