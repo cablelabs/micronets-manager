@@ -4,7 +4,7 @@ const app = require ( './app' );
 const port = app.get ( 'port' );
 const server = app.listen ( port );
 const mano = app.get('mano')
-const io = require ( 'socket.io' ) ( server );
+// const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
 const paths = require ( './hooks/servicePaths' )
 const { USERS_PATH, REGISTRY_PATH  } = paths
@@ -68,7 +68,7 @@ server.on ( 'listening' , async () => {
 
 } );
 
-io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )
+// io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )
 
 app.service (`${REGISTRY_PATH}`).on('gatewayReconnect', async( data ) => {
   if(data.data.hasOwnProperty('webSocketUrl')) {

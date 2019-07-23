@@ -598,6 +598,6 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
  
  ## License
  
- Copyright (c) 2018
+ Copyright (c) 2019
  
  Licensed under the [MIT license](LICENSE).

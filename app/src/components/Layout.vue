@@ -14,7 +14,7 @@
       </v-container>
     </v-content>
     <v-footer app>
-      <span class="black--text">&copy; 2018 CableLabs.</span>
+      <span class="black--text">&copy; 2019 CableLabs.</span>
       <v-spacer></v-spacer>
     </v-footer>
   </v-app>

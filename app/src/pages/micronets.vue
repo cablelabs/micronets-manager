@@ -21,9 +21,6 @@
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
   import { mapState, mapActions, mapMutations } from 'vuex'
-  // import io from 'socket.io-client'
-  // const socket = io(`${process.env.MM_SERVER_BASE_URL}`)
-
   export default {
     components: { SubnetCard, Layout, AddSubnetForm },
     name: 'micronets',
