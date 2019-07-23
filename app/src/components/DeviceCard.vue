@@ -25,7 +25,6 @@
 <script>
 import { mapState } from 'vuex'
 import { StatusIndicator } from 'vue-status-indicator'
-import 'vue-status-indicator/styles.css'
 
 export default {
   components: {StatusIndicator},

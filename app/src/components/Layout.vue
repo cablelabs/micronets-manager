@@ -3,7 +3,7 @@
     <v-toolbar color="#3A3A3A" dark fixed app>
       <header class="text-xs-center">
         <router-link to="/"></router-link>
-        <!--<router-link to="/"><img class="logo" src="../assets/cablelabs-logo.png"/></router-link>-->
+        <router-link to="/"><img class="logo" src="../assets/cablelabs-logo.png"/></router-link>
       </header>
       <v-toolbar-title class="toolbar-title">Micronets Manager</v-toolbar-title>
       <v-spacer></v-spacer>
