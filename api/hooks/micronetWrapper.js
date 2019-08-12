@@ -59,14 +59,6 @@ const connectToGateway = async ( hook ) => {
 const isODLAlive = async ( hook ) => {
   const registry = await getRegistry ( hook , {} )
   const { odlUrl } = registry
-  /* ODL CALL
-const odlNotifications = await axios ( {
-  ...apiInit ,
-  auth : odlAuthHeader ,
-  method : 'get' ,
-  url : `${odlUrl}/restconf/config/micronets-notifications:micronets-notifications` ,
-} )
-*/
   // FAKE NOTIFICATIONS
   const odlNotifications = Object.assign ( {} , { data : micronetNotifications , status : 200 } )
   const { data , status } = odlNotifications
@@ -268,7 +260,6 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
     } )
   } )
    logger.debug('\n\n  SubnetDetails : ' + JSON.stringify(subnetDetails))
-
   // Gets random subnets
   // const subnets = await getSubnetIps ( hook , subnetDetails , requestBody )
 
@@ -300,9 +291,7 @@ const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
     const subnetsWithDevicesSubset = subnetDetailsWithDevices.map ( ( sbd , index ) => {
       return subnets[ index ]
     } )
-
     const subnetsWithDevices = await getDeviceForSubnet ( hook , subnetDetailsWithDevices , subnetsWithDevicesSubset, interface, connectionType )
-
     const subnetsWithoutDevices = subnets.map ( ( subnet , index ) => {
       if ( index < subnetsWithDevices.length && subnet.subnet != subnetsWithDevices[ index ].subnet ) {
         return subnet
@@ -412,18 +401,6 @@ const upsertOdLConfigState = async ( hook , postBody ) => {
   const registry = await getRegistry ( hook , {} )
   const { odlUrl } = registry
 
-  /* Axios ODL call.Check for Response Code 201 or 200
-  const odlConfigResponse = await axios ( {
-  ...apiInit ,
-  auth: odlAuthHeader,
-  method : 'PUT' ,
-  url : `http://${odlHost}:${odlSocket}/restconf/config/micronets:micronets` ,
-  data: postBody
-  })
-  //  const {status, data} = odlConfigResponse
-
-*/
-
   // Fake response
   const odlConfigResponse = Object.assign ( {} , { status : 200 , data : "" } )
   return odlConfigResponse
@@ -432,16 +409,6 @@ const upsertOdLConfigState = async ( hook , postBody ) => {
 const fetchOdlOperationalState = async ( hook ) => {
   const registry = await getRegistry ( hook , {} )
   const { odlUrl } = registry
-
-  // URL : http://{{odlhost}}:{{odlsocket}}/restconf/operational/micronets:micronets
-  // const odlOperationalState = await axios ( {
-  //   ...apiInit ,
-  //   auth: odlAuthHeader,
-  //   method : 'GET' ,
-  //   url : `http://${odlHost}:${odlSocket}/restconf/operational/micronets:micronets` ,
-  // } )
-  // const { status, data } = odlOperationalState
-  // return odlOperationalState
 
   // Uncomment for Fake response
   const odlOperationalState = Object.assign ( {} , { data : micronetOperationalConfig , status : 200 } )
@@ -692,10 +659,11 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
     url : `${mmUrl}/${paths.DHCP_PATH}` ,
   } )
   const { body } = dhcpSubnets.data
-  // logger.debug('\n DHCP SUBNETS BODY : ' + JSON.stringify(body))
+  logger.debug('\n DHCP SUBNETS BODY : ' + JSON.stringify(body))
+  logger.debug('\n DHCP SUBNETS POST BODY : ' + JSON.stringify(dhcpSubnetsPostBody))
   const dhcpSubnetPromises = await Promise.all ( dhcpSubnetsPostBody.map ( async ( subnetToPost , index ) => {
     const dhcpSubnetIndex = body.micronets.length > 0 ? body.micronets.findIndex ( ( micronet ) => micronet.micronetId == subnetToPost.subnetId ) : -1
-    // logger.debug('\n DHCP SUBNET INDEX : ' + JSON.stringify(dhcpSubnetIndex))
+    logger.debug('\n DHCP SUBNET INDEX : ' + JSON.stringify(dhcpSubnetIndex))
     if ( dhcpSubnetIndex == -1 && subnetToPost != null ) {
       const dhcpSubnetResponse = await axios ( {
         ...apiInit ,

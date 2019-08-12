@@ -16,12 +16,12 @@ module.exports = function (app) {
 
   const device = new Schema({
     _id:false,
-    deviceId: { type: String, required: true, unique: true },
+    deviceId: { type: String, required: true },
     events:[{ type: event, required: false }]
   })
 
   const dpp = new Schema({
-    subscriberId: { type: String, required: false, unique: true, primaryKey: true, sparse: true },
+    subscriberId: { type: String, required: false },
     devices:[{ type: device, required: false }]
   }, {
     timestamps: true

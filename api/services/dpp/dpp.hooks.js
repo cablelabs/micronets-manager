@@ -405,10 +405,10 @@ const reInitializeDppOnboarding = async(hook) => {
     const { msoPortalUrl } = hook.app.get('mano')
     if(dppDeviceIndex > -1){
       // Clear DPP DB
-      await hook.app.service(`${DPP_PATH}`).remove(data.subscriberId)
+      // await hook.app.service(`${DPP_PATH}`).remove(data.subscriberId)
       logger.debug('\n MSO Status delete uri : ' + JSON.stringify(`${msoPortalUrl}/${MSO_STATUS_PATH}`))
       // Clear Status DB
-      await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}`)
+      // await axios.delete(`${msoPortalUrl}/${MSO_STATUS_PATH}`)
 
       // Delete specific device from micronet
       const users = await hook.app.service(`${USERS_PATH}`).get(`${data.subscriberId}`)
