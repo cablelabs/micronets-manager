@@ -680,7 +680,8 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
 
 /* Adds MUD configuration for devices */
 const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
-  logger.debug ( '\n ' )
+  logger.debug ( '\n upsertDhcpDevicesWithMudConfig ' + JSON.stringify(dhcpDevicesToUpsert))
+  let sameManufacturerDeviceMacAddrs = []
   // Get MUD Url from users
   const mud = hook.app.get ( 'mud' )
   // logger.debug('\n MUD url : ' + JSON.stringify( mud.url ) + '\t\t MUD version : ' + JSON.stringify(mud.version))
@@ -692,6 +693,19 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
     // logger.debug('\n dhcpDeviceToUpsert : ' + JSON.stringify(dhcpDeviceToUpsert))
     let userDeviceIndex = userDevices.findIndex ( ( userDevice ) => userDevice.macAddress == dhcpDeviceToUpsert.macAddress.eui48 && userDevice.deviceId == dhcpDeviceToUpsert.deviceId )
     let mudUrlForDevice = userDeviceIndex != -1 ? userDevices[ userDeviceIndex ].mudUrl : ''
+    let deviceToUpsertManufacturer = userDevices[userDeviceIndex].deviceManufacturer
+    logger.debug('\n\n DeviceToUpsertManufacturer : ' + JSON.stringify(deviceToUpsertManufacturer))
+    sameManufacturerDeviceMacAddrs = userDevices.map((userDevice, index) => {
+      if(userDevice.deviceManufacturer == deviceToUpsertManufacturer && userDevice.class == userDevices[userDeviceIndex].class && index!= userDeviceIndex)
+        return userDevice.macAddress
+    })
+    sameManufacturerDeviceMacAddrs =sameManufacturerDeviceMacAddrs.filter ( ( el ) => { return el != null } )
+   logger.debug('\n\n sameManufacturerDeviceMacAddrs : ' + JSON.stringify(sameManufacturerDeviceMacAddrs))
+    if(sameManufacturerDeviceMacAddrs.length > 0) {
+      logger.debug('\n Found same manufacturer for other devices ... Updating allowHosts ')
+      dhcpDeviceToUpsert[ 'allowHosts' ] = sameManufacturerDeviceMacAddrs
+      logger.debug('\n dhcpDeviceToUpsert with updated allowHosts : ' + JSON.stringify(dhcpDeviceToUpsert))
+    }
     // MUD URL Present. Call MUD Parser
     if ( mudUrlForDevice && mudUrlForDevice != '' ) {
       let mudParserPost = Object.assign ( {} , {
@@ -714,7 +728,9 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         return Promise.reject ( new errors.GeneralError ( new Error ( 'MUD Parser error' ) ) )
       }
       if ( mudParserRes.device.allowHosts.length > 0 ) {
-         dhcpDeviceToUpsert[ 'allowHosts' ] = mudParserRes.device.allowHosts
+        logger.debug('\n Before concating allowHosts : ' + JSON.stringify( dhcpDeviceToUpsert[ 'allowHosts' ]))
+         dhcpDeviceToUpsert[ 'allowHosts' ] = dhcpDeviceToUpsert.hasOwnProperty('allowHosts') && dhcpDeviceToUpsert['allowHosts'].length > 0 ? dhcpDeviceToUpsert['allowHosts'].concat(mudParserRes.device.allowHosts) : mudParserRes.device.allowHosts
+        logger.debug('\n After concating allowHosts : ' + JSON.stringify( dhcpDeviceToUpsert[ 'allowHosts' ]))
       }
       if ( mudParserRes.device.denyHosts.length > 0 ) {
          dhcpDeviceToUpsert[ 'denyHosts' ] = mudParserRes.device.denyHosts
@@ -766,7 +782,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
   } )
   dhcpDevicesPostBody = [].concat.apply ( [] , dhcpDevicesPostBody )
   dhcpDevicesPostBody = await upsertDhcpDevicesWithMudConfig ( hook , dhcpDevicesPostBody )
-  // logger.debug('\n DHCP DEVICES POST BODY : ' + JSON.stringify(dhcpDevicesPostBody))
+ logger.debug('\n FINAL DHCP DEVICES POST BODY : ' + JSON.stringify(dhcpDevicesPostBody))
   if ( micronetIndex > -1 ) {
     // Check if subnet exists in DHCP Gateway
     const dhcpSubnet = await axios ( {
@@ -774,7 +790,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
       method : 'GET' ,
       url : `${mmUrl}/${paths.DHCP_PATH}/${subnetId}` ,
     } )
-    // logger.debug('\n DHCP Subnet : ' + JSON.stringify(dhcpSubnet.data))
+    logger.debug('\n DHCP Subnet : ' + JSON.stringify(dhcpSubnet.data))
     const { body , status } = dhcpSubnet.data
 
     if ( status != 404 && ((body.hasOwnProperty ( 'micronets' ) && body.micronets.micronetId == subnetId) || (body.hasOwnProperty ( 'micronet' ) && body.micronet.micronetId == subnetId)) ) {
@@ -785,7 +801,10 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
       } )
       const dhcpDevicePromises = await Promise.all ( dhcpDevicesPostBody.map ( async ( dhcpDevice , index ) => {
         // Check DHCP device to add does not exist in DHCP Subnet
+        logger.debug('\n DHCP Device post body : ' + JSON.stringify(dhcpDevice))
+        logger.debug('\n dhcpSubnetDevices ' + JSON.stringify(dhcpSubnetDevices.data))
         const devicePresentIndex = dhcpSubnetDevices.data.body.devices.findIndex ( ( subnetDevice ) => subnetDevice.deviceId == dhcpDevice.deviceId )
+        logger.debug('\n devicePresentIndex ' + JSON.stringify(devicePresentIndex))
         if ( devicePresentIndex == -1 ) {
           const dhcpDeviceToAdd = await axios ( {
             ...apiInit ,
@@ -793,9 +812,11 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
             url : `${mmUrl}/${paths.DHCP_PATH}/${subnetId}/devices` ,
             data : dhcpDevice
           } )
+          logger.debug('\n Added DHCP device response from gateway box .. : ' + JSON.stringify(dhcpDeviceToAdd.data))
           return dhcpDeviceToAdd.data
         }
       } ) )
+
       return dhcpDevicePromises
     }
   }

@@ -9,8 +9,8 @@ module.exports = {
   before : {
     all : [  ] ,
     find : [] ,
-    get : [ authenticate ( 'jwt' ),
-      hook => {
+    get : [ // authenticate ( 'jwt' ),
+      ( hook ) => {
         const {params, id} = hook
         const query = Object.assign({ id: id ? id : params.id }, hook.params.query);
         return hook.app.service(`${USERS_PATH}`).find({ query })
