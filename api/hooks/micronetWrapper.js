@@ -700,11 +700,10 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         return userDevice.macAddress
     })
     sameManufacturerDeviceMacAddrs =sameManufacturerDeviceMacAddrs.filter ( ( el ) => { return el != null } )
-   logger.debug('\n\n sameManufacturerDeviceMacAddrs : ' + JSON.stringify(sameManufacturerDeviceMacAddrs))
     if(sameManufacturerDeviceMacAddrs.length > 0) {
       logger.debug('\n Found same manufacturer for other devices ... Updating allowHosts ')
       dhcpDeviceToUpsert[ 'allowHosts' ] = sameManufacturerDeviceMacAddrs
-      logger.debug('\n dhcpDeviceToUpsert with updated allowHosts : ' + JSON.stringify(dhcpDeviceToUpsert))
+      logger.debug('\n Updated allowHosts : ' + JSON.stringify(dhcpDeviceToUpsert))
     }
     // MUD URL Present. Call MUD Parser
     if ( mudUrlForDevice && mudUrlForDevice != '' ) {
@@ -728,9 +727,9 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         return Promise.reject ( new errors.GeneralError ( new Error ( 'MUD Parser error' ) ) )
       }
       if ( mudParserRes.device.allowHosts.length > 0 ) {
-        logger.debug('\n Before concating allowHosts : ' + JSON.stringify( dhcpDeviceToUpsert[ 'allowHosts' ]))
+
          dhcpDeviceToUpsert[ 'allowHosts' ] = dhcpDeviceToUpsert.hasOwnProperty('allowHosts') && dhcpDeviceToUpsert['allowHosts'].length > 0 ? dhcpDeviceToUpsert['allowHosts'].concat(mudParserRes.device.allowHosts) : mudParserRes.device.allowHosts
-        logger.debug('\n After concating allowHosts : ' + JSON.stringify( dhcpDeviceToUpsert[ 'allowHosts' ]))
+        logger.debug('\n allowHosts : ' + JSON.stringify( dhcpDeviceToUpsert[ 'allowHosts' ]))
       }
       if ( mudParserRes.device.denyHosts.length > 0 ) {
          dhcpDeviceToUpsert[ 'denyHosts' ] = mudParserRes.device.denyHosts
