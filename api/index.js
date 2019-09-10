@@ -114,7 +114,7 @@ async function upsertDeviceLeaseStatus ( message , type ) {
       deviceLeaseStatus : isLeaseAcquired ? 'positive' : 'intermediary'
     } )
   user.devices[ deviceIndex ] = updatedDevice
-  const updateResult = await app.service ( `${USERS_PATH}` ).update ( user._id , Object.assign ( {} , {
+  const updateResult = await app.service ( `${USERS_PATH}` ).patch( user.id , Object.assign ( {} , {
     id : user.id ,
     name : user.name ,
     ssid : user.ssid ,
@@ -157,12 +157,14 @@ async function upsertDppDeviceOnboardStatus ( message , type ) {
         micronetId : eventMicronetId
       } )
     user.devices[ deviceIndex ] = updatedDevice
-    const updateResult = await app.service ( `${USERS_PATH}` ).update ( user.id , Object.assign ( {} , {
+    logger.debug('\n\n Updated user devices : ' + JSON.stringify(user.devices))
+    const updateResult = await app.service ( `${USERS_PATH}` ).patch ( user._id , Object.assign ( {} , {
       id : user.id ,
       name : user.name ,
       ssid : user.ssid ,
       devices : user.devices
     } ) )
+    logger.debug('\n Updated users result : ' + JSON.stringify(updateResult.data))
     return updateResult
   }
 }

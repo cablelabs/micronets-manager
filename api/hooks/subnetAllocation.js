@@ -2,8 +2,7 @@ const ipaddress = require('ip-address');
 const AwaitLock = require('await-lock')
 
 module.exports.setup = async function (app, config) {
-  let mutexLock = new AwaitLock()
-  this.lock = await mutexLock.acquireAsync()
+  this.lock = new AwaitLock()
   me = this;
   return new Promise(async function (resolve, reject) {
     app.get('mongoClient')
