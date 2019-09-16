@@ -1,0 +1,33 @@
+version: '3'
+
+volumes:
+  mongodb:
+
+services:
+
+  mongo:
+       image: mongo
+       volumes:
+         - mongodb:/data/db
+
+  api:
+    build:
+      context: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3030
+      - NETWORK_MODE=false
+      - MONGO_URL=mongodb://mongo/micronets
+    depends_on:
+      - mongo
+
+  app:
+    build:
+      context: app
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - NETWORK_MODE=false
+      - MONGO_URL=mongodb://mongo/micronets
+    depends_on:
+      - api
