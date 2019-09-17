@@ -1,5 +1,5 @@
 {
-  "host": "45.56.76.21",
+  "host": "localhost",
   "port": 3030,
   "public": "../public/",
   "paginate": {
@@ -31,7 +31,6 @@
     }
   },
   "mongodb": "mongodb://127.0.0.1:27017/micronets",
-  "mongodbDocker": "mongodb://mm-mongo:27018/micronets",
   "mano":{
     "subscriberId": "7B2A-BE88-08817Z",
     "identityUrl": "http://radius.micronets.in:3230",

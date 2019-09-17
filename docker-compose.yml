@@ -5,7 +5,7 @@ volumes:
 
 services:
 
-  mongo:
+  mongodb:
        image: mongo
        volumes:
          - mongodb:/data/db
@@ -17,9 +17,10 @@ services:
       - NODE_ENV=production
       - PORT=3030
       - NETWORK_MODE=false
-      - MONGO_URL=mongodb://mongo/micronets
+      - MONGODB_URI=mongodb://mongodb/micronets
+      - PUBLIC_IP=${MM_API_PUBLIC_IP}
     depends_on:
-      - mongo
+      - mongodb
 
   app:
     build:
@@ -27,7 +28,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8080
-      - NETWORK_MODE=false
-      - MONGO_URL=mongodb://mongo/micronets
+      - MM_SERVER_BASE_URL=http://api:3030
+      - MSO_PORTAL_BASE_URL=${MM_MSO_PORTAL_BASE_URL}
+      - SUBSCRIBER_ID=${MM_SUBSCRIBER_ID}
+      - TEST_ID=${MM_SUBSCRIBER_ID}
     depends_on:
       - api
