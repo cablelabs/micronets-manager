@@ -94,10 +94,10 @@ module.exports = {
 
             const upsertResult =  registerIndex == -1 ? await axios.post ( `${hook.result.msoPortalUrl}/portal/v1/register` , Object.assign ( {} , {
               subscriberId : hook.result.subscriberId ,
-              registry : `http://${hook.app.get ( 'host' )}:${hook.app.get ( 'port' )}`
+              registry : `http://${hook.app.get ( 'publicHost' )}:${hook.app.get ( 'publicPort' )}`
             } ) ) : await axios.put ( `${hook.result.msoPortalUrl}/portal/v1/register/${hook.result.subscriberId}` , Object.assign ( {} , {
               subscriberId : hook.result.subscriberId ,
-              registry : `http://${hook.app.get ( 'host' )}:${hook.app.get ( 'port' )}`
+              registry : `http://${hook.app.get ( 'publicHost' )}:${hook.app.get ( 'publicPort' )}`
             } ) )
 
           logger.debug ( '\n Registered registry url  : ' + JSON.stringify ( upsertResult.data ) )

@@ -1,6 +1,9 @@
 {
-  "host": "localhost",
-  "port": 3030,
+  "listenHost": "127.0.0.1",
+  "listenPort": 3030,
+  "publicHost": "1.2.3.4",
+  "publicPort": 3030,
+  "appPublicPort": 8080,
   "public": "../public/",
   "paginate": {
     "default": 500,

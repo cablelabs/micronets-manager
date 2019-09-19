@@ -375,7 +375,7 @@ const onboardDppDevice = async(hook) => {
 
           // PUT request to on-board device
           // const { gatewayUrl } = hook.app.get('mano')
-          const mmUrl = `http://${hook.app.get('host')}:${hook.app.get('port')}`
+          const mmUrl = `http://${hook.app.get('publicHost')}:${hook.app.get('publicPort')}`
           const deviceId = hook.data.bootstrap.pubkey.split ( '+' )[ 0 ]
           const gatewayPutBody = Object.assign({},{
             dpp: {
@@ -422,7 +422,7 @@ const reInitializeDppOnboarding = async(hook) => {
       logger.debug('\n deviceIndex : ' + JSON.stringify(deviceIndex) + '\t\t deviceToDelete : ' + JSON.stringify(deviceToDelete))
       logger.debug('\n Device to delete : ' + JSON.stringify(deviceToDelete) + '\t\t from micronet : ' + JSON.stringify(deviceToDelete.micronetId))
       if(deviceIndex > -1){
-        await axios.delete(`http://${hook.app.get('host')}:${hook.app.get('port')}/${MICRONETS_PATH}/${data.subscriberId}/micronets/${deviceToDelete.micronetId}/devices/${deviceToDelete.deviceId}`)
+        await axios.delete(`http://${hook.app.get('publicHost')}:${hook.app.get('publicPort')}/${MICRONETS_PATH}/${data.subscriberId}/micronets/${deviceToDelete.micronetId}/devices/${deviceToDelete.deviceId}`)
       }
     }
   }

@@ -1,8 +1,7 @@
 /* eslint-disable no-console */
 const logger = require ( './logger' );
 const app = require ( './app' );
-const port = app.get ( 'port' );
-const server = app.listen ( port );
+const server = app.listen (app.get('listenPort'), app.get('listenHost'));
 const mano = app.get('mano')
 // const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
@@ -38,7 +37,9 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 
 
 server.on ( 'listening' , async () => {
-  logger.info ('Feathers application started on ' + JSON.stringify(`http://${app.get('host')}:${app.get('port')}`))
+  address = server.address()
+  logger.info ('Feathers application started on ' + JSON.stringify(`http://${address.address}:${address.port}`))
+  logger.info ('Public URL: ' + JSON.stringify(`http://${app.get('publicHost')}:${app.get('publicPort')}`))
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
 
@@ -51,8 +52,8 @@ server.on ( 'listening' , async () => {
       const postRegistry = Object.assign({},{
         subscriberId : mano.subscriberId,
         identityUrl: mano.identityUrl,
-        mmUrl : `http://${app.get('host')}:${app.get('port')}`,
-        mmClientUrl : `http://${app.get('host')}:8080`,
+        mmUrl : `http://${app.get('publicHost')}:${app.get('publicPort')}`,
+        mmClientUrl : `http://${app.get('publicHost')}:${app.get('appPublicPort')`,
         webSocketUrl: `${mano.webSocketBaseUrl}/${mano.subscriberId}`,
         msoPortalUrl: mano.msoPortalUrl,
         gatewayId: isEmpty(gatewayConfigPost) ? `default-gw-${mano.subscriberId}`: gatewayConfigPost.gatewayId
