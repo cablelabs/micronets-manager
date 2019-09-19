@@ -75,19 +75,19 @@ const micronetExistsCheck = async(hook) => {
 const getMudUri = async(hook) => {
   const { data } = hook
   const {bootstrap, user, device} = data
-  const { registryUrl, registerDeviceUrl } = hook.app.get('mud')
-  const registerDevice = `${registerDeviceUrl}/${bootstrap.vendor}/${device.modelUID}/${bootstrap.pubkey}`
-  const dppRegistryMudUrl = `${registryUrl}/${bootstrap.vendor}/${bootstrap.pubkey}`
-  logger.debug('\n Register Device Url : ' + JSON.stringify(registerDevice) + '\t\t  MudUrl ' +JSON.stringify(dppRegistryMudUrl))
+  const { registryBaseUrl } = hook.app.get('mud')
+  const registerDeviceUrl = `${registryBaseUrl}/register-device/${bootstrap.vendor}/${device.modelUID}/${bootstrap.pubkey}`
+  const mudUrlForDeviceUrl = `${registryBaseUrl}/mud-url/${bootstrap.vendor}/${bootstrap.pubkey}`
+  logger.debug('\n Register Device Url : ' + JSON.stringify(registerDeviceUrl) + '\t\t  MudUrlForDevice ' +JSON.stringify(mudUrlForDeviceUrl))
 
   // Register device with curl commands
-  const registerDeviceCurl = `curl -L -X  POST \"${registerDevice}\"`
+  const registerDeviceCurl = `curl -L -X  POST \"${registerDeviceUrl}\"`
   const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
   console.log(registerDeviceRes);
 
   // Get MUD URL with curl commands
   if(registerDeviceRes){
-    const getMudUrlCurl = `curl -L -X  GET \"${dppRegistryMudUrl}\"`
+    const getMudUrlCurl = `curl -L -X  GET \"${mudUrlForDeviceUrl}\"`
     const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
     console.log(getMudUrlRes);
     return getMudUrlRes
