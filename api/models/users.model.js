@@ -27,6 +27,7 @@ module.exports = function (app) {
       mudUrl: { type: String, required:false, default: '' },
       deviceManufacturer: { type: String, required:false },
       deviceModel: { type: String, required:false },
+      deviceAuthority: { type: String, required:false },
       deviceModelUID: { type: String, required:false },
       onboardType: { type: String, required: false },
       onboardStatus: { type: String, required: false },
