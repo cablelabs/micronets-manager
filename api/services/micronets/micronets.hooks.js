@@ -766,7 +766,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
 
   // Get MUD Url from users
   const mud = hook.app.get ( 'mud' )
-  logger.debug ( '\n MUD url : ' + JSON.stringify ( mud.url ) + '\t\t MUD version : ' + JSON.stringify ( mud.version ) )
+  logger.debug ( '\n MUD Manager URL : ' + JSON.stringify ( mud.managerBaseUrl ) + '\t\t MUD version : ' + JSON.stringify ( mud.version ) )
   let user = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
   user = user.data[ 0 ]
   let userDevices = user.devices
@@ -785,7 +785,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       // Make MUD Post call
       let mudParserRes = await axios ( {
         method : 'POST' ,
-        url : mud.url ,
+        url : mud.managerBaseUrl ,
         data : mudParserPost
       } )
       mudParserRes = mudParserRes.data
