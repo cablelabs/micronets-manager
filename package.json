@@ -82,6 +82,7 @@
     "random-hex-character-generator": "^0.10.1",
     "random-number": "0.0.9",
     "serve-favicon": "^2.5.0",
+    "validator": "^11.1.0",
     "vue-cli": "^2.9.6",
     "websocket": "^1.0.29",
     "websocket-as-promised": "^0.10.1",
