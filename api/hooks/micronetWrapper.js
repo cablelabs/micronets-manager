@@ -881,40 +881,21 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
               logger.debug('\n Devices to upsert : ' + JSON.stringify(devicesToUpsert))
               let devicesToUpsertPromises = devicesToUpsert.map(async(deviceToUpsert) => {
                 logger.debug('\n Current device to upsert ' + JSON.stringify(deviceToUpsert))
-                // let gatewayDeviceToUpsert = await axios ( {
-                //   ...apiInit ,
-                //   method : 'FIND' ,
-                //   url : `${mmUrl}/${paths.DHCP_PATH}/${subnetId}/devices/${deviceToUpsert.deviceId}`
-                // })
-                // logger.debug('\n Obtained device : ' + JSON.stringify(gatewayDeviceToUpsert.data))
-               // gatewayDeviceToUpsert = gatewayDeviceToUpsert.data
-
-                let gatewayDeviceToUpsert = Object.assign({}, {
-                  "body": {
-                    "device": {
-                      "allowHosts": [
-                        "91:80:26:f3:00:27",
-                        "hotdawg.micronets.in",
-                        "mm.micronets.in"
-                      ],
-                      "deviceId": "MTkwTwTORoTIzj0RCQYIKoZIzj0DAQcDIgACDIBBiMf4W",
-                      "macAddress": {
-                        "eui48": "d1:6d:89:0c:23:02"
-                      },
-                      "networkAddress": {
-                        "ipv4": "10.135.1.3"
-                      },
-                      "psk": "285cce4a9bc455a59840c977ef7470b63ff6fd2eae22a6fd32eb7885fede43b8"
-                    }
-                  },
-                  "status": 200
+                logger.debug('\n DHCP Url for device ' + JSON.stringify(`${mmUrl}/${paths.DHCP_PATH}/${deviceToUpsert.class}/devices/${deviceToUpsert.deviceId}`))
+                let gatewayDeviceToUpsert = await axios ( {
+                  ...apiInit ,
+                  method : 'GET' ,
+                  url : `${mmUrl}/${paths.DHCP_PATH}/${deviceToUpsert.class}/devices/${deviceToUpsert.deviceId}`
                 })
+
+                logger.debug('\n  Obtained device from gateway status : ' + JSON.stringify(gatewayDeviceToUpsert.status))
+                logger.debug('\n  Obtained device from gateway body : ' + JSON.stringify(gatewayDeviceToUpsert.data.body))
 
                 // If device exists do a PUT
 
                 if(gatewayDeviceToUpsert.status == '200'){
                   let devicePutBody = []
-                  gatewayDeviceToUpsert = gatewayDeviceToUpsert.body.device
+                  gatewayDeviceToUpsert = gatewayDeviceToUpsert.data.body.device
                   logger.debug('\n gatewayDeviceToUpsert.allowHosts : ' + JSON.stringify(gatewayDeviceToUpsert.allowHosts))
                   logger.debug('\n macAddressToPut : ' + JSON.stringify(macAddressToPut))
                   devicePutBody = [].concat(...gatewayDeviceToUpsert.allowHosts).concat(macAddressToPut)
@@ -932,8 +913,6 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
             }
           }
 
-          // TODO : ASHWINI If the post is successful do a PUT for all the devices for manufacturer or same manufacturer
-          // TODO : Step 1 Have same manufacturer list ready
           return dhcpDeviceToAdd.data
         }
       } ) )
