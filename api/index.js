@@ -53,7 +53,7 @@ server.on ( 'listening' , async () => {
         subscriberId : mano.subscriberId,
         identityUrl: mano.identityUrl,
         mmUrl : `http://${app.get('publicHost')}:${app.get('publicPort')}`,
-        mmClientUrl : `http://${app.get('publicHost')}:${app.get('appPublicPort')`,
+        mmClientUrl : `http://${app.get('publicHost')}:${app.get('appPublicPort')}`,
         webSocketUrl: `${mano.webSocketBaseUrl}/${mano.subscriberId}`,
         msoPortalUrl: mano.msoPortalUrl,
         gatewayId: isEmpty(gatewayConfigPost) ? `default-gw-${mano.subscriberId}`: gatewayConfigPost.gatewayId
