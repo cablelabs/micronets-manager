@@ -733,12 +733,11 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       logger.debug('\n\n ************** SAME MANUFACTURER HANDLING **************' )
       logger.debug('\n\n MUD PARSER RESPONSE : ' + JSON.stringify(mudParserRes) + '\t\t For DHCP Device : ' + JSON.stringify(dhcpDeviceToUpsert))
 
-      // const staticAllowHosts = [
-      //   "my-controller",
-      //   "same-manufacturer"]
+      const staticAllowHosts = [
+        "my-controller",
+        "same-manufacturer" ]
 
-      // mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
-      // logger.debug('\n Updated AllowHosts : ' + JSON.stringify(updatedAllowHosts))
+      mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
       logger.debug('\n mudParserRes.device.allowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
 
 
@@ -1011,6 +1010,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
 
                 if(gatewayDeviceToUpsert.status == '200'){
                   let devicePutBody = []
+                  logger.debug('\n SubnetID : ' + JSON.stringify(subnetId) + '\t\t DeviceToUpsert class : ' + JSON.stringify(deviceToUpsert.class) + '\t\t DeviceToUpsert deviceId : ' + JSON.stringify(deviceToUpsert.deviceId))
                   gatewayDeviceToUpsert = gatewayDeviceToUpsert.data.body.device
                   logger.debug('\n gatewayDeviceToUpsert.allowHosts : ' + JSON.stringify(gatewayDeviceToUpsert.allowHosts))
                   logger.debug('\n macAddressToPut : ' + JSON.stringify(macAddressToPut))
@@ -1020,7 +1020,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
                   let deviceUpsertResponse =  await axios ( {
                     ...apiInit ,
                     method : 'PUT' ,
-                    url : `${mmUrl}/${paths.DHCP_PATH}/${subnetId}/devices/${deviceToUpsert.deviceId}`,
+                    url : `${mmUrl}/${paths.DHCP_PATH}/${deviceToUpsert.class}/devices/${deviceToUpsert.deviceId}`,
                     data : Object.assign({},{ allowHosts: devicePutBody })
                   })
                   logger.debug('\n Device Upsert Response : ' + JSON.stringify(deviceUpsertResponse.data))
