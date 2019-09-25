@@ -17,8 +17,10 @@ services:
       - NODE_ENV=production
       - PORT=3030
       - NETWORK_MODE=false
-      - MONGODB_URI=mongodb://mongodb/micronets
-      - PUBLIC_IP=${MM_API_PUBLIC_IP}
+      - MM_MONGO_DB_URL=mongodb://mongodb/micronets
+    env_file:
+      - api-config-vars.env
+
     depends_on:
       - mongodb
 
