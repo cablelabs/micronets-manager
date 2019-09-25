@@ -733,12 +733,11 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       logger.debug('\n\n ************** SAME MANUFACTURER HANDLING **************' )
       logger.debug('\n\n MUD PARSER RESPONSE : ' + JSON.stringify(mudParserRes) + '\t\t For DHCP Device : ' + JSON.stringify(dhcpDeviceToUpsert))
 
-      const staticAllowHosts = [
-        "my-controller",
-        "manufacturer:https://alpineseniorcare.com",
-      "same-manufacturer"]
+      // const staticAllowHosts = [
+      //   "my-controller",
+      //   "same-manufacturer"]
 
-      mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
+      // mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
       // logger.debug('\n Updated AllowHosts : ' + JSON.stringify(updatedAllowHosts))
       logger.debug('\n mudParserRes.device.allowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
 
