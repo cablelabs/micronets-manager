@@ -7,7 +7,6 @@ const mano = app.get('mano')
 const dw = require ( './hooks/dhcpWrapperPromise' )
 const paths = require ( './hooks/servicePaths' )
 const { USERS_PATH, REGISTRY_PATH  } = paths
-const gatewayConfigPost = require('../scripts/data/gatewayConfig')
 // const dotenv = require('dotenv');
 // dotenv.config();
 // const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl} = require('./config')
@@ -46,7 +45,6 @@ server.on ( 'listening' , async () => {
   // Create default registry on bootup of micronets-manager
   if(registryIndex == -1 ) {
     logger.debug('\n No Registry found. Initializing Registry ... ')
-    logger.debug('\n Default gateway config : ' + JSON.stringify(gatewayConfigPost) + '\t\t gatewayConfigPost.gatewayId : ' + JSON.stringify(gatewayConfigPost.gatewayId))
     logger.debug('\n Mano web socket base url : ' + JSON.stringify(mano.webSocketBaseUrl) + '\t\t MSO Portal url : ' + JSON.stringify(mano.msoPortalUrl))
     if(mano.hasOwnProperty('subscriberId') && mano.hasOwnProperty('identityUrl') && mano.hasOwnProperty('msoPortalUrl')) {
       const postRegistry = Object.assign({},{
@@ -56,7 +54,7 @@ server.on ( 'listening' , async () => {
         mmClientUrl : `http://${app.get('publicHost')}:${app.get('appPublicPort')}`,
         webSocketUrl: `${mano.webSocketBaseUrl}/${mano.subscriberId}`,
         msoPortalUrl: mano.msoPortalUrl,
-        gatewayId: isEmpty(gatewayConfigPost) ? `default-gw-${mano.subscriberId}`: gatewayConfigPost.gatewayId
+        gatewayId: `default-gw-${mano.subscriberId}`
       })
       const result = await app.service ( `${REGISTRY_PATH}` ).create ( postRegistry )
       if(result.data) {

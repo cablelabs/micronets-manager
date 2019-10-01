@@ -4,7 +4,6 @@ const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application
 const axios = require ( 'axios' );
 const errors = require ( '@feathersjs/errors' );
 const logger = require ( './../../logger' );
-const gatewayConfigPost = require('../../../scripts/data/gatewayConfig')
 let allHeaders = { crossDomain: true, headers : {  'Content-type': 'application/json' } };
 const paths = require('./../../hooks/servicePaths')
 const { REGISTRY_PATH, ODL_PATH, USERS_PATH, MICRONETS_PATH } = paths
@@ -139,15 +138,6 @@ module.exports = {
             const micronet = await hook.app.service ( `${MICRONETS_PATH}` ).find ()
             logger.debug ( '\n Default micronet for subscriber  : ' + JSON.stringify ( micronet ) )
 
-            // Create default ODL Config
-            const switchConfigPost = Object.assign ( {} , gatewayConfigPost , { name: hook.result.gatewayId } )
-            logger.debug ( 'Default ODL Post body : ' + JSON.stringify ( switchConfigPost ) )
-            const switchConfig = await hook.app.service ( `${ODL_PATH}` ).find ( {} )
-            const odlIndex = switchConfig.data.length > 0 ? switchConfig.data.findIndex ( ( swConfig ) => swConfig.gatewayId == hook.result.gatewayId ) : -1
-            if ( switchConfig.data.length == 0 || odlIndex == -1 ) {
-              await hook.app.service ( `${ODL_PATH}` ).create ( { ...switchConfigPost } , apiInit )
-              return hook
-            }
             hook.result = omitMeta ( hook.result )
             return Promise.resolve ( hook )
           }
