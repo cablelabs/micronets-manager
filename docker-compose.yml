@@ -12,25 +12,27 @@ services:
 
   api:
     image: micronets-manager_api
-    environment:
-      - NODE_ENV=production
-      - PORT=3030
-      - NETWORK_MODE=false
-      - MM_MONGO_DB_URL=mongodb://mongodb/micronets
-    env_file:
-      - api-config-vars.env
-
     depends_on:
       - mongodb
+    environment:
+      - NODE_ENV=production
+      - MM_API_LISTEN_HOST=0.0.0.0
+      - MM_API_LISTEN_PORT=3030
+      - MM_MONGO_DB_URL=mongodb://mongodb/micronets
+    env_file:
+      - mm-config-env
 
   app:
     image: micronets-manager_app
-    environment:
-      - NODE_ENV=production
-      - PORT=8080
-      - MM_SERVER_BASE_URL=http://api:3030
-      - MSO_PORTAL_BASE_URL=${MM_MSO_PORTAL_BASE_URL}
-      - SUBSCRIBER_ID=${MM_SUBSCRIBER_ID}
-      - TEST_ID=${MM_SUBSCRIBER_ID}
     depends_on:
       - api
+    environment:
+      - NODE_ENV=production
+      - MM_SERVER_BASE_URL=http://api:3030
+
+      - MM_APP_LISTEN_HOST=0.0.0.0
+      - MM_APP_LISTEN_PORT=8080
+      - MM_SERVER_BASE_URL=http://api:3030
+      - TEST_ID=${MM_SUBSCRIBER_ID}
+    env_file:
+      - mm-app-config.env
