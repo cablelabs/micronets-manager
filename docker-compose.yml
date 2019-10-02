@@ -11,8 +11,7 @@ services:
          - mongodb:/data/db
 
   api:
-    build:
-      context: .
+    image: micronets-manager_api
     environment:
       - NODE_ENV=production
       - PORT=3030
@@ -25,8 +24,7 @@ services:
       - mongodb
 
   app:
-    build:
-      context: app
+    image: micronets-manager_app
     environment:
       - NODE_ENV=production
       - PORT=8080
