@@ -29,6 +29,7 @@ module.exports = function (app) {
       deviceModel: { type: String, required:false },
       deviceAuthority: { type: String, required:false },
       deviceModelUID: { type: String, required:false },
+      deviceIp: { type: String, required:false },
       onboardType: { type: String, required: false },
       onboardStatus: { type: String, required: false },
       psk: { type: String, required: false  },
