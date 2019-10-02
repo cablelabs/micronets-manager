@@ -372,7 +372,8 @@ const onboardDppDevice = async(hook) => {
       // logger.debug ( '\n\n Add Device to subnet response : ' + JSON.stringify ( patchResult ) )
       if ( patchResult ) {
         logger.debug ( '\n DPP devices to add to dhcp : ' + JSON.stringify ( dppDevicesToAddToDhcpPost ) )
-        // TODO: Ashwini Add more logic to handle same manufacture event
+
+
         const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
         if(addedDhcpDevices.length > 0) {
 
