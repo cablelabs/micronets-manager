@@ -762,7 +762,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         "same-manufacturer",
         "local-networks" ]
 
-      mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
+       mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
       logger.debug('\n mudParserRes.device.allowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
 
 
