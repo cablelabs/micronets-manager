@@ -1,7 +1,7 @@
 const ipaddress = require('ip-address');
 const AwaitLock = require('await-lock')
 
-module.exports.setup = function (app, config) {
+module.exports.setup = async function (app, config) {
   this.lock = new AwaitLock()
   me = this;
   return new Promise(async function (resolve, reject) {

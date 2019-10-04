@@ -268,8 +268,8 @@ const onboardDppDevice = async(hook) => {
 
   //Generate PSK for device
   const dppDevicePsk = await generateDevicePSK(hook, 64)
-  logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk))
-
+  const deviceAuthority = !isEmpty(dppMudUrl) && dppMudUrl.split('/micronets-mud')[0]
+  logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk) + '\t\t Device MUD URL : ' + JSON.stringify(dppMudUrl) + '\t\t Device Authority : ' + JSON.stringify(deviceAuthority))
   //Add device to users api
   const userPatchBody = Object.assign({},{
     deviceId: bootstrap.pubkey.split('+')[0],
@@ -278,6 +278,7 @@ const onboardDppDevice = async(hook) => {
     deviceName: user.deviceName,
     deviceManufacturer:device.manufacturer,
     deviceModel:device.model,
+    deviceAuthority: deviceAuthority,
     deviceModelUID: device.modelUID,
     class: device.class,
     deviceConnection: WIFI,
@@ -319,7 +320,8 @@ const onboardDppDevice = async(hook) => {
       }
     }
   }
-    logger.debug('\n Micronet to add dpp device exists. Add device to micronet and dhcp subnet')
+
+  logger.debug('\n Micronet to add dpp device exists. Add device to micronet and dhcp subnet')
 
   // Add device to micronet and add device to dhcp subnet
   const micronetsFromDb = await hook.app.service(`${MICRONETS_PATH}`).get(data.subscriberId)
@@ -370,6 +372,8 @@ const onboardDppDevice = async(hook) => {
       // logger.debug ( '\n\n Add Device to subnet response : ' + JSON.stringify ( patchResult ) )
       if ( patchResult ) {
         logger.debug ( '\n DPP devices to add to dhcp : ' + JSON.stringify ( dppDevicesToAddToDhcpPost ) )
+
+
         const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
         if(addedDhcpDevices.length > 0) {
 
