@@ -1,9 +1,8 @@
 {
   "listenHost": "MM_API_LISTEN_HOST",
   "listenPort": "MM_API_LISTEN_PORT",
-  "publicHost": "MM_API_PUBLIC_HOST",
-  "publicPort": "MM_API_PUBLIC_PORT",
-  "appPort": "MM_API_PUBLIC_PORT",
+  "publicBaseUrl": "MM_API_PUBLIC_BASE_URL",
+  "publicAppBaseUrl": "MM_APP_PUBLIC_BASE_URL",
   "mongodb": "MM_MONGO_DB_URL",
   "authentication": {
       "secret": "MM_MSO_PORTAL_AUTH_SECRET"

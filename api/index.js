@@ -38,7 +38,7 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 server.on ( 'listening' , async () => {
   address = server.address()
   logger.info ('Feathers application started on ' + JSON.stringify(`http://${address.address}:${address.port}`))
-  logger.info ('Public URL: ' + JSON.stringify(`http://${app.get('publicHost')}:${app.get('publicPort')}`))
+  logger.info ('Public base URL: ' + JSON.stringify(`${app.get('publicBaseUrl')}`))
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
 
@@ -50,8 +50,8 @@ server.on ( 'listening' , async () => {
       const postRegistry = Object.assign({},{
         subscriberId : mano.subscriberId,
         identityUrl: mano.identityUrl,
-        mmUrl : `http://${app.get('publicHost')}:${app.get('publicPort')}`,
-        mmClientUrl : `http://${app.get('publicHost')}:${app.get('appPublicPort')}`,
+        mmUrl : `${app.get('publicBaseUrl')}`,
+        mmClientUrl : `${app.get('publicAppBaseUrl')}`,
         webSocketUrl: `${mano.webSocketBaseUrl}/${mano.subscriberId}`,
         msoPortalUrl: mano.msoPortalUrl,
         gatewayId: `default-gw-${mano.subscriberId}`

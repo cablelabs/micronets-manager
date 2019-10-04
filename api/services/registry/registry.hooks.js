@@ -90,13 +90,14 @@ module.exports = {
           let register = await axios.get ( `${hook.result.msoPortalUrl}/portal/v1/register` )
           const registerIndex = register.data.data.length > 0 ? register.data.data.findIndex((register) => register.subscriberId == hook.result.subscriberId) : -1
          // logger.debug ( '\n Register : ' + JSON.stringify ( register.data.data ) + '\t\t RegisterIndex : ' + JSON.stringify(registerIndex) )
-
+          // TODO: REMOVE ME
+            logger.debug(`\n Registering public URL: ${hook.app.get ( 'publicBaseUrl' )}`)
             const upsertResult =  registerIndex == -1 ? await axios.post ( `${hook.result.msoPortalUrl}/portal/v1/register` , Object.assign ( {} , {
               subscriberId : hook.result.subscriberId ,
-              registry : `http://${hook.app.get ( 'publicHost' )}:${hook.app.get ( 'publicPort' )}`
+              registry : hook.app.get ( 'publicBaseUrl' )
             } ) ) : await axios.put ( `${hook.result.msoPortalUrl}/portal/v1/register/${hook.result.subscriberId}` , Object.assign ( {} , {
               subscriberId : hook.result.subscriberId ,
-              registry : `http://${hook.app.get ( 'publicHost' )}:${hook.app.get ( 'publicPort' )}`
+              registry : hook.app.get ( 'publicBaseUrl' )
             } ) )
 
           logger.debug ( '\n Registered registry url  : ' + JSON.stringify ( upsertResult.data ) )
