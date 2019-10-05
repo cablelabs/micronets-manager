@@ -715,7 +715,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
   let sameManufacturerDeviceMacAddrs = []
   // Get MUD Url from users
   const mud = hook.app.get ( 'mud' )
- logger.debug('\n MUD URL : ' + JSON.stringify( mud.url ) + '\t\t MUD VERSION : ' + JSON.stringify(mud.version))
+ logger.debug('\n MUD URL : ' + JSON.stringify( mud.managerBaseUrl ) + '\t\t MUD VERSION : ' + JSON.stringify(mud.version))
   let user = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
   user = user.data[ 0 ]
   let userDevices = user.devices
@@ -742,7 +742,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       // Make MUD Post call
       let mudParserRes = await axios ( {
         method : 'POST' ,
-        url : mud.url ,
+        url : mud.managerBaseUrl ,
         data : mudParserPost
       } )
 
@@ -884,7 +884,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
           let allowHostToUpdate =  mudParserRes.device.allowHosts[myControllerIndex]
           logger.debug('\n MyController found in mud response ... AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
           logger.debug('\n MyController found in mud response ... allowHostToUpdate : ' + JSON.stringify(allowHostToUpdate))
-          allowHostToUpdate = hook.app.get('host')
+          allowHostToUpdate = hook.app.get('listenHost')
           mudParserRes.device.allowHosts[myControllerIndex] = allowHostToUpdate
           logger.debug('\n MyController found in mud response ... Updated AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
 
