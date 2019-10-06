@@ -785,7 +785,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       // Make MUD Post call
       let mudParserRes = await axios ( {
         method : 'POST' ,
-        url : mud.managerBaseUrl ,
+        url : mud.managerBaseUrl + "/getFlowRules",
         data : mudParserPost
       } )
       mudParserRes = mudParserRes.data
