@@ -884,7 +884,18 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
           let allowHostToUpdate =  mudParserRes.device.allowHosts[myControllerIndex]
           logger.debug('\n MyController found in mud response ... AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
           logger.debug('\n MyController found in mud response ... allowHostToUpdate : ' + JSON.stringify(allowHostToUpdate))
-          allowHostToUpdate = hook.app.get('listenHost')
+         let publicHostName = hook.app.get('publicBaseUrl')
+          if(publicHostName.indexOf('/sub')){
+            publicHostName = publicHostName.split('/sub')[0]
+            publicHostName = publicHostName.split(':443')[0]
+            publicHostName = publicHostName.split('//')[1]
+          }
+          else {
+            publicHostName = hook.app.get('listenHost')
+          }
+
+          logger.debug('\n Derived publicHostName :  ' + JSON.stringify(publicHostName))
+          allowHostToUpdate = publicHostName
           mudParserRes.device.allowHosts[myControllerIndex] = allowHostToUpdate
           logger.debug('\n MyController found in mud response ... Updated AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
 
