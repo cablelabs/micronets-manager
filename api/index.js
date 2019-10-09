@@ -104,7 +104,7 @@ async function upsertDeviceLeaseStatus ( message , type ) {
   logger.info ( '\n DeviceLease message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
   const eventDeviceId = isLeaseAcquired ? message.body.leaseAcquiredEvent.deviceId : message.body.leaseExpiredEvent.deviceId
-  let user = await app.service ( `${USERS_PATH}` ).find ( {} )
+  let user = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
   user = user.data[ 0 ]
   const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
   const updatedDevice = Object.assign ( {} ,
@@ -155,14 +155,8 @@ async function upsertDppDeviceOnboardStatus ( message , type ) {
         onboardStatus : isOnBoardComplete ? 'complete' : isOnBoardFailed ? 'failed' : 'initial' ,
         micronetId : eventMicronetId
       } )
-    user.devices[ deviceIndex ] = updatedDevice
-    logger.debug('\n\n Updated user devices : ' + JSON.stringify(user.devices))
-    const updateResult = await app.service ( `${USERS_PATH}` ).patch ( user._id , Object.assign ( {} , {
-      id : user.id ,
-      name : user.name ,
-      ssid : user.ssid ,
-      devices : user.devices
-    } ) )
+    // user.devices[ deviceIndex ] = updatedDevice
+    const updateResult = await app.service ( `${USERS_PATH}` ).patch( user.id , updatedDevice )
     logger.debug('\n Updated users result : ' + JSON.stringify(updateResult.data))
     return updateResult
   }
