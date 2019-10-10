@@ -6,7 +6,7 @@ const mano = app.get('mano')
 // const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
 const paths = require ( './hooks/servicePaths' )
-const { USERS_PATH, REGISTRY_PATH  } = paths
+const { USERS_PATH, REGISTRY_PATH, MICRONETS_PATH  } = paths
 // const dotenv = require('dotenv');
 // dotenv.config();
 // const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl} = require('./config')
@@ -158,11 +158,19 @@ async function upsertDppDeviceOnboardStatus ( message , type ) {
     // user.devices[ deviceIndex ] = updatedDevice
     const updateResult = await app.service ( `${USERS_PATH}` ).patch( user.id , updatedDevice )
     logger.debug('\n Updated users result : ' + JSON.stringify(updateResult.data))
+
     return updateResult
   }
 }
 
-
+async function deleteDeviceOnFailedOnBoard (message, type) {
+  logger.debug('\n On-board failed. Message : ' + JSON.stringify(message) + '\t\t Type : ' + JSON.stringify(type))
+  const { deviceId , macAddress , micronetId } = message.body.DPPOnboardingFailedEvent
+  const { subscriberId } = mano
+  address = server.address()
+  logger.debug ('\n Delete micronet url :  ' +JSON.stringify(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}/micronets/${micronetId}/devices/${deviceId}`))
+ // let deleteDeviceFromMicronet = axios.delete(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}/micronets/${micronetId}/devices/${deviceId}`)
+}
 
 dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseAcquiredEvent' )
@@ -178,5 +186,6 @@ dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
 
 dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
   await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingFailedEvent' )
+  await deleteDeviceOnFailedOnBoard ( message , 'DPPOnboardingFailedEvent' )
 })
 
