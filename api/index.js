@@ -168,8 +168,14 @@ async function deleteDeviceOnFailedOnBoard (message, type) {
   const { deviceId , macAddress , micronetId } = message.body.DPPOnboardingFailedEvent
   const { subscriberId } = mano
   address = server.address()
-  logger.debug ('\n Delete micronet url :  ' +JSON.stringify(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}/micronets/${micronetId}/devices/${deviceId}`))
- // let deleteDeviceFromMicronet = axios.delete(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}/micronets/${micronetId}/devices/${deviceId}`)
+  let micronetsRes = await axios.get(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}`)
+  const { micronets } = micronetsRes
+  logger.debug('\n Micronets found : ' + JSON.stringify(micronets))
+  let micronetIndex = micronets.findIndex((micronet) => micronet['class'] == micronetId)
+  logger.debug('\n Found micronet index : ' + JSON.stringify(micronetIndex))
+  let micronetIdToDelete = micronets[micronetIndex]['micronet-id']
+  logger.debug ('\n Delete micronet url :  ' +JSON.stringify(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}/micronets/${micronetIdToDelete}/devices/${deviceId}`))
+  let deleteDeviceFromMicronet = axios.delete(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}/micronets/${micronetIdToDelete}/devices/${deviceId}`)
 }
 
 dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
