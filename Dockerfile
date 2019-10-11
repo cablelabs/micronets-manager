@@ -1,19 +1,16 @@
+# NOTE: This Dockerfile is for the API only
+
 FROM node:8
 
-# Development packages
+WORKDIR /usr/src/micronets-manager
+
 RUN apt-get update;
 
-# Create app directory
-WORKDIR /usr/src/app
+# TODO: Only copy what's needed for the API
+COPY . .
+RUN ls -a
 
-# Install app dependencies
-COPY package.json .
-COPY package.json package-lock.json ./
-
+ENV MONGO_URL=
 RUN npm install
 
-# Bundle app source
-COPY . .
-
-EXPOSE 3030
-CMD [ "npm", "start"]
+CMD ["node", "api/"]

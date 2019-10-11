@@ -17,6 +17,7 @@ const micronetNotifications = require ( './../mock-data/micronetNotifications' )
 const paths = require ( './../hooks/servicePaths' )
 const { MICRONETS_PATH , REGISTRY_PATH , ODL_PATH , MOCK_MICRONET_PATH , USERS_PATH } = paths
 var rn = require('random-number');
+var validator = require('validator');
 var vLanGen = rn.generator({
   min:1000, max:4095,integer: true
 })
@@ -585,7 +586,7 @@ const addDevicesInSubnet = async ( hook , micronetId , subnetId , devices ) => {
   const deviceSpec =  deviceInterfaces[0].ipv4SubnetRanges[0].deviceRange
   logger.debug('\n\n Device Spec : ' + JSON.stringify(deviceSpec) + '\t\t Subnet No : ' + JSON.stringify(micronetSubnet) + '\t\t Formatted Devices : ' + JSON.stringify(formattedDevices))
 
-  const subnetWithDevices = await subnetAllocation.allocateDeviceAddress ( micronetSubnet , deviceSpec, formattedDevices[0] )  // TODO: Ashwini change this function
+  const subnetWithDevices = await subnetAllocation.allocateDeviceAddress ( micronetSubnet , deviceSpec, formattedDevices[0] )
   logger.debug('\n\n subnetWithDevices : ' + JSON.stringify(subnetWithDevices))
   const formattedSubnetWithDevices = formattedDevices.map ( ( device , index ) => {
     let deviceFromIpAllocator = subnetWithDevices.devices.map ( ( ipAllocatorDevice ) => {
@@ -678,13 +679,43 @@ const addDhcpSubnets = async ( hook , requestBody ) => {
   return dhcpSubnetPromises
 }
 
+
+
+/* Replaces MAC address with device IPs to handle same-manufacturer and manufacturer */
+const replaceMacWithDeviceIps = async (hook, sameManufacturerMacAddress) => {
+  let sameManufacturerDeviceIps = []
+ logger.debug('\n ReplaceWithDeviceIps passed sameManufacturerMacAddress :  ' + JSON.stringify(sameManufacturerMacAddress))
+  let micronetFromDb = await getMicronet(hook,{})
+  logger.debug('\n Micronet from DB : ' + JSON.stringify(micronetFromDb))
+  if(micronetFromDb.micronets.length > 0  && sameManufacturerMacAddress.length > 0 ){
+   let micronets = micronetFromDb.micronets
+    micronets.forEach((currMicronet,index) => {
+      let micronetDevices = currMicronet['connected-devices']
+       if(micronetDevices.length > 0) {
+         logger.debug('\n Current Micronet class ' + JSON.stringify(currMicronet.class) + '\t At Index : ' + JSON.stringify(index))
+         logger.debug('\n Current Micronet devices ' + JSON.stringify(micronetDevices))
+         micronetDevices.forEach((device) => {
+           sameManufacturerMacAddress.forEach((macAddress) => {
+            if(macAddress == device['device-mac']){
+              logger.debug('\n Match found . Device IP is :'  + JSON.stringify(device['device-ip']) + '\t\t for mac address : ' + JSON.stringify(device['device-mac']))
+              sameManufacturerDeviceIps.push(device['device-ip'])
+              logger.debug('\n sameManufacturerDeviceIps  : ' + JSON.stringify(sameManufacturerDeviceIps))
+            }
+           })
+         })
+       }
+    })
+  }
+  return sameManufacturerDeviceIps
+}
+
 /* Adds MUD configuration for devices */
 const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
   logger.debug ( '\n upsertDhcpDevicesWithMudConfig ' + JSON.stringify(dhcpDevicesToUpsert))
   let sameManufacturerDeviceMacAddrs = []
   // Get MUD Url from users
   const mud = hook.app.get ( 'mud' )
-  // logger.debug('\n MUD url : ' + JSON.stringify( mud.url ) + '\t\t MUD version : ' + JSON.stringify(mud.version))
+ logger.debug('\n MUD URL : ' + JSON.stringify( mud.managerBaseUrl ) + '\t\t MUD VERSION : ' + JSON.stringify(mud.version))
   let user = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
   user = user.data[ 0 ]
   let userDevices = user.devices
@@ -694,17 +725,12 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
     let userDeviceIndex = userDevices.findIndex ( ( userDevice ) => userDevice.macAddress == dhcpDeviceToUpsert.macAddress.eui48 && userDevice.deviceId == dhcpDeviceToUpsert.deviceId )
     let mudUrlForDevice = userDeviceIndex != -1 ? userDevices[ userDeviceIndex ].mudUrl : ''
     let deviceToUpsertManufacturer = userDevices[userDeviceIndex].deviceManufacturer
-    logger.debug('\n\n DeviceToUpsertManufacturer : ' + JSON.stringify(deviceToUpsertManufacturer))
-    sameManufacturerDeviceMacAddrs = userDevices.map((userDevice, index) => {
-      if(userDevice.deviceManufacturer == deviceToUpsertManufacturer && userDevice.class == userDevices[userDeviceIndex].class && index!= userDeviceIndex)
-        return userDevice.macAddress
-    })
-    sameManufacturerDeviceMacAddrs =sameManufacturerDeviceMacAddrs.filter ( ( el ) => { return el != null } )
-    if(sameManufacturerDeviceMacAddrs.length > 0) {
-      logger.debug('\n Found same manufacturer for other devices ... Updating allowHosts ')
-      dhcpDeviceToUpsert[ 'allowHosts' ] = sameManufacturerDeviceMacAddrs
-      logger.debug('\n Updated allowHosts : ' + JSON.stringify(dhcpDeviceToUpsert))
-    }
+    let deviceToUpsertAuthority = userDevices[userDeviceIndex].deviceAuthority
+
+    // Handling same manufacturer entries
+    logger.debug('\n\n DeviceToUpsertManufacturer : ' + JSON.stringify(deviceToUpsertManufacturer) + '\t\t DeviceToUpsertAuthority : ' + JSON.stringify(deviceToUpsertAuthority))
+
+
     // MUD URL Present. Call MUD Parser
     if ( mudUrlForDevice && mudUrlForDevice != '' ) {
       let mudParserPost = Object.assign ( {} , {
@@ -716,19 +742,191 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       // Make MUD Post call
       let mudParserRes = await axios ( {
         method : 'POST' ,
-        url : mud.url ,
+        url : mud.managerBaseUrl + "/getFlowRules",
         data : mudParserPost
       } )
+
+      // MUD PARSER REAL RESPONSE
       mudParserRes = mudParserRes.data
+      let manufacturerIndex = -1 , sameManufacturerIndex = -1 , localNetworksIndex =  -1
+
       logger.debug ( '\n\n MUD Parser response : ' + JSON.stringify ( mudParserRes ) )
-      // return {... dhcpDevicesToUpsert, ['allowHosts']: mudParserRes.device.allowHosts }
+
+      // Handle same manufacturer
+
+      logger.debug('\n\n ************** SAME MANUFACTURER HANDLING **************' )
+      logger.debug('\n\n MUD PARSER RESPONSE : ' + JSON.stringify(mudParserRes) + '\t\t For DHCP Device : ' + JSON.stringify(dhcpDeviceToUpsert))
+
+      const staticAllowHosts = [
+        "my-controller",
+        "same-manufacturer",
+        "local-networks" ]
+
+       mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
+      logger.debug('\n mudParserRes.device.allowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
+
+
+      if(mudParserRes.hasOwnProperty('device') && mudParserRes.device.hasOwnProperty('allowHosts')) {
+
+        const allowHosts = mudParserRes.device.allowHosts
+        logger.debug('\n\n ALLOW HOSTS : ' + JSON.stringify(allowHosts))
+        sameManufacturerIndex = allowHosts.findIndex((ah) => ah == 'same-manufacturer')
+
+       // let manufacturerIndex = allowHosts.findIndex((ah) => ah == 'manufacturer')
+        manufacturerIndex = allowHosts.findIndex((ah,idx) =>  {
+          if(ah.includes('manufacturer:')) {
+            logger.debug('\n\n AH : ' + JSON.stringify(ah) + '\t\t Index : ' + JSON.stringify(idx))
+            return idx
+          }})
+
+        // Fix for multiple controllers
+        // let controllerIndex = allowHosts.map((ah,idx) =>  {
+        //   if(ah.includes('controller:')) {
+        //     logger.debug('\n\n AH : ' + JSON.stringify(ah) + '\t\t Index : ' + JSON.stringify(idx))
+        //     return idx
+        //   }})
+
+        let controllerIndex = allowHosts.findIndex((ah,idx) =>  {
+          if(ah.includes('controller:')) {
+            logger.debug('\n\n AH : ' + JSON.stringify(ah) + '\t\t Index : ' + JSON.stringify(idx))
+            return idx
+          }})
+
+        let myControllerIndex = allowHosts.findIndex((ah) => ah == 'my-controller')
+
+        localNetworksIndex = allowHosts.findIndex((ah) => ah == 'local-networks')
+
+        logger.debug('\n sameManufacturerIndex : ' + JSON.stringify(sameManufacturerIndex))
+        logger.debug('\n manufacturerIndex : ' + JSON.stringify(manufacturerIndex))
+        logger.debug('\n controllerIndex : ' + JSON.stringify(controllerIndex))
+        logger.debug('\n myControllerIndex : ' + JSON.stringify(myControllerIndex))
+        logger.debug('\n LocalNetworksIndex : ' + JSON.stringify(localNetworksIndex))
+
+
+        // Same manufacturer case
+        if( sameManufacturerIndex > -1 ){
+          logger.debug('\n Same manufacturer found in mud response ... Updating allowHosts ')
+          sameManufacturerDeviceMacAddrs = userDevices.map((userDevice, index) => {
+            // TODO: Remove same micronet & add device authority
+            if(userDevice.deviceManufacturer == deviceToUpsertManufacturer && index!= userDeviceIndex)
+              return userDevice.deviceIp
+          })
+          sameManufacturerDeviceMacAddrs = sameManufacturerDeviceMacAddrs.filter ( ( el ) => { return el != null } )
+          logger.debug('\n Same manufacturer : ' + JSON.stringify(sameManufacturerDeviceMacAddrs))
+
+          if(sameManufacturerDeviceMacAddrs.length == 0 && sameManufacturerIndex > -1 ) {
+            logger.debug('\n Same manufacturer mudParserRes.device.allowHosts before update : ' + JSON.stringify(mudParserRes.device.allowHosts))
+            mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'same-manufacturer')
+            logger.debug('\n Same manufacturer mudParserRes.device.allowHosts after update : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          }
+
+          if(sameManufacturerDeviceMacAddrs.length > 0  && sameManufacturerIndex > -1) {
+            logger.debug('\n Found same manufacturer for other devices ... Updating allowHosts ')
+           // let deviceIpsWithSameManufacturer = await replaceMacWithDeviceIps(hook, sameManufacturerDeviceMacAddrs)
+           // logger.debug('\n deviceIpsWithSameManufacturer : ' + JSON.stringify(deviceIpsWithSameManufacturer))
+             dhcpDeviceToUpsert[ 'allowHosts' ] = sameManufacturerDeviceMacAddrs
+            //dhcpDeviceToUpsert[ 'allowHosts' ] = deviceIpsWithSameManufacturer
+           // mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'same-manufacturer')
+            logger.debug('\n Updated allowHosts same manufacturer use case dhcpDeviceToUpsert : ' + JSON.stringify(dhcpDeviceToUpsert))
+            logger.debug('\n Updated allowHosts same manufacturer use case  mudParserRes.device.allowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          }
+        }
+
+        // Add devices with manufacturer use case
+        if( manufacturerIndex > -1 ){
+          let manufacturerToMatch =  mudParserRes.device.allowHosts[manufacturerIndex]
+          manufacturerToMatch = manufacturerToMatch.split('manufacturer:')[1]
+          logger.debug('\n Manufacturer found in mud response ... Update allowHosts for manufacturer : ' + JSON.stringify(manufacturerToMatch))
+          let manufacturerDeviceMacAddrs = userDevices.map((userDevice, index) => {
+            if(userDevice.deviceAuthority == manufacturerToMatch && index!= userDeviceIndex)
+              return userDevice.deviceIp
+          })
+          manufacturerDeviceMacAddrs = manufacturerDeviceMacAddrs.filter ( ( el ) => { return el != null } )
+          logger.debug('\n Same manufacturer : ' + JSON.stringify(manufacturerDeviceMacAddrs))
+
+          // No matching entries found. Remove manufacturer entry from mud response
+          if(manufacturerDeviceMacAddrs.length == 0 && manufacturerIndex > -1 ) {
+            logger.debug('\n Manufacturer mudParserRes.device.allowHosts before update : ' + JSON.stringify(mudParserRes.device.allowHosts))
+            mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= mudParserRes.device.allowHosts[manufacturerIndex])
+            logger.debug('\n Manufacturer mudParserRes.device.allowHosts after update : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          }
+
+          // Matching entries found. Remove manufacturer entry from mud response and add mac addresses
+          if(manufacturerDeviceMacAddrs.length > 0  && manufacturerIndex > -1) {
+            logger.debug('\n Found manufacturer for other devices ... Updating allowHosts ')
+            let deviceIpsWithSameManufacturer = await replaceMacWithDeviceIps(hook,  manufacturerDeviceMacAddrs)
+            // logger.debug('\n  deviceIpsWithSameManufacturer : ' + JSON.stringify(deviceIpsWithSameManufacturer))
+            // dhcpDeviceToUpsert[ 'allowHosts' ] = deviceIpsWithSameManufacturer
+            dhcpDeviceToUpsert['allowHosts'] = manufacturerDeviceMacAddrs
+         //   mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= mudParserRes.device.allowHosts[manufacturerIndex])
+            logger.debug('\n Updated allowHosts same manufacturer use case dhcpDeviceToUpsert : ' + JSON.stringify(dhcpDeviceToUpsert))
+            logger.debug('\n Updated allowHosts same manufacturer use case  mudParserRes.device.allowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          }
+        }
+
+        // Controller use case
+        if( controllerIndex > -1 ) {
+          logger.debug('\n Controller found in mud response ...  Updating allowHosts ')
+          let allowHostToUpdate =  mudParserRes.device.allowHosts[controllerIndex]
+          logger.debug('\n Controller found in mud response ... AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          logger.debug('\n Controller found in mud response ... allowHostToUpdate : ' + JSON.stringify(allowHostToUpdate))
+          let controllerToAdd = allowHostToUpdate.split('controller:')[1]
+          logger.debug('\n Controller to add : ' + JSON.stringify(controllerToAdd))
+          mudParserRes.device.allowHosts[controllerIndex] =  controllerToAdd
+          logger.debug('\n\n mudParserRes.device.allowHosts[controllerIndex].split[0] : ' + JSON.stringify(allowHostToUpdate.split('controller:')))
+          logger.debug('\n Controller found in mud response ... Updated AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
+
+        }
+
+        // My Controller use case
+        if( myControllerIndex > -1 ) {
+          logger.debug('\n MyController found in mud response ...  Updating allowHosts ')
+          let allowHostToUpdate =  mudParserRes.device.allowHosts[myControllerIndex]
+          logger.debug('\n MyController found in mud response ... AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          logger.debug('\n MyController found in mud response ... allowHostToUpdate : ' + JSON.stringify(allowHostToUpdate))
+         let publicHostName = hook.app.get('publicBaseUrl')
+          if(publicHostName.indexOf('/sub')){
+            publicHostName = publicHostName.split('/sub')[0]
+            publicHostName = publicHostName.split(':443')[0]
+            publicHostName = publicHostName.split('//')[1]
+          }
+          else {
+            publicHostName = hook.app.get('listenHost')
+          }
+
+          logger.debug('\n Derived publicHostName :  ' + JSON.stringify(publicHostName))
+          allowHostToUpdate = publicHostName
+          mudParserRes.device.allowHosts[myControllerIndex] = allowHostToUpdate
+          logger.debug('\n MyController found in mud response ... Updated AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
+
+        }
+      }
 
       if ( !(mudParserRes.device.hasOwnProperty ( 'allowHosts' )) || !(mudParserRes.device.hasOwnProperty ( 'denyHosts' )) ) {
         return Promise.reject ( new errors.GeneralError ( new Error ( 'MUD Parser error' ) ) )
       }
       if ( mudParserRes.device.allowHosts.length > 0 ) {
+        // Remove manufacturer from MUD response
+        if(manufacturerIndex > -1  ){
+          logger.debug('\n MUD PARSER ALLOW HOSTS BEFORE FILTERING MANUFACTURER : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= mudParserRes.device.allowHosts[manufacturerIndex])
+          logger.debug('\n MUD PARSER ALLOW HOSTS AFTER FILTERING MANUFACTURER : ' + JSON.stringify(mudParserRes.device.allowHosts))
+        }
+        // Remove same-manufacturer from MUD response
+        if(sameManufacturerIndex > -1  ){
+          logger.debug('\n  MUD PARSER ALLOW HOSTS BEFORE FILTERING SAME MANUFACTURER : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'same-manufacturer')
+          logger.debug('\n MUD PARSER ALLOW HOSTS AFTER FILTERING SAME MANUFACTURER : ' + JSON.stringify(mudParserRes.device.allowHosts))
+        }
 
-         dhcpDeviceToUpsert[ 'allowHosts' ] = dhcpDeviceToUpsert.hasOwnProperty('allowHosts') && dhcpDeviceToUpsert['allowHosts'].length > 0 ? dhcpDeviceToUpsert['allowHosts'].concat(mudParserRes.device.allowHosts) : mudParserRes.device.allowHosts
+        // Remove local-networks from MUD response
+        if(localNetworksIndex > -1){
+          logger.debug('\n  MUD PARSER ALLOW HOSTS BEFORE FILTERING LOCAL NETWORKS : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'local-networks')
+          logger.debug('\n MUD PARSER ALLOW HOSTS AFTER FILTERING LOCAL NETWORKS  : ' + JSON.stringify(mudParserRes.device.allowHosts))
+        }
+
+        dhcpDeviceToUpsert[ 'allowHosts' ] = dhcpDeviceToUpsert.hasOwnProperty('allowHosts') && dhcpDeviceToUpsert['allowHosts'].length > 0 ? dhcpDeviceToUpsert['allowHosts'].concat(mudParserRes.device.allowHosts) : mudParserRes.device.allowHosts
         logger.debug('\n allowHosts : ' + JSON.stringify( dhcpDeviceToUpsert[ 'allowHosts' ]))
       }
       if ( mudParserRes.device.denyHosts.length > 0 ) {
@@ -740,6 +938,8 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         dhcpDeviceToUpsert[ 'psk' ] = userDevices[ userDeviceIndex ].psk
       }
       logger.debug('\n dhcpDeviceToUpsert : ' + JSON.stringify(dhcpDeviceToUpsert))
+      // TODO : Uncomment later after testing PUT request
+      // return Object.assign({dhcpDeviceToUpsert:dhcpDeviceToUpsert, sameManufacturer: true })
       return dhcpDeviceToUpsert
     } else {
       logger.debug ( '\n Empty MUD url.' + JSON.stringify ( mudUrlForDevice ) + ' Do nothing' )
@@ -799,11 +999,15 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
         url : `${mmUrl}/${paths.DHCP_PATH}/${subnetId}/devices` ,
       } )
       const dhcpDevicePromises = await Promise.all ( dhcpDevicesPostBody.map ( async ( dhcpDevice , index ) => {
+
         // Check DHCP device to add does not exist in DHCP Subnet
         logger.debug('\n DHCP Device post body : ' + JSON.stringify(dhcpDevice))
         logger.debug('\n dhcpSubnetDevices ' + JSON.stringify(dhcpSubnetDevices.data))
         const devicePresentIndex = dhcpSubnetDevices.data.body.devices.findIndex ( ( subnetDevice ) => subnetDevice.deviceId == dhcpDevice.deviceId )
         logger.debug('\n devicePresentIndex ' + JSON.stringify(devicePresentIndex))
+
+        // Adding the DHCP device to subnet on gateway
+
         if ( devicePresentIndex == -1 ) {
           const dhcpDeviceToAdd = await axios ( {
             ...apiInit ,
@@ -811,7 +1015,97 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
             url : `${mmUrl}/${paths.DHCP_PATH}/${subnetId}/devices` ,
             data : dhcpDevice
           } )
+
           logger.debug('\n Added DHCP device response from gateway box .. : ' + JSON.stringify(dhcpDeviceToAdd.data))
+
+          // TODO : Check if MUD response contains same manufacturer or manufacturer property
+          if(dhcpDeviceToAdd.data.hasOwnProperty('status') && dhcpDeviceToAdd.data.status == '201'){
+
+            // TODO : Update users api to include deviceIp for added device on gateway.
+            logger.debug('\n Gateway device created successfully .... ')
+            let gatewayDevice = dhcpDeviceToAdd.data.body.device
+            const users = await hook.app.service ( `${USERS_PATH}` ).get (hook.data.subscriberId);
+            logger.debug('\n\n Users with devices : ' + JSON.stringify(users))
+            let userDevices = users.devices
+            // If users has devices
+            let userDeviceIndex = userDevices.findIndex((userDevice) => userDevice.macAddress == gatewayDevice.macAddress.eui48)
+            logger.debug('\n userDeviceIndex : ' + JSON.stringify(userDeviceIndex))
+            if(userDevices.length > 0 && userDeviceIndex > -1) {
+              logger.debug('\n Device to upsert : ' + JSON.stringify(userDevices[userDeviceIndex]))
+              let userDeviceToUpsert = Object.assign({}, userDevices[userDeviceIndex] , { deviceIp : gatewayDevice.networkAddress.ipv4 })
+              userDevices[userDeviceIndex] = userDeviceToUpsert
+              let userUpsertBody = Object.assign({})
+              logger.debug('\n Updated userDeviceToUpsert : ' + JSON.stringify(userDeviceToUpsert))
+              logger.debug('\n Updated user devices with IP : ' + JSON.stringify(userDevices))
+
+              // PATCH UPDATED USER DEVICES
+              const upsertDeviceToUser = await hook.app.service ( `${USERS_PATH}` ).patch ( hook.data.subscriberId , userDeviceToUpsert);
+              logger.debug('\n Upserted user with IP : ' + JSON.stringify(upsertDeviceToUser))
+            }
+
+
+            let sameManufacturesDeviceIps = [], devicesToUpsert = []
+             sameManufacturesDeviceIps = gatewayDevice.allowHosts.map((host) => {
+               logger.debug('\n gatewayDevice host : ' + JSON.stringify(host))
+              if(validator.isIP(host,4)){
+                return host
+              }
+            })
+            logger.debug('\n Same manufacturer DeviceIps found are : ' + JSON.stringify(sameManufacturesDeviceIps))
+           sameManufacturesDeviceIps = sameManufacturesDeviceIps.filter ( ( el ) => { return el != null } )
+           logger.debug('\n Same manufacturer DeviceIps found are : ' + JSON.stringify(sameManufacturesDeviceIps))
+           let deviceIpToPut =  gatewayDevice.networkAddress.ipv4
+
+            if(deviceIpToPut.length > 0 ) {
+             let allDevices = await hook.app.service ( `${USERS_PATH}` ).find({})
+             logger.debug('\n All found devices : ' + JSON.stringify(allDevices.data))
+              allDevices = allDevices.data[0].devices
+             devicesToUpsert = allDevices.map((device) => {
+                return sameManufacturesDeviceIps.map((sameManufacturerDeviceIp) => {
+                 if(sameManufacturerDeviceIp == device.deviceIp){
+                   return device
+                 }
+               })
+             })
+
+              devicesToUpsert = [].concat(...devicesToUpsert);
+              devicesToUpsert = devicesToUpsert.filter ( ( el ) => { return el != null } )
+              logger.debug('\n Devices to upsert : ' + JSON.stringify(devicesToUpsert))
+              let devicesToUpsertPromises = devicesToUpsert.map(async(deviceToUpsert) => {
+                logger.debug('\n Current device to upsert ' + JSON.stringify(deviceToUpsert))
+                logger.debug('\n DHCP Url for device ' + JSON.stringify(`${mmUrl}/${paths.DHCP_PATH}/${deviceToUpsert.class}/devices/${deviceToUpsert.deviceId}`))
+                let gatewayDeviceToUpsert = await axios ( {
+                  ...apiInit ,
+                  method : 'GET' ,
+                  url : `${mmUrl}/${paths.DHCP_PATH}/${deviceToUpsert.class}/devices/${deviceToUpsert.deviceId}`
+                })
+
+                logger.debug('\n  Obtained device from gateway status : ' + JSON.stringify(gatewayDeviceToUpsert.status))
+                logger.debug('\n  Obtained device from gateway body : ' + JSON.stringify(gatewayDeviceToUpsert.data.body))
+
+                // If device exists do a PUT
+
+                if(gatewayDeviceToUpsert.status == '200'){
+                  let devicePutBody = []
+                  logger.debug('\n SubnetID : ' + JSON.stringify(subnetId) + '\t\t DeviceToUpsert class : ' + JSON.stringify(deviceToUpsert.class) + '\t\t DeviceToUpsert deviceId : ' + JSON.stringify(deviceToUpsert.deviceId))
+                  gatewayDeviceToUpsert = gatewayDeviceToUpsert.data.body.device
+                  logger.debug('\n gatewayDeviceToUpsert.allowHosts : ' + JSON.stringify(gatewayDeviceToUpsert.allowHosts))
+                  logger.debug('\n deviceIpToPut : ' + JSON.stringify(deviceIpToPut))
+                  devicePutBody = [].concat(...gatewayDeviceToUpsert.allowHosts).concat(deviceIpToPut)
+                  devicePutBody = [].concat(...devicePutBody)
+                  logger.debug('\n Updated PUT request : ' + JSON.stringify(devicePutBody))
+                  let deviceUpsertResponse =  await axios ( {
+                    ...apiInit ,
+                    method : 'PUT' ,
+                    url : `${mmUrl}/${paths.DHCP_PATH}/${deviceToUpsert.class}/devices/${deviceToUpsert.deviceId}`,
+                    data : Object.assign({},{ allowHosts: devicePutBody })
+                  })
+                  logger.debug('\n Device Upsert Response : ' + JSON.stringify(deviceUpsertResponse.data))
+                }
+              })
+            }
+          }
+
           return dhcpDeviceToAdd.data
         }
       } ) )

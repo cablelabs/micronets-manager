@@ -766,7 +766,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
 
   // Get MUD Url from users
   const mud = hook.app.get ( 'mud' )
-  logger.debug ( '\n MUD url : ' + JSON.stringify ( mud.url ) + '\t\t MUD version : ' + JSON.stringify ( mud.version ) )
+  logger.debug ( '\n MUD Manager URL : ' + JSON.stringify ( mud.managerBaseUrl ) + '\t\t MUD version : ' + JSON.stringify ( mud.version ) )
   let user = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
   user = user.data[ 0 ]
   let userDevices = user.devices
@@ -785,7 +785,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       // Make MUD Post call
       let mudParserRes = await axios ( {
         method : 'POST' ,
-        url : mud.url ,
+        url : mud.managerBaseUrl + "/getFlowRules",
         data : mudParserPost
       } )
       mudParserRes = mudParserRes.data
@@ -840,7 +840,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
   } )
   dhcpDevicesPostBody = [].concat.apply ( [] , dhcpDevicesPostBody )
   dhcpDevicesPostBody = await upsertDhcpDevicesWithMudConfig ( hook , dhcpDevicesPostBody )
-  // logger.debug('\n DHCP DEVICES POST BODY : ' + JSON.stringify(dhcpDevicesPostBody))
+  logger.debug('\n  DHCP DEVICES POST BODY : ' + JSON.stringify(dhcpDevicesPostBody))
   if ( micronetIndex > -1 ) {
     // Check if subnet exists in DHCP Gateway
     const dhcpSubnet = await axios ( {
@@ -1197,7 +1197,8 @@ module.exports = {
         const { data , params } = hook;
         const { route, requestHeaders, requestUrl } = params
         const { id , micronetId, deviceId } = route
-       logger.debug('\n  Params  : ' + JSON.stringify(params) + '\t\t RequestUrl : ' + JSON.stringify(requestUrl))
+
+        logger.debug('\n  Params  : ' + JSON.stringify(params) + '\t\t RequestUrl : ' + JSON.stringify(requestUrl))
 
         // Delete a specific device from micronet
         if ( (id && micronetId && deviceId) || requestUrl ==`/mm/v1/subscriber/${id}/micronets/${micronetId}/devices/${deviceId}` ) {
@@ -1221,13 +1222,15 @@ module.exports = {
               const { micronets } = micronetFromDB
               const micronetToDeleteIndex = micronets.findIndex ( ( micronet ) => micronet[ "micronet-id" ] == micronetId )
 
+              logger.debug('\n MicronetToDeleteIndex : ' + JSON.stringify(micronetToDeleteIndex))
+
               // Valid index. Micronet exists
               if ( micronetToDeleteIndex > -1 ) {
                 micronetToDelete = micronets[ micronetToDeleteIndex ]
                 ipSubnets = [].concat ( micronetToDelete[ 'micronet-subnet' ].split ( '.' )[ 2 ] )
                 registeredDevicesToDelete = micronetToDelete[ 'connected-devices' ]
                 deviceToDeleteIndex = registeredDevicesToDelete.findIndex((device)=> device['device-id'] == deviceId)
-                logger.debug('\n deviceToDeleteIndex : ' + JSON.stringify(deviceToDeleteIndex))
+                logger.debug('\n DeviceToDeleteIndex : ' + JSON.stringify(deviceToDeleteIndex))
 
                 // Valid Index. Device Exists
                 if(deviceToDeleteIndex > -1){

@@ -33,6 +33,7 @@ module.exports = {
         if((subnetId) && route.deviceId) {
           logger.debug('\n Find specific device in subnet ')
           const dhcpResponse = await dw.send({}, "GET", "device",subnetId,route.deviceId)
+          logger.debug('\n Specific device in subnet response : ' + JSON.stringify(dhcpResponse))
           hook.result =  dhcpResponse
           return Promise.resolve(hook)
         }

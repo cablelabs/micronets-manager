@@ -1,0 +1,20 @@
+{
+  "listenHost": "MM_API_LISTEN_HOST",
+  "listenPort": "MM_API_LISTEN_PORT",
+  "publicBaseUrl": "MM_API_PUBLIC_BASE_URL",
+  "publicAppBaseUrl": "MM_APP_PUBLIC_BASE_URL",
+  "mongodb": "MM_MONGO_DB_URL",
+  "authentication": {
+      "secret": "MM_MSO_PORTAL_AUTH_SECRET"
+  },
+  "mano": {
+      "subscriberId": "MM_SUBSCRIBER_ID",
+      "identityUrl": "MM_IDENTITY_SERVER_BASE_URL",
+      "webSocketBaseUrl": "MM_GATEWAY_WEBSOCKET_BASE_URL",
+      "msoPortalUrl": "MM_MSO_PORTAL_BASE_URL"
+  },
+  "mud": {
+      "managerBaseUrl": "MM_MUD_MANAGER_BASE_URL",
+      "registryBaseUrl": "MM_MUD_REGISTRY_BASE_URL"
+  }
+}

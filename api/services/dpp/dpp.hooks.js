@@ -75,19 +75,19 @@ const micronetExistsCheck = async(hook) => {
 const getMudUri = async(hook) => {
   const { data } = hook
   const {bootstrap, user, device} = data
-  const { registryUrl, registerDeviceUrl } = hook.app.get('mud')
-  const registerDevice = `${registerDeviceUrl}/${bootstrap.vendor}/${device.modelUID}/${bootstrap.pubkey}`
-  const dppRegistryMudUrl = `${registryUrl}/${bootstrap.vendor}/${bootstrap.pubkey}`
-  logger.debug('\n Register Device Url : ' + JSON.stringify(registerDevice) + '\t\t  MudUrl ' +JSON.stringify(dppRegistryMudUrl))
+  const { registryBaseUrl } = hook.app.get('mud')
+  const registerDeviceUrl = `${registryBaseUrl}/register-device/${bootstrap.vendor}/${device.modelUID}/${bootstrap.pubkey}`
+  const mudUrlForDeviceUrl = `${registryBaseUrl}/mud-url/${bootstrap.vendor}/${bootstrap.pubkey}`
+  logger.debug('\n Register Device Url : ' + JSON.stringify(registerDeviceUrl) + '\t\t  MudUrlForDevice ' +JSON.stringify(mudUrlForDeviceUrl))
 
   // Register device with curl commands
-  const registerDeviceCurl = `curl -L -X  POST \"${registerDevice}\"`
+  const registerDeviceCurl = `curl -L -X  POST \"${registerDeviceUrl}\"`
   const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
   console.log(registerDeviceRes);
 
   // Get MUD URL with curl commands
   if(registerDeviceRes){
-    const getMudUrlCurl = `curl -L -X  GET \"${dppRegistryMudUrl}\"`
+    const getMudUrlCurl = `curl -L -X  GET \"${mudUrlForDeviceUrl}\"`
     const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
     console.log(getMudUrlRes);
     return getMudUrlRes
@@ -268,8 +268,8 @@ const onboardDppDevice = async(hook) => {
 
   //Generate PSK for device
   const dppDevicePsk = await generateDevicePSK(hook, 64)
-  logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk))
-
+  const deviceAuthority = !isEmpty(dppMudUrl) && dppMudUrl.split('/micronets-mud')[0]
+  logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk) + '\t\t Device MUD URL : ' + JSON.stringify(dppMudUrl) + '\t\t Device Authority : ' + JSON.stringify(deviceAuthority))
   //Add device to users api
   const userPatchBody = Object.assign({},{
     deviceId: bootstrap.pubkey.split('+')[0],
@@ -278,6 +278,7 @@ const onboardDppDevice = async(hook) => {
     deviceName: user.deviceName,
     deviceManufacturer:device.manufacturer,
     deviceModel:device.model,
+    deviceAuthority: deviceAuthority,
     deviceModelUID: device.modelUID,
     class: device.class,
     deviceConnection: WIFI,
@@ -319,7 +320,8 @@ const onboardDppDevice = async(hook) => {
       }
     }
   }
-    logger.debug('\n Micronet to add dpp device exists. Add device to micronet and dhcp subnet')
+
+  logger.debug('\n Micronet to add dpp device exists. Add device to micronet and dhcp subnet')
 
   // Add device to micronet and add device to dhcp subnet
   const micronetsFromDb = await hook.app.service(`${MICRONETS_PATH}`).get(data.subscriberId)
@@ -370,12 +372,12 @@ const onboardDppDevice = async(hook) => {
       // logger.debug ( '\n\n Add Device to subnet response : ' + JSON.stringify ( patchResult ) )
       if ( patchResult ) {
         logger.debug ( '\n DPP devices to add to dhcp : ' + JSON.stringify ( dppDevicesToAddToDhcpPost ) )
+
+
         const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
         if(addedDhcpDevices.length > 0) {
 
           // PUT request to on-board device
-          // const { gatewayUrl } = hook.app.get('mano')
-          const mmUrl = `http://${hook.app.get('host')}:${hook.app.get('port')}`
           const deviceId = hook.data.bootstrap.pubkey.split ( '+' )[ 0 ]
           const gatewayPutBody = Object.assign({},{
             dpp: {
@@ -422,7 +424,7 @@ const reInitializeDppOnboarding = async(hook) => {
       logger.debug('\n deviceIndex : ' + JSON.stringify(deviceIndex) + '\t\t deviceToDelete : ' + JSON.stringify(deviceToDelete))
       logger.debug('\n Device to delete : ' + JSON.stringify(deviceToDelete) + '\t\t from micronet : ' + JSON.stringify(deviceToDelete.micronetId))
       if(deviceIndex > -1){
-        await axios.delete(`http://${hook.app.get('host')}:${hook.app.get('port')}/${MICRONETS_PATH}/${data.subscriberId}/micronets/${deviceToDelete.micronetId}/devices/${deviceToDelete.deviceId}`)
+        await axios.delete(`${hook.app.get('publicBaseUrl')}/${MICRONETS_PATH}/${data.subscriberId}/micronets/${deviceToDelete.micronetId}/devices/${deviceToDelete.deviceId}`)
       }
     }
   }

@@ -1,6 +1,8 @@
 {
-  "host": "45.56.76.21",
-  "port": 3030,
+  "listenHost": "127.0.0.1",
+  "listenPort": 3030,
+  "publicBaseUrl": "http://127.0.0.1:3030",
+  "publicAppBaseUrl": "http://127.0.0.1:8080",
   "public": "../public/",
   "paginate": {
     "default": 500,
@@ -31,17 +33,15 @@
     }
   },
   "mongodb": "mongodb://127.0.0.1:27017/micronets",
-  "mongodbDocker": "mongodb://mm-mongo:27018/micronets",
   "mano":{
     "subscriberId": "7B2A-BE88-08817Z",
     "identityUrl": "http://radius.micronets.in:3230",
-    "webSocketBaseUrl":"wss://ws-proxy-api.micronets.in:5050/micronets/v1/ws-proxy/gw",
-    "msoPortalUrl": "http://45.79.13.192:3210"
+    "webSocketBaseUrl":"wss://127.0.0.1:5050/micronets/v1/ws-proxy/gw",
+    "msoPortalUrl": "http://127.0.0.1:3210"
   },
   "mud" : {
-    "url": "http://dev.mud-manager-api.micronets.in:8888/getFlowRules",
+    "managerBaseUrl": "http://dev.mud-manager-api.micronets.in:8888",
     "version": "1.1",
-    "registryUrl": "https://registry.micronets.in/mud/v1/mud-url",
-    "registerDeviceUrl": "https://registry.micronets.in/mud/v1/register-device"
+    "registryBaseUrl": "https://registry.micronets.in/mud/v1"
   }
 }

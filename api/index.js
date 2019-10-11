@@ -1,14 +1,14 @@
 /* eslint-disable no-console */
 const logger = require ( './logger' );
 const app = require ( './app' );
-const port = app.get ( 'port' );
-const server = app.listen ( port );
+const server = app.listen (app.get('listenPort'), app.get('listenHost'));
 const mano = app.get('mano')
 // const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
 const paths = require ( './hooks/servicePaths' )
-const { USERS_PATH, REGISTRY_PATH  } = paths
-const gatewayConfigPost = require('../scripts/data/gatewayConfig')
+const { USERS_PATH, REGISTRY_PATH, MICRONETS_PATH  } = paths
+const axios = require ( 'axios' );
+
 // const dotenv = require('dotenv');
 // dotenv.config();
 // const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl} = require('./config')
@@ -38,24 +38,25 @@ process.on ( 'unhandledRejection' , ( reason , p ) =>
 
 
 server.on ( 'listening' , async () => {
-  logger.info ('Feathers application started on ' + JSON.stringify(`http://${app.get('host')}:${app.get('port')}`))
+  address = server.address()
+  logger.info ('Feathers application started on ' + JSON.stringify(`http://${address.address}:${address.port}`))
+  logger.info ('Public base URL: ' + JSON.stringify(`${app.get('publicBaseUrl')}`))
   let registry = await app.service ( '/mm/v1/micronets/registry' ).find ( {} )
   const registryIndex = registry.data.length > 0 ? registry.data.findIndex((registry) => registry.subscriberId == mano.subscriberId) : -1
 
   // Create default registry on bootup of micronets-manager
   if(registryIndex == -1 ) {
     logger.debug('\n No Registry found. Initializing Registry ... ')
-    logger.debug('\n Default gateway config : ' + JSON.stringify(gatewayConfigPost) + '\t\t gatewayConfigPost.gatewayId : ' + JSON.stringify(gatewayConfigPost.gatewayId))
     logger.debug('\n Mano web socket base url : ' + JSON.stringify(mano.webSocketBaseUrl) + '\t\t MSO Portal url : ' + JSON.stringify(mano.msoPortalUrl))
     if(mano.hasOwnProperty('subscriberId') && mano.hasOwnProperty('identityUrl') && mano.hasOwnProperty('msoPortalUrl')) {
       const postRegistry = Object.assign({},{
         subscriberId : mano.subscriberId,
         identityUrl: mano.identityUrl,
-        mmUrl : `http://${app.get('host')}:${app.get('port')}`,
-        mmClientUrl : `http://${app.get('host')}:8080`,
+        mmUrl : `${app.get('publicBaseUrl')}`,
+        mmClientUrl : `${app.get('publicAppBaseUrl')}`,
         webSocketUrl: `${mano.webSocketBaseUrl}/${mano.subscriberId}`,
         msoPortalUrl: mano.msoPortalUrl,
-        gatewayId: isEmpty(gatewayConfigPost) ? `default-gw-${mano.subscriberId}`: gatewayConfigPost.gatewayId
+        gatewayId: `default-gw-${mano.subscriberId}`
       })
       const result = await app.service ( `${REGISTRY_PATH}` ).create ( postRegistry )
       if(result.data) {
@@ -105,7 +106,7 @@ async function upsertDeviceLeaseStatus ( message , type ) {
   logger.info ( '\n DeviceLease message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
   const isLeaseAcquired = type == 'leaseAcquiredEvent' ? true : false
   const eventDeviceId = isLeaseAcquired ? message.body.leaseAcquiredEvent.deviceId : message.body.leaseExpiredEvent.deviceId
-  let user = await app.service ( `${USERS_PATH}` ).find ( {} )
+  let user = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
   user = user.data[ 0 ]
   const deviceIndex = user.devices.findIndex ( ( device ) => device.deviceId.toLocaleLowerCase () == eventDeviceId.toLocaleLowerCase () )
   const updatedDevice = Object.assign ( {} ,
@@ -114,7 +115,7 @@ async function upsertDeviceLeaseStatus ( message , type ) {
       deviceLeaseStatus : isLeaseAcquired ? 'positive' : 'intermediary'
     } )
   user.devices[ deviceIndex ] = updatedDevice
-  const updateResult = await app.service ( `${USERS_PATH}` ).update ( user._id , Object.assign ( {} , {
+  const updateResult = await app.service ( `${USERS_PATH}` ).patch( user.id , Object.assign ( {} , {
     id : user.id ,
     name : user.name ,
     ssid : user.ssid ,
@@ -156,18 +157,33 @@ async function upsertDppDeviceOnboardStatus ( message , type ) {
         onboardStatus : isOnBoardComplete ? 'complete' : isOnBoardFailed ? 'failed' : 'initial' ,
         micronetId : eventMicronetId
       } )
-    user.devices[ deviceIndex ] = updatedDevice
-    const updateResult = await app.service ( `${USERS_PATH}` ).update ( user.id , Object.assign ( {} , {
-      id : user.id ,
-      name : user.name ,
-      ssid : user.ssid ,
-      devices : user.devices
-    } ) )
+    // user.devices[ deviceIndex ] = updatedDevice
+    const updateResult = await app.service ( `${USERS_PATH}` ).patch( user.id , updatedDevice )
+    logger.debug('\n Updated users result : ' + JSON.stringify(updateResult.data))
+
     return updateResult
   }
 }
 
+async function deleteDeviceOnFailedOnBoard (message, type) {
+  logger.debug('\n On-board failed. Message : ' + JSON.stringify(message) + '\t\t Type : ' + JSON.stringify(type))
+  const { deviceId , macAddress , micronetId } = message.body.DPPOnboardingFailedEvent
+  const { subscriberId } = mano
+  logger.debug('\n\n Delete  deviceId : ' + JSON.stringify(deviceId) + '\t\t micronetId from gateway : ' + JSON.stringify(micronetId) + '\t\t subscriberId : ' + JSON.stringify(subscriberId))
+  address = server.address()
+  let micronetsRes = await app.service(`${MICRONETS_PATH}`).get(subscriberId)
+  const { micronets } = micronetsRes
+  logger.debug('\n  Micronets found : ' + JSON.stringify(micronets))
+  let micronetIndex = micronets.findIndex((micronet) => micronet['class'] == micronetId)
 
+  // Micronet found. Delete device
+  if( micronetIndex > -1){
+    logger.debug('\n Found micronet index : ' + JSON.stringify(micronetIndex))
+    let micronetIdToDelete = micronets[micronetIndex]['micronet-id']
+    logger.debug ('\n  Delete device from micronet url :  ' +JSON.stringify(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}/micronets/${micronetIdToDelete}/devices/${deviceId}`))
+    let deleteDeviceFromMicronet = await axios.delete(`http://${app.get('listenHost')}:${app.get('listenPort')}/${MICRONETS_PATH}/${subscriberId}/micronets/${micronetIdToDelete}/devices/${deviceId}`)
+  }
+}
 
 dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseAcquiredEvent' )
@@ -183,5 +199,6 @@ dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
 
 dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
   await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingFailedEvent' )
+  await deleteDeviceOnFailedOnBoard ( message , 'DPPOnboardingFailedEvent' )
 })
 
