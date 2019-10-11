@@ -1197,7 +1197,8 @@ module.exports = {
         const { data , params } = hook;
         const { route, requestHeaders, requestUrl } = params
         const { id , micronetId, deviceId } = route
-       logger.debug('\n  Params  : ' + JSON.stringify(params) + '\t\t RequestUrl : ' + JSON.stringify(requestUrl))
+
+        logger.debug('\n  Params  : ' + JSON.stringify(params) + '\t\t RequestUrl : ' + JSON.stringify(requestUrl))
 
         // Delete a specific device from micronet
         if ( (id && micronetId && deviceId) || requestUrl ==`/mm/v1/subscriber/${id}/micronets/${micronetId}/devices/${deviceId}` ) {
@@ -1221,13 +1222,15 @@ module.exports = {
               const { micronets } = micronetFromDB
               const micronetToDeleteIndex = micronets.findIndex ( ( micronet ) => micronet[ "micronet-id" ] == micronetId )
 
+              logger.debug('\n MicronetToDeleteIndex : ' + JSON.stringify(micronetToDeleteIndex))
+
               // Valid index. Micronet exists
               if ( micronetToDeleteIndex > -1 ) {
                 micronetToDelete = micronets[ micronetToDeleteIndex ]
                 ipSubnets = [].concat ( micronetToDelete[ 'micronet-subnet' ].split ( '.' )[ 2 ] )
                 registeredDevicesToDelete = micronetToDelete[ 'connected-devices' ]
                 deviceToDeleteIndex = registeredDevicesToDelete.findIndex((device)=> device['device-id'] == deviceId)
-                logger.debug('\n deviceToDeleteIndex : ' + JSON.stringify(deviceToDeleteIndex))
+                logger.debug('\n DeviceToDeleteIndex : ' + JSON.stringify(deviceToDeleteIndex))
 
                 // Valid Index. Device Exists
                 if(deviceToDeleteIndex > -1){
