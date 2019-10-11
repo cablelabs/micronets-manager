@@ -138,9 +138,7 @@ function get_container_name_for_subscriber()
 function check_for_running_container()
 {
     subscriber_id=$1
-    echo "check_for_running_container: $subscriber_id"
     api_container=$(get_container_name_for_subscriber $subscriber_id mm-api)
-    echo "check_for_running_container: Found container for $subscriber_id: $api_container"
     if [ ! -e $api_container ]; then
         bailout "ERROR: An API container for subscriber $subscriber_id already exists ($api_container)"
     fi
@@ -259,7 +257,6 @@ function issue_nginx_reload()
 function stop_subscriber_containers()
 {
     subscriber_id="$1"
-    echo "Stopping containers for subscriber ${subscriber_id}..."
     container_list=$(sudo docker container ls -q --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
     # echo "Running containers for subscriber ${subscriber_id}: ${container_list}"
     if [ -z "$container_list" ]; then
@@ -303,11 +300,11 @@ function cleanup_subscriber_resources()
 
 process_arguments "$@"
 
-echo "Script directory: ${script_dir}"
-echo "Operation: ${operation}"
-echo "Docker image: ${docker_image_id}"
-echo "Docker reload command: ${nginx_reload_command}"
-echo "nginx config directory: ${nginx_conf_dir}"
+# echo "Script directory: ${script_dir}"
+# echo "Operation: ${operation}"
+# echo "Docker image: ${docker_image_id}"
+# echo "Docker reload command: ${nginx_reload_command}"
+# echo "nginx config directory: ${nginx_conf_dir}"
 
 subscriber_env_tmp_file="/tmp/mm-sub-${subscriber_id}.end"
 
