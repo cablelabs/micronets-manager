@@ -58,5 +58,6 @@ services:
       - MM_APP_LISTEN_HOST=0.0.0.0
       - MM_APP_LISTEN_PORT=8080
     labels:
-       com.cablelabs.micronets.containertype: micronets-manager-api
+       com.cablelabs.micronets.resource-type: mm-app
+       com.cablelabs.micronets.subscriber-id: ${MM_SUBSCRIBER_ID}
 
