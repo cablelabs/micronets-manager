@@ -46,21 +46,17 @@ services:
       com.cablelabs.micronets.resource-type: mm-api
       com.cablelabs.micronets.subscriber-id: ${MM_SUBSCRIBER_ID}
 
-#  app:
-#    image: "${MM_APP_SOURCE_IMAGE}"
-#    networks:
-#      - mm-priv-network
-#    depends_on:
-#      - api
-#    environment:
-#      - NODE_ENV=production
-#      - MM_SERVER_BASE_URL=http://api:3030
-#      - MM_APP_LISTEN_HOST=0.0.0.0
-#      - MM_APP_LISTEN_PORT=8080
-#      - MM_SERVER_BASE_URL=http://api:3030
-#      - TEST_ID=${MM_SUBSCRIBER_ID}
-#    env_file:
-#      - "${MM_API_ENV_FILE}"
-#    labels:
-#      - com.cablelabs.micronets.containertype: micronets-manager-api
+  app:
+    image: "${MM_APP_SOURCE_IMAGE}"
+    networks:
+      - mm-priv-network
+    depends_on:
+      - api
+    environment:
+      - NODE_ENV=production
+      - MM_SERVER_BASE_URL=http://api:3030
+      - MM_APP_LISTEN_HOST=0.0.0.0
+      - MM_APP_LISTEN_PORT=8080
+    labels:
+       com.cablelabs.micronets.containertype: micronets-manager-api
 

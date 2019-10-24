@@ -15,6 +15,7 @@ var webpackConfig = require('./webpack.dev.conf')
 
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
+var subscriberId = config.dev.subscriberId
 // automatically open browser, if not set will be false
 // var autoOpenBrowser = !!config.dev.autoOpenBrowser
 // Define HTTP proxies to your custom API backend
@@ -76,6 +77,11 @@ var readyPromise = new Promise(resolve => {
 console.log('> Starting dev server...')
 devMiddleware.waitUntilValid(() => {
   console.log('> Listening at ' + uri + '\n')
+  console.log('> Subscriber Id from env : ' + JSON.stringify(process.env.SUBSCRIBER_ID) + '\n')
+  console.log('> MM_SERVER_BASE_URL from env : ' + JSON.stringify(process.env.MM_SERVER_BASE_URL) + '\n')
+  console.log('> CLIENT_BASE_URL from env : ' + JSON.stringify(process.env.CLIENT_BASE_URL) + '\n')
+  console.log('> MSO_PORTAL_BASE_URL from env : ' + JSON.stringify(process.env.MSO_PORTAL_BASE_URL) + '\n')
+
   // when env is testing, don't need open it
   if (process.env.NODE_ENV !== 'testing') {
    // opn(uri)
