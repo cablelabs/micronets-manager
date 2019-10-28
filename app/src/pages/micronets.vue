@@ -1,6 +1,8 @@
 <template>
   <Layout>
+
     <template v-for="(micronet, index) in subscriber.micronets.micronet">
+      <p>{{micronet}}</p>
       <template v-if="micronet['micronet-id']==$route.params.micronetId">
       <!--<template v-for="subnet in micronet.subnets">-->
         <!--<p>Device Leases from State : {{deviceLeases || []}}</p>-->

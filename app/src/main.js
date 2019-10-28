@@ -28,6 +28,7 @@ Vue.use(Vuetify, {
 
 /* eslint-disable no-new */
 new Vue({
+  Vuetify,
   el: '#app',
   store,
   router,
