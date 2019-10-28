@@ -1,7 +1,7 @@
 DOCKER_REGISTRY := community.cablelabs.com:4567
 DOCKER_IMAGE_API_PATH := micronets-docker/micronets-manager-api
 DOCKER_IMAGE_CLIENT_PATH := micronets-docker/micronets-manager-client
-DOCKER_IMAGE_TAG := latest
+DOCKER_IMAGE_TAG := testing
 
 docker-build:
 	docker build -t $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_API_PATH):${DOCKER_IMAGE_TAG} ./
