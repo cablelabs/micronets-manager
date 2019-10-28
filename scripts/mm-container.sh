@@ -3,9 +3,10 @@
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 NGINX_CONF_DIR="/etc/nginx/micronets-subscriber-forwards"
-NGINX_RELOAD_COMMAND="nginx -s reload"
+NGINX_RELOAD_COMMAND="sudo nginx -s reload"
 SUBSCRIBER_PREFIX="mm-sub-"
 DEF_MM_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-api:latest"
+DOCKER_CMD="docker"
 
 function bailout()
 {
@@ -30,29 +31,34 @@ function print_usage()
     echo " "
     echo "Usage: ${shortname} <operation>"
     echo ""
-    echo "   operation can be 'create', 'delete', 'stop', 'start', or 'list'"
+    echo "   operation can be one of:"
     echo ""
     echo "     create <subscriber-id>: Create and start the docker containers and nginx"
     echo "                             mappings for the given subscriber"
     echo "     delete <subscriber-id>: Remove the docker containers, resources, and nginx"
     echo "                             mappings for the given subscriber"
-    echo "     stop <subscriber-id>: Stop/suspend the docker containers for the given"      
-    echo "                           subscriber"
-    echo "     start <subscriber-id>: Resume the docker containers for the given"      
-    echo "                            subscriber"
+    echo "     stop <subscriber-id>: Stop the docker containers for the given subscriber"
+    echo "     start <subscriber-id>: Start the docker containers for the given subscriber"
+    echo "     restart <subscriber-id>: Restart the docker containers for the given subscriber"
+    echo "                              (don't remove volumes/DBs)"
+    echo "     logs <subscriber-id>: Look at the micronet manager logs for the subscriber mm-api"
+    echo "     trace <subscriber-id>: Watch the logs for the given subscriber mm-api"
     echo "     list [<subscriber-id>]: List the docker containers and resources for all"
     echo "                             subscribers or just one subscriber, when specified"
-    echo "     address [<subscriber-id>]: List the container addresses for the specified"
-    echo "                             subscribers or just one subscriber, when specified"
+    echo "     address|addr [<subscriber-id>]: List the container addresses for the specified"
+    echo "                                     subscribers or just one subscriber, when specified"
+    echo "     env <subscriber-id>: List the container environment variables for the subscriber"
+    echo "     setup-web-proxy: Create the nginx directory for saving proxy conf files and set"
+    echo "                      the permissions (requires sudo)"
     echo ""
     echo "   subscriber-id can be any alphanumeric string, with hyphens or underscores"
     echo ""
     echo "   [--docker-image <docker image ID>]"
-    echo "       (default $DEF_MM_IMAGE_LOCATION)"
+    echo "       (default \"$DEF_MM_IMAGE_LOCATION\")"
     echo "   [--nginx-conf-dir <directory_to_add/remove nginx proxy rules>]"
-    echo "       (default $NGINX_CONF_DIR)"
+    echo "       (default \"$NGINX_CONF_DIR\")"
     echo "   [--nginx-reload-command <command to cause nginx conf reload>]"
-    echo "       (default $NGINX_RELOAD_COMMAND)"
+    echo "       (default \"$NGINX_RELOAD_COMMAND\")"
 }
 
 function process_arguments()
@@ -84,10 +90,6 @@ function process_arguments()
         fi
     done
 
-    if [ ! -d "${nginx_conf_dir}" ]; then
-        bailout "${nginx_conf_dir} does not exist or is not a directory"
-    fi
-
     if [ $# -lt 1 ]; then
         bailout_with_usage "Missing operation"
     fi
@@ -106,14 +108,28 @@ function process_arguments()
     elif [ "$operation" == "stop" ]; then
         subscriber_id="$1"
         shift || bailout_with_usage "missing subscriber ID for stop operation"
+    elif [ "$operation" == "restart" ]; then
+        subscriber_id="$1"
+        shift || bailout_with_usage "missing subscriber ID for restart operation"
+    elif [ "$operation" == "logs" ]; then
+        subscriber_id="$1"
+        shift || bailout_with_usage "missing subscriber ID for logs operation"
+    elif [ "$operation" == "trace" ]; then
+        subscriber_id="$1"
+        shift || bailout_with_usage "missing subscriber ID for trace operation"
     elif [ "$operation" == "list" ]; then
         if [ $# -gt 0 ]; then
             subscriber_id="$1"
         fi
-    elif [ "$operation" == "address" ]; then
+    elif [ "$operation" == "address" -o "$operation" == "addr" ]; then
         if [ $# -gt 0 ]; then
             subscriber_id="$1"
         fi
+    elif [ "$operation" == "env" ]; then
+        subscriber_id="$1"
+        shift || bailout_with_usage "missing subscriber ID for env operation"
+    elif [ "$operation" == "setup-web-proxy" ]; then
+        subscriber_id=
     else
         bailout_with_usage "Unrecognized operation: $operation"
     fi
@@ -129,7 +145,7 @@ function get_container_name_for_subscriber()
 {
     subscriber_id="$1"
     resource_type="$2"
-    container_list=$(sudo docker container ls -a -q \
+    container_list=$($DOCKER_CMD container ls -a -q \
       --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id \
       --filter label=com.cablelabs.micronets.resource-type=$resource_type)
     echo "${container_list}"
@@ -147,7 +163,7 @@ function check_for_running_container()
 function get_ip_address_for_container()
 {
     container_id=$1
-    ip_address=$(sudo docker inspect \
+    ip_address=$($DOCKER_CMD inspect \
                  -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \
                  ${container_id})
     echo "${ip_address}"
@@ -160,69 +176,153 @@ function get_nginx_rule_file_for_subscriber()
     echo "$subscriber_file_path"
 }
 
-function list_subscriber_containers()
+function list_containers_for_subscriber()
 {
     if [ ! -z "$1" ]; then
         subscriber_cond==$1
     fi
     echo "CONTAINERS:"
     echo "-------------------------------------------------------------------"
-    sudo docker container ls \
-      --format 'table {{.Label "com.cablelabs.micronets.resource-type"}}\t{{.Label "com.cablelabs.micronets.subscriber-id"}}\t\t{{.Names}} ({{.ID}})\t{{.Status}}' \
+    $DOCKER_CMD container ls -a \
+      --format 'table {{.ID}}\t{{.Label "com.cablelabs.micronets.resource-type"}}\t{{.Label "com.cablelabs.micronets.subscriber-id"}}\t\t{{.Names}}\t\t{{.Status}}' \
       --filter label=com.cablelabs.micronets.subscriber-id${subscriber_cond}
 }
 
-function list_subscriber_resources()
+function list_resources_for_subscriber()
 {
     echo ""
     echo "VOLUMES:"
     echo "-------------------------------------------------------------------"
-    sudo docker volume ls \
+    $DOCKER_CMD volume ls \
       --format 'table {{.Label "com.cablelabs.micronets.resource-type"}}\t{{.Label "com.cablelabs.micronets.subscriber-id"}}\t\t{{.Name}}' \
       --filter label=com.cablelabs.micronets.subscriber-id${subscriber_cond}
     echo ""
     echo "NETWORKS:"
     echo "-------------------------------------------------------------------"
-    sudo docker network ls \
+    $DOCKER_CMD network ls \
        --format 'table {{.Label "com.cablelabs.micronets.resource-type"}}\t{{.Label "com.cablelabs.micronets.subscriber-id"}}\t\t{{.Name}}' \
       --filter label=com.cablelabs.micronets.subscriber-id${subscriber_cond}
 }
 
-function list_subscriber_container_addresses()
+function list_container_addresses_for_subscriber()
 {
     if [ ! -z "$1" ]; then
         subscriber_cond==$1
     fi
 
-    container_list=$(sudo docker container ls -a -q --filter \
+    container_list=$($DOCKER_CMD container ls -a -q --filter \
                      label=com.cablelabs.micronets.subscriber-id${subscriber_cond})
     for container_id in $container_list; do
-        sudo docker inspect \
+        $DOCKER_CMD inspect \
                  -f '{{.Name}}{{"\t\t"}}{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \
                  ${container_id}
     done
 }
 
+list_container_env_for_subscriber()
+{
+    subscriber_id=$1
+    mm_mongodb_container_id=$(get_container_name_for_subscriber $subscriber_id mm-mongo)
+    echo "ENVIRONMENT FOR MONGODB CONTAINER FOR SUBSCRIBER $subscriber_id (container $mm_mongodb_container_id)"
+    echo "----------------------------------------------------------------------------------"
+    print_env_for_container_id $mm_mongodb_container_id
+
+    mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
+    echo "ENVIRONMENT FOR MM API CONTAINER FOR SUBSCRIBER $subscriber_id (container $mm_api_container_id)"
+    echo "----------------------------------------------------------------------------------"
+    print_env_for_container_id $mm_api_container_id
+}
+
 function print_env_for_container_id()
 {
     container_id="$1"
-    sudo docker inspect -f '{{range .Config.Env}}{{.}}{{"\n"}}{{end}}' "$container_id"
+    $DOCKER_CMD inspect -f '{{range .Config.Env}}{{.}}{{"\n"}}{{end}}' "$container_id"
 }
 
-function start_containers_for_subscriber()
+function show_mmapi_logs_for_subscriber()
+{
+    subscriber_id=$1
+    mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
+    show_logs_for_container $mm_api_container_id
+}
+
+function trace_mmapi_logs_for_subscriber()
+{
+    subscriber_id=$1
+    mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
+    trace_logs_for_container $mm_api_container_id
+}
+
+function trace_logs_for_container()
+{
+    container_id="$1"
+    $DOCKER_CMD logs --timestamps --follow --tail 50 $container_id
+}
+
+function show_logs_for_container()
+{
+    container_id="$1"
+    $DOCKER_CMD logs --timestamps $container_id | less 2>&1
+}
+
+function start_subscriber()
 {
     subscriber_id="$1"
-    echo "Starting_containers for subscriber ${subscriber_id}..."
+    echo "Creating resources for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
-    MM_SUBSCRIBER_ID="$subscriber_id" \
+    (MM_SUBSCRIBER_ID="$subscriber_id" \
        MM_API_SOURCE_IMAGE="$docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
-       sudo -E docker-compose -f "${script_dir}/docker-compose.yml" --project-name $subscriber_label up -d \
-       || bailout "Error starting containers for subscriber ${subscriber_id}"
+       docker-compose -f "${script_dir}/docker-compose.yml" \
+                      --project-name $subscriber_label up -d) \
+     || bailout "Error bringing up subscriber ${subscriber_id}"
+}
+
+function delete_subscriber()
+{
+    subscriber_id="$1"
+    echo "Deleting resources for subscriber ${subscriber_id}..."
+    subscriber_label=$(label_for_subscriber_id $subscriber_id)
+    (MM_SUBSCRIBER_ID="$subscriber_id" \
+       MM_API_SOURCE_IMAGE="$docker_image_id" \
+       MM_API_ENV_FILE="$docker_env_file" \
+       docker-compose -f "${script_dir}/docker-compose.yml" \
+                      --project-name $subscriber_label down -v) \
+     || bailout "Error deleting subscriber ${subscriber_id}"
+}
+
+function stop_containers_for_subscriber()
+{
+    subscriber_id="$1"
+    echo "Stopping containers for subscriber ${subscriber_id}..."
+    subscriber_label=$(label_for_subscriber_id $subscriber_id)
+    (MM_SUBSCRIBER_ID="$subscriber_id" \
+       MM_API_SOURCE_IMAGE="$docker_image_id" \
+       MM_API_ENV_FILE="$docker_env_file" \
+       docker-compose -f "${script_dir}/docker-compose.yml" \
+                      --project-name $subscriber_label down) \
+     || bailout "Error stopping subscriber ${subscriber_id}"
+}
+
+function restart_containers_for_subscriber()
+{
+    subscriber_id="$1"
+    echo "Restarting containers for subscriber ${subscriber_id}..."
+    subscriber_label=$(label_for_subscriber_id $subscriber_id)
+    (MM_SUBSCRIBER_ID="$subscriber_id" \
+       MM_API_SOURCE_IMAGE="$docker_image_id" \
+       MM_API_ENV_FILE="$docker_env_file" \
+       docker-compose -f "${script_dir}/docker-compose.yml" \
+                      --project-name $subscriber_label restart) \
+     || bailout "Error restarting subscriber ${subscriber_id}"
 }
 
 function create_nginx_rules_for_subscriber()
 {
+    if [ ! -d "${nginx_conf_dir}" ]; then
+        bailout "${nginx_conf_dir} does not exist or is not a directory"
+    fi
+
     subscriber_id="$1"
     mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
     mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
@@ -238,58 +338,63 @@ location /sub/${subscriber_id}/api/ {
 }
 "
     # echo "Forwarding rule for subscriber $subscriber_id: $rules"
-    sudo sh -c "echo \"$rules\" > $nginx_rule_file_for_subscriber"
+    echo "$rules" > $nginx_rule_file_for_subscriber
 }
 
 function remove_nginx_rules_for_subscriber()
 {
+    if [ ! -d "${nginx_conf_dir}" ]; then
+        bailout "${nginx_conf_dir} does not exist or is not a directory"
+    fi
+
     subscriber_id="$1"
     nginx_rule_file_for_subscriber=$(get_nginx_rule_file_for_subscriber $subscriber_id)
-    sudo sh -c "rm -v $nginx_rule_file_for_subscriber"
+    rm -v $nginx_rule_file_for_subscriber
 }
 
 function issue_nginx_reload()
 {
     echo "Issuing nginx reload (running '$nginx_reload_command')"
-    sudo $nginx_reload_command
+    $nginx_reload_command
 }
 
-function stop_subscriber_containers()
+function setup_web_proxy()
 {
-    subscriber_id="$1"
-    container_list=$(sudo docker container ls -q --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
-    # echo "Running containers for subscriber ${subscriber_id}: ${container_list}"
-    if [ -z "$container_list" ]; then
-        echo "No running containers found for subscriber ${subscriber_id}"
-    else 
-        stopped_containers=$(sudo docker container stop ${container_list})
-        echo "Stopped containers for subscriber ${subscrivber_id}: ${stopped_containers}"
-    fi
+    echo "Setting up directory $NGINX_CONF_DIR for writing nginx conf files (using group 'docker')"
+    sudo mkdir -v -p "$NGINX_CONF_DIR"
+    sudo chown -v -R .docker "$NGINX_CONF_DIR"
+    sudo chmod -v -R g+w "$NGINX_CONF_DIR"
+    echo "-------------------------------------------------------------------------------------------"
+    echo "NOTE: Add the following line to and/all nginx 'server' blocks (e.g. files in '/etc/nginx/sites-available/')"
+    echo
+    echo "  include $NGINX_CONF_DIR/*.conf;"
+    echo "-------------------------------------------------------------------------------------------"
 }
 
+# NOTE: ThiS FUNCTION ISN'T USED CURRENTLY - "docker-compose down" is used now instead
 function cleanup_subscriber_resources()
 {
     subscriber_id="$1"
     echo "Cleaning up resources for subscriber ${subscriber_id}..."
 
-    container_list=$(sudo docker container ls -a -q --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
+    container_list=$($DOCKER_CMD container ls -a -q --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
     # echo "Containers for ${subscriber_label}: ${container_list}"
     if [ ! -z "$container_list" ]; then
-         deleted_containers=$(sudo docker container rm ${container_list})
+         deleted_containers=$($DOCKER_CMD container rm ${container_list})
          echo "Deleted containers for subscriber ${subscriber_id}: ${deleted_containers}"
     fi
 
-    volume_list=$(sudo docker volume ls -q --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
+    volume_list=$($DOCKER_CMD volume ls -q --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
     # echo "Volumes for ${subscriber_id}: ${volume_list}"
     if [ ! -z "$volume_list" ]; then
-         deleted_volumes=$(sudo docker volume rm ${volume_list})
+         deleted_volumes=$($DOCKER_CMD volume rm ${volume_list})
          echo "Deleted volumes for subscriber ${subscriber_id}: ${deleted_volumes}"
     fi
 
-    network_list=$(sudo docker network ls -q --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
+    network_list=$($DOCKER_CMD network ls -q --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
     # echo "Networks for ${subscriber_id}: ${network_list}"
     if [ ! -z "$network_list" ]; then
-         deleted_networks=$(sudo docker network rm ${network_list})
+         deleted_networks=$($DOCKER_CMD network rm ${network_list})
          echo "Deleted networks for subscriber ${subscriber_id}: ${deleted_networks}"
     fi
 }
@@ -308,22 +413,36 @@ process_arguments "$@"
 
 subscriber_env_tmp_file="/tmp/mm-sub-${subscriber_id}.end"
 
-if [ "$operation" == "create" ]; then
-    check_for_running_container $subscriber_id
-    cleanup_subscriber_resources $subscriber_id
-    start_containers_for_subscriber $subscriber_id
+if [ "$operation" == "create" -o "$operation" == "start" ]; then
+    start_subscriber $subscriber_id
     create_nginx_rules_for_subscriber $subscriber_id
     issue_nginx_reload
 elif [ "$operation" == "delete" ]; then
-    stop_subscriber_containers $subscriber_id
-    cleanup_subscriber_resources $subscriber_id
+    delete_subscriber $subscriber_id
     remove_nginx_rules_for_subscriber $subscriber_id
     issue_nginx_reload
+elif [ "$operation" == "stop" ]; then
+    stop_containers_for_subscriber $subscriber_id
+    remove_nginx_rules_for_subscriber $subscriber_id
+    issue_nginx_reload
+elif [ "$operation" == "restart" ]; then
+    restart_containers_for_subscriber $subscriber_id
+    remove_nginx_rules_for_subscriber $subscriber_id
+    create_nginx_rules_for_subscriber $subscriber_id
+    issue_nginx_reload
 elif [ "$operation" == "list" ]; then
-    list_subscriber_containers $subscriber_id
-    list_subscriber_resources $subscriber_id
-elif [ "$operation" == "address" ]; then
-    list_subscriber_container_addresses $subscriber_id
+    list_containers_for_subscriber $subscriber_id
+    list_resources_for_subscriber $subscriber_id
+elif [ "$operation" == "address" -o "$operation" == "addr" ]; then
+    list_container_addresses_for_subscriber $subscriber_id
+elif [ "$operation" == "env" ]; then
+    list_container_env_for_subscriber $subscriber_id
+elif [ "$operation" == "logs" ]; then
+    show_mmapi_logs_for_subscriber $subscriber_id
+elif [ "$operation" == "trace" ]; then
+    trace_mmapi_logs_for_subscriber $subscriber_id
+elif [ "$operation" == "setup-web-proxy" ]; then
+    setup_web_proxy
 else
         bailout_with_usage "Unrecognized operation: $operation"
 fi
