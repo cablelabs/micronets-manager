@@ -85,7 +85,7 @@ function process_arguments()
             shift
             nginx_reload_command="$1"
             shift || bailout_with_usage "missing parameter to --nginx-reload-command"
-        else 
+        else
             bailout_with_usage "Unrecognized option: $1"
         fi
     done
@@ -325,10 +325,10 @@ function create_nginx_rules_for_subscriber()
 
     subscriber_id="$1"
     mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
-    mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
+    # mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
     mm_api_priv_ip_addr=$(get_ip_address_for_container ${mm_api_container_id})
-    mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
-    
+    # mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
+
     nginx_rule_file_for_subscriber=$(get_nginx_rule_file_for_subscriber $subscriber_id)
     # echo "create_nginx_rules_for_subscriber: nginx_rule_file_for_subscriber=$nginx_rule_file_for_subscriber"
     rules="\
