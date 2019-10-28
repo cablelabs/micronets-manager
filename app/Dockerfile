@@ -11,7 +11,8 @@ COPY package.json .
 ## Install app dependencies
 RUN npm install
 
-## Bundle app source
+## Copy all the bits
 COPY . .
 
-CMD ["npm", "run", "start"]
+## Setup the default run command
+

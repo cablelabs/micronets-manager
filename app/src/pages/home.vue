@@ -57,12 +57,12 @@
         if (pageUrl.indexOf('users') > -1) {
           subscriberId = pageUrl.split('users')[1].split('/')[1]
           console.log('The subscriberId is: ' + JSON.stringify(subscriberId))
-          console.log('SubscriberId from ENV SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
+          console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.MM_SUBSCRIBER_ID)
           console.log('SubscriberId from ENV TEST_ID : ' + process.env.TEST_ID)
         } else {
-          console.log('SubscriberId from ENV SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
+          console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.MM_SUBSCRIBER_ID)
           console.log('SubscriberId from ENV TEST_ID : ' + process.env.TEST_ID)
-          subscriberId = process.env.SUBSCRIBER_ID
+          subscriberId = process.env.MM_SUBSCRIBER_ID
         }
         return subscriberId
       }

@@ -12,8 +12,8 @@ const msoPortalAuthPostConfig = {
   'serial': 'GG-555555',
   'macAddress': '03:30:93:39:03:3B'
 }
-const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/v1/registration/token`
-const usersUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets/users`
+const authTokenUri = `${process.env.MM_MSO_PORTAL_BASE_URL}/portal/v1/registration/token`
+const usersUri = `${process.env.MM_APP_PUBLIC_BASE_URL}/mm/v1/micronets/users`
 // const micronetsUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets`
 // const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v'])
 // const omitStateMeta = omit(['_id', '__v'])
