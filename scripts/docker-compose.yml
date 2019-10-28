@@ -53,10 +53,12 @@ services:
     depends_on:
       - api
     environment:
-      - NODE_ENV=production
-      - MM_SERVER_BASE_URL=http://api:3030
-      - MM_APP_LISTEN_HOST=0.0.0.0
-      - MM_APP_LISTEN_PORT=8080
+       NODE_ENV: development
+       MM_SERVER_BASE_URL: http://api:3030
+       MM_APP_LISTEN_HOST: 0.0.0.0
+       MM_APP_LISTEN_PORT: 8080
+       MM_MSO_PORTAL_BASE_URL: https://dev.mso-portal-api.micronets.in
+       MM_SUBSCRIBER_ID:  ${MM_SUBSCRIBER_ID}
     labels:
        com.cablelabs.micronets.resource-type: mm-app
        com.cablelabs.micronets.subscriber-id: ${MM_SUBSCRIBER_ID}
