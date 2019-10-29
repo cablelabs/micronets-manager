@@ -16,3 +16,4 @@ COPY . .
 
 ## Setup the default run command
 
+CMD ["npm", "run", "start"]
