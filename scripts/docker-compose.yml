@@ -53,7 +53,7 @@ services:
     depends_on:
       - api
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       MM_APP_LISTEN_HOST: 0.0.0.0
       MM_APP_LISTEN_PORT: 8080
       MM_SERVER_BASE_URL: http://api:3030

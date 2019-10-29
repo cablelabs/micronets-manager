@@ -54,9 +54,9 @@ function print_usage()
     echo ""
     echo "   subscriber-id can be any alphanumeric string, with hyphens or underscores"
     echo ""
-    echo "   [--api-docker-image <api docker image ID>]"
+    echo "   [--api-docker-image <api docker image ID>"
     echo "       (default \"$DEF_MM_API_IMAGE_LOCATION\")"
-    echo "   [--app-docker-image <app docker image ID>]"
+    echo "   [--app-docker-image <app docker image ID>"
     echo "       (default \"$DEF_MM_APP_IMAGE_LOCATION\")"
     echo "   [--nginx-conf-dir <directory_to_add/remove nginx proxy rules>]"
     echo "       (default \"$NGINX_CONF_DIR\")"
@@ -337,9 +337,9 @@ function create_nginx_rules_for_subscriber()
 
     subscriber_id="$1"
     mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
-    # mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
+    mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
     mm_api_priv_ip_addr=$(get_ip_address_for_container ${mm_api_container_id})
-    # mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
+    mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
 
     nginx_rule_file_for_subscriber=$(get_nginx_rule_file_for_subscriber $subscriber_id)
     # echo "create_nginx_rules_for_subscriber: nginx_rule_file_for_subscriber=$nginx_rule_file_for_subscriber"
