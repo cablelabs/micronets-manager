@@ -3,14 +3,14 @@
     <template v-for="(micronet, index) in subscriber.micronets">
         <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
     </template>
-    <template v-if="subscriber.micronets.length == 0">
-      <v-card>
-        <v-card-title class="no-subnets">No Micronets found</v-card-title>
-        <v-card-actions>
-          <!--<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>-->
-        </v-card-actions>
-      </v-card>
-    </template>
+    <!--<template v-if="subscriber && subscriber.micronets.length == 0">-->
+      <!--<v-card>-->
+        <!--<v-card-title class="no-subnets">No Micronets found</v-card-title>-->
+        <!--<v-card-actions>-->
+          <!--&lt;!&ndash;<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>&ndash;&gt;-->
+        <!--</v-card-actions>-->
+      <!--</v-card>-->
+    <!--</template>-->
   </Layout>
 </template>
 
@@ -25,8 +25,7 @@
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
     name: 'home',
     computed: {
-      ...mapState(['subscriber', 'deviceLeases', 'users']),
-      ...mapGetters(['editTarget'])
+      ...mapState(['subscriber', 'deviceLeases', 'users'])
     },
     data: () => ({
       dialog: false,
@@ -57,11 +56,9 @@
         if (pageUrl.indexOf('users') > -1) {
           subscriberId = pageUrl.split('users')[1].split('/')[1]
           console.log('The subscriberId is: ' + JSON.stringify(subscriberId))
-          console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.MM_SUBSCRIBER_ID)
-          console.log('SubscriberId from ENV TEST_ID : ' + process.env.TEST_ID)
+          console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
         } else {
-          console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.MM_SUBSCRIBER_ID)
-          console.log('SubscriberId from ENV TEST_ID : ' + process.env.TEST_ID)
+          console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
           subscriberId = process.env.MM_SUBSCRIBER_ID
         }
         return subscriberId
