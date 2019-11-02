@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 NGINX_CONF_DIR="/etc/nginx/micronets-subscriber-forwards"
@@ -12,7 +14,7 @@ function bailout()
 {
     local shortname="${0##*/}"
     local message="$1"
-    echo "$shortname: error: ${message}"
+    echo "$shortname: error: ${message}" >&2
     exit 1;
 }
 
@@ -20,7 +22,7 @@ function bailout_with_usage()
 {
     local shortname="${0##*/}"
     local message="$1"
-    echo "$shortname: error: ${message}"
+    echo "$shortname: error: ${message}" >&2
     print_usage
     exit 1;
 }
@@ -41,12 +43,14 @@ function print_usage()
     echo "     start <subscriber-id>: Start the docker containers for the given subscriber"
     echo "     restart <subscriber-id>: Restart the docker containers for the given subscriber"
     echo "                              (don't remove volumes/DBs)"
-    echo "     logs <subscriber-id>: Look at the micronet manager logs for the subscriber mm-api"
+    echo "     logs <subscriber-id>: Dump at the micronet manager logs for the subscriber mm-api"
     echo "     trace <subscriber-id>: Watch the logs for the given subscriber mm-api"
+    echo "     inspect <subscriber-id>: Inspect the attributes for the subscriber's mm-api"
     echo "     list [<subscriber-id>]: List the docker containers and resources for all"
     echo "                             subscribers or just one subscriber, when specified"
     echo "     address|addr [<subscriber-id>]: List the container addresses for the specified"
     echo "                                     subscribers or just one subscriber, when specified"
+    echo "     stats: List the stats for all the docker containers"
     echo "     env <subscriber-id>: List the container environment variables for the subscriber"
     echo "     setup-web-proxy: Create the nginx directory for saving proxy conf files and set"
     echo "                      the permissions (requires sudo)"
@@ -117,10 +121,15 @@ function process_arguments()
     elif [ "$operation" == "trace" ]; then
         subscriber_id="$1"
         shift || bailout_with_usage "missing subscriber ID for trace operation"
+    elif [ "$operation" == "inspect" ]; then
+        subscriber_id="$1"
+        shift || bailout_with_usage "missing subscriber ID for inspect operation"
     elif [ "$operation" == "list" ]; then
         if [ $# -gt 0 ]; then
             subscriber_id="$1"
         fi
+    elif [ "$operation" == "stats" ]; then
+        subscriber_id=
     elif [ "$operation" == "address" -o "$operation" == "addr" ]; then
         if [ $# -gt 0 ]; then
             subscriber_id="$1"
@@ -148,6 +157,9 @@ function get_container_name_for_subscriber()
     container_list=$($DOCKER_CMD container ls -a -q \
       --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id \
       --filter label=com.cablelabs.micronets.resource-type=$resource_type)
+    if [ -z $container_list ]; then
+        bailout "Could not find a $resource_type container for subscriber $subscriber_id"
+    fi
     echo "${container_list}"
 }
 
@@ -155,8 +167,8 @@ function check_for_running_container()
 {
     subscriber_id=$1
     api_container=$(get_container_name_for_subscriber $subscriber_id mm-api)
-    if [ ! -e $api_container ]; then
-        bailout "ERROR: An API container for subscriber $subscriber_id already exists ($api_container)"
+    if [ -n $api_container ]; then
+        bailout "An API container for subscriber $subscriber_id already exists ($api_container)"
     fi
 }
 
@@ -166,6 +178,9 @@ function get_ip_address_for_container()
     ip_address=$($DOCKER_CMD inspect \
                  -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \
                  ${container_id})
+    if [ -z $ip_address ]; then
+        bailout "Could not get the IP address for container $container_id"
+    fi
     echo "${ip_address}"
 }
 
@@ -185,7 +200,8 @@ function list_containers_for_subscriber()
     echo "-------------------------------------------------------------------"
     $DOCKER_CMD container ls -a \
       --format 'table {{.ID}}\t{{.Label "com.cablelabs.micronets.resource-type"}}\t{{.Label "com.cablelabs.micronets.subscriber-id"}}\t\t{{.Names}}\t\t{{.Status}}' \
-      --filter label=com.cablelabs.micronets.subscriber-id${subscriber_cond}
+      --filter label=com.cablelabs.micronets.subscriber-id${subscriber_cond} \
+     | (read -r ; sort -k 3)
 }
 
 function list_resources_for_subscriber()
@@ -206,12 +222,15 @@ function list_resources_for_subscriber()
 
 function list_container_addresses_for_subscriber()
 {
-    if [ ! -z "$1" ]; then
+    if [ -n "$1" ]; then
         subscriber_cond==$1
     fi
 
     container_list=$($DOCKER_CMD container ls -a -q --filter \
                      label=com.cablelabs.micronets.subscriber-id${subscriber_cond})
+    if [ -z $container_list ]; then
+        bailout "No containers found $subscriber_cond"
+    fi
     for container_id in $container_list; do
         $DOCKER_CMD inspect \
                  -f '{{.Name}}{{"\t\t"}}{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \
@@ -231,6 +250,41 @@ list_container_env_for_subscriber()
     echo "ENVIRONMENT FOR MM API CONTAINER FOR SUBSCRIBER $subscriber_id (container $mm_api_container_id)"
     echo "----------------------------------------------------------------------------------"
     print_env_for_container_id $mm_api_container_id
+}
+
+function check_for_subscriber_container()
+{
+    subscriber_id=$1
+    container_list=$($DOCKER_CMD container ls -a -q --filter \
+                     label=com.cablelabs.micronets.subscriber-id=$subscriber_id)
+    if [ -z $container_list ]; then
+        bailout "could not find any containers for subscriber: $subscriber_id"
+    fi
+}
+
+function check_for_container_for_subscriber()
+{
+    subscriber_id=$1
+    if [ -n "$2" ]; then
+        container_type_str="$2 "
+        container_cond==$2
+    fi
+
+    container_list=$($DOCKER_CMD container ls -a -q \
+                     --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id \
+                     --filter label=com.cablelabs.micronets.resource-type$container_cond)
+    if [ -z $container_list ]; then
+        bailout "could not find any ${container_type_str}containers for subscriber: $subscriber_id"
+    fi
+}
+
+function print_stats()
+{
+    echo "CONTAINER STATS:"
+    echo "-------------------------------------------------------------------"
+    # docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}'
+    $DOCKER_CMD container stats -a --no-stream \
+      --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}'
 }
 
 function print_env_for_container_id()
@@ -265,6 +319,13 @@ function show_logs_for_container()
     $DOCKER_CMD logs --timestamps $container_id | less 2>&1
 }
 
+function inspect_mmapi_for_subscriber()
+{
+    subscriber_id=$1
+    mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
+    $DOCKER_CMD inspect $mm_api_container_id | less 2>&1
+}
+
 function start_subscriber()
 {
     subscriber_id="$1"
@@ -275,12 +336,13 @@ function start_subscriber()
        MM_API_ENV_FILE="$docker_env_file" \
        docker-compose -f "${script_dir}/docker-compose.yml" \
                       --project-name $subscriber_label up -d) \
-     || bailout "Error bringing up subscriber ${subscriber_id}"
+     || bailout "Couldn't start subscriber ${subscriber_id}"
 }
 
 function delete_subscriber()
 {
     subscriber_id="$1"
+    check_for_container_for_subscriber $subscriber_id
     echo "Deleting resources for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
@@ -288,12 +350,13 @@ function delete_subscriber()
        MM_API_ENV_FILE="$docker_env_file" \
        docker-compose -f "${script_dir}/docker-compose.yml" \
                       --project-name $subscriber_label down -v) \
-     || bailout "Error deleting subscriber ${subscriber_id}"
+     || bailout "Couldn't delete subscriber ${subscriber_id}"
 }
 
 function stop_containers_for_subscriber()
 {
     subscriber_id="$1"
+    check_for_container_for_subscriber $subscriber_id
     echo "Stopping containers for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
@@ -301,12 +364,13 @@ function stop_containers_for_subscriber()
        MM_API_ENV_FILE="$docker_env_file" \
        docker-compose -f "${script_dir}/docker-compose.yml" \
                       --project-name $subscriber_label down) \
-     || bailout "Error stopping subscriber ${subscriber_id}"
+     || bailout "Couldn't stop subscriber ${subscriber_id}"
 }
 
 function restart_containers_for_subscriber()
 {
     subscriber_id="$1"
+    check_for_container_for_subscriber $subscriber_id
     echo "Restarting containers for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
@@ -327,6 +391,7 @@ function create_nginx_rules_for_subscriber()
     mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
     # mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
     mm_api_priv_ip_addr=$(get_ip_address_for_container ${mm_api_container_id})
+
     # mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
     
     nginx_rule_file_for_subscriber=$(get_nginx_rule_file_for_subscriber $subscriber_id)
@@ -441,8 +506,13 @@ elif [ "$operation" == "logs" ]; then
     show_mmapi_logs_for_subscriber $subscriber_id
 elif [ "$operation" == "trace" ]; then
     trace_mmapi_logs_for_subscriber $subscriber_id
+elif [ "$operation" == "stats" ]; then
+    print_stats
+elif [ "$operation" == "inspect" ]; then
+    inspect_mmapi_for_subscriber $subscriber_id
 elif [ "$operation" == "setup-web-proxy" ]; then
     setup_web_proxy
 else
-        bailout_with_usage "Unrecognized operation: $operation"
+    bailout_with_usage "Unrecognized operation: $operation"
 fi
+
