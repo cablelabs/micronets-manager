@@ -1,4 +1,4 @@
-version: '3.7'
+version: '2.4'
 
 networks:
   mm-priv-network:
@@ -15,6 +15,8 @@ volumes:
 services:
   mongodb:
     image: mongo
+    mem_limit: 200m
+    # restart: on-failure
     volumes:
       - mongodb:/data/db
     networks:
@@ -24,10 +26,12 @@ services:
       com.cablelabs.micronets.subscriber-id: ${MM_SUBSCRIBER_ID}
   api:
     image: "${MM_API_SOURCE_IMAGE}"
-    networks:
-      - mm-priv-network
     depends_on:
       - mongodb
+    mem_limit: 200m
+    # restart: on-failure
+    networks:
+      - mm-priv-network
     environment:
       NODE_ENV: production
       MM_API_LISTEN_HOST: 0.0.0.0
@@ -48,10 +52,12 @@ services:
 
 #  app:
 #    image: "${MM_APP_SOURCE_IMAGE}"
-#    networks:
-#      - mm-priv-network
 #    depends_on:
 #      - api
+#    mem_limit: 200m
+#    # restart: on-failure
+#    networks:
+#      - mm-priv-network
 #    environment:
 #      - NODE_ENV=production
 #      - MM_SERVER_BASE_URL=http://api:3030
