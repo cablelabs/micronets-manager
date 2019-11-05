@@ -11,7 +11,7 @@ const WIRELESS = "wifi"
 const errors = require ( '@feathersjs/errors' );
 const logger = require ( './../../logger' );
 const paths = require ( './../../hooks/servicePaths' )
-const { MICRONETS_PATH , REGISTRY_PATH , ODL_PATH , MOCK_MICRONET_PATH , USERS_PATH } = paths
+const { MICRONETS_PATH , REGISTRY_PATH , ODL_PATH , MOCK_MICRONET_PATH , USERS_PATH, DPP_PATH } = paths
 var rn = require('random-number');
 var vLanGen = rn.generator({
   min:1000, max:4095,integer: true
@@ -1200,17 +1200,19 @@ module.exports = {
 
         logger.debug('\n  Params  : ' + JSON.stringify(params) + '\t\t RequestUrl : ' + JSON.stringify(requestUrl))
 
-        // Delete a specific device from micronet
+        /**************** Delete a specific device from micronet *************************/
         if ( (id && micronetId && deviceId) || requestUrl ==`/mm/v1/subscriber/${id}/micronets/${micronetId}/devices/${deviceId}` ) {
-         logger.debug(`\n Device ID to remove ${deviceId} from micronet ${micronetId}`)
+
+          logger.debug(`\n Device ID  ${deviceId} to remove from micronet ${micronetId}`)
           const registry = await getRegistry ( hook , {} )
           const { mmUrl } = registry
-          let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , subnetAllocator = Object.assign({}) , deviceToDeleteIndex = '', ipSubnets = []
+          let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , subnetAllocator = Object.assign({}) , deviceToDeleteIndex = '', ipSubnets = [], allDeviceIds = []
           const micronetFromDB = await getMicronet ( hook , {} )
           // ODL and Gateway checks
           const isGtwyAlive = await isGatewayAlive ( hook )
           const isOdlAlive = await isODLAlive ( hook )
           const isGatewayConnected = await connectToGateway ( hook )
+
           if ( isGtwyAlive && isOdlAlive && isGatewayConnected ) {
             const mockMicronetsFromDb = await hook.app.service ( `${MOCK_MICRONET_PATH}` ).find ( {} )
             const mockMicronetIndex = mockMicronetsFromDb.data.length > 0 ? mockMicronetsFromDb.data.findIndex ( ( mockMicronet ) => mockMicronet.id == id ) : -1
@@ -1234,6 +1236,8 @@ module.exports = {
 
                 // Valid Index. Device Exists
                 if(deviceToDeleteIndex > -1){
+                  allDeviceIds = allDeviceIds.concat(deviceId)
+                  logger.debug('\n ALL Device IDs : ' + JSON.stringify(allDeviceIds))
                   let updatedDevices = registeredDevicesToDelete.filter((registeredDevice,index) => index != deviceToDeleteIndex)
                   logger.debug('\n Updated Devices : ' + JSON.stringify(updatedDevices))
                   micronets[ micronetToDeleteIndex ]['connected-devices'] = updatedDevices
@@ -1244,24 +1248,31 @@ module.exports = {
                     subnetAllocator.deviceAddress = registeredDevicesToDelete[deviceToDeleteIndex]['device-ip']
                     subnetAllocator.subnetAddress = micronetToDelete[ 'micronet-subnet' ]
                     logger.debug('\n SubnetAllocator for deleting a device : ' + JSON.stringify(subnetAllocator))
-
                   }
+
 
                 }
               }
             }
 
-            logger.debug ( '\n Remove hook postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ))
+            logger.debug ( '\n Micronets delete Post body : ' + JSON.stringify ( postBodyForDelete ))
             const patchResult = await hook.app.service ( `${MICRONETS_PATH}` ).patch ( id ,
               {
                 micronets : postBodyForDelete
               } );
-            logger.debug ( '\n Remove hook patchResult : ' + JSON.stringify ( patchResult ) )
+
+            logger.debug ( '\n Micronets deleted. Updated result : ' + JSON.stringify ( patchResult ) )
+
             if ( patchResult ) {
+
+              // Delete Gateway device from micronet
               if ( micronetId ) {
+                logger.debug ( '\n Deleting gateway device from subnet ... '  )
                 const dhcpDhcpDeviceDeletePromise = await deleteDhcpDeviceInSubnet ( hook , micronetToDelete , micronetId )
 
+                // Delete mock micronet
                 if ( mockMicronetIndex > -1 ) {
+                  logger.debug ( '\n Deleting mock micronet ... '  )
                   const mockMicronetsDelete = await axios ( {
                     ...apiInit ,
                     method : 'DELETE' ,
@@ -1270,13 +1281,16 @@ module.exports = {
                   } )
                 }
 
-                // TODO: Delete specific device in subnet allocator.
+                // Delete specific device in subnet allocator.
                  if ( !isEmpty(subnetAllocator)) {
+                   logger.debug ( '\n Deleting device in IP subnet ... '  )
                    await subnetAllocation.releaseDeviceAddress(subnetAllocator.subnetAddress, subnetAllocator.deviceAddress)
                 }
 
+                // Delete device from user database
                 let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
                 if ( !(isEmpty ( users.data )) ) {
+                  logger.debug ( '\n Deleting registered device for user ... '  )
                   users = users.data[ 0 ]
                   let deviceToDeleteIndex = users.devices.findIndex((registeredDevice, index) => registeredDevice.deviceId == hook.params.route.deviceId)
                   let filteredDevices =  users.devices.filter((registeredDevice,index) => index != deviceToDeleteIndex)
@@ -1286,30 +1300,24 @@ module.exports = {
                   } ) )
                 }
 
-              }
-              if ( postBodyForDelete.length == 0 && !micronetId && id ) {
-                const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , {} , undefined )
-                if ( mockMicronetIndex > -1 ) {
-                  const mockMicronetsDelete = await axios ( {
-                    ...apiInit ,
-                    method : 'DELETE' ,
-                    url : `${mmUrl}/mm/v1/mock/subscriber/${id}/micronets` ,
-                    data : Object.assign ( {} , { micronets : [] } )
-                  } )
-                }
-
-                let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
-                if ( !(isEmpty ( users.data )) ) {
-                  users = users.data[ 0 ]
-                  let updatedDevices = []
-                  const userPatchResult = await hook.app.service ( `${USERS_PATH}` ).patch ( users.id , Object.assign ( {
-                    devices : updatedDevices ,
-                    deleteRegisteredDevices : true
-                  } ) )
+                // Delete device from DPP Database & MSO Portal status Database
+                if(!isEmpty(allDeviceIds)) {
+                  logger.debug('\n Deleting device from DPP and MSO Portal status database allDeviceIds ... ' + JSON.stringify(allDeviceIds) )
+                  // Clear DPP database
+                  allDeviceIds.forEach(async(deviceId) => {
+                    const { msoPortalUrl } = hook.app.get('mano')
+                    logger.debug('\n Device ID to remove from DPP database : ' + JSON.stringify(deviceId))
+                    await hook.app.service(`${DPP_PATH}`).remove(deviceId)
+                    logger.debug('\n Device ID to remove from MSO-Portal status database : ' + JSON.stringify(deviceId))
+                    logger.debug('\n MSO Portal status delete url  : ' + JSON.stringify(`${msoPortalUrl}/portal/v1/status/${deviceId}`))
+                    await axios.delete(`${msoPortalUrl}/portal/v1/status/${deviceId}`)
+                  })
                 }
 
               }
+
             }
+
             hook.result = patchResult
             return Promise.resolve ( hook );
           }
@@ -1317,51 +1325,81 @@ module.exports = {
         }
 
 
-        // Delete all micronets or specific micronet
+        /**************** Delete all micronets or specific micronet *************************/
         if (  ( id && micronetId && !deviceId) || requestUrl ==`/mm/v1/subscriber/${id}/micronets` || requestUrl ==`/mm/v1/subscriber/${id}/micronets/${micronetId}` ) {
-          logger.debug(`\n Micronet ID to remove ${micronetId} from id ${id}`)
+          logger.debug(`\n Micronet ID to remove ${micronetId} from subscriber ${id}`)
           const registry = await getRegistry ( hook , {} )
           const { mmUrl } = registry
-          let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , ipSubnets = []
+          let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , ipSubnets = [], allDeviceIds = []
+
           // ODL and Gateway checks
           const isGtwyAlive = await isGatewayAlive ( hook )
           const isOdlAlive = await isODLAlive ( hook )
           const isGatewayConnected = await connectToGateway ( hook )
+
+
           if ( isGtwyAlive && isOdlAlive && isGatewayConnected ) {
             const mockMicronetsFromDb = await hook.app.service ( `${MOCK_MICRONET_PATH}` ).find ( {} )
             const mockMicronetIndex = mockMicronetsFromDb.data.length > 0 ? mockMicronetsFromDb.data.findIndex ( ( mockMicronet ) => mockMicronet.id == id ) : -1
             logger.debug ( '\n\n Mock micronet Index : ' + JSON.stringify ( mockMicronetIndex ) )
-            // Delete single micro-net
+
+
+            /**************** Delete single micro-net. Collect Data *********************/
             if ( micronetId ) {
               const micronetFromDB = await getMicronet ( hook , id )
               const { micronets } = micronetFromDB
               const micronetToDeleteIndex = micronets.findIndex ( ( micronet ) => micronet[ "micronet-id" ] == micronetId )
+
               // Valid index. Micronet exists
               if ( micronetToDeleteIndex > -1 ) {
                 micronetToDelete = micronets[ micronetToDeleteIndex ]
                 ipSubnets = [].concat ( micronetToDelete[ 'micronet-subnet' ])
                 registeredDevicesToDelete = micronetToDelete[ 'connected-devices' ]
+                allDeviceIds = registeredDevicesToDelete.map((registeredDevice) => { return registeredDevice['device-id']})
                 postBodyForDelete = micronets.filter ( ( micronet , index ) => index != micronetToDeleteIndex )
               }
             }
 
-            // Delete all micro-nets
+            // Populate IPSubnets to delete
             const micronetFromDB = await getMicronet ( hook , {} )
             if ( ipSubnets.length == 0 ) {
               ipSubnets = micronetFromDB.micronets.map ( ( micronet ) => {
                 return micronet[ 'micronet-subnet' ]
               } )
             }
-            logger.debug ( '\n Remove hook postBodyForDelete : ' + JSON.stringify ( postBodyForDelete ) + '\t\t IP Subnets : ' + JSON.stringify ( ipSubnets ) )
+
+            // Populate allDeviceIds to delete for all micronets
+            if(!micronetId && id && allDeviceIds.length == 0){
+              logger.debug('\n Deleting all micronets ... ')
+              allDeviceIds =  micronetFromDB.micronets.map ( ( micronet ) => {
+               return micronet['connected-devices'].map((device) => {
+                     return device['device-id']
+                })
+              })
+              allDeviceIds = flattenArray(allDeviceIds)
+             allDeviceIds = allDeviceIds.filter ( ( el ) => {
+               return el != null
+             })
+            }
+
+            logger.debug ( '\n  Delete micronets post body : ' + JSON.stringify ( postBodyForDelete ) + '\t\t IP Subnets : ' + JSON.stringify ( ipSubnets ) + '\t\t All device IDs : ' + JSON.stringify(allDeviceIds))
+
+
             const patchResult = await hook.app.service ( `${MICRONETS_PATH}` ).patch ( id ,
               {
                 micronets : postBodyForDelete
               } );
-            logger.debug ( '\n Remove hook patchResult : ' + JSON.stringify ( patchResult ) )
+            logger.debug ( '\n Micronets deleted. Updated result : ' + JSON.stringify ( patchResult ) )
+
             if ( patchResult ) {
+
+              // Delete single micronet
               if ( micronetId ) {
+
+                // Delete Gateway Subnets
                 const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , micronetToDelete , micronetId )
 
+                // Delete Mock micronets
                 if ( mockMicronetIndex > -1 ) {
                   const mockMicronetsDelete = await axios ( {
                     ...apiInit ,
@@ -1379,6 +1417,7 @@ module.exports = {
                   })
                 }
 
+                // Delete devices from user
                 let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
                 if ( !(isEmpty ( users.data )) ) {
                   users = users.data[ 0 ]
@@ -1395,8 +1434,25 @@ module.exports = {
                   } ) )
                 }
 
+                // Delete device from DPP Database & MSO Portal status Database
+                if(!isEmpty(allDeviceIds)) {
+                  logger.debug('\n Devices to clear from DPP and MSO Portal status database : ' + JSON.stringify(allDeviceIds))
+                  const { msoPortalUrl } = hook.app.get('mano')
+                  // Clear DPP database
+                  allDeviceIds.forEach(async(deviceId) => {
+                    logger.debug('\n Device ID to remove from DPP database : ' + JSON.stringify(allDeviceIds))
+                    await hook.app.service(`${DPP_PATH}`).remove(deviceId)
+                    logger.debug('\n Device ID to remove from MSO-Portal status database : ' + JSON.stringify(allDeviceIds))
+                    await axios.delete(`${msoPortalUrl}/portal/v1/status/${deviceId}`)
+                  })
+                }
+
               }
+
+              // Delete all micronets
               if ( postBodyForDelete.length == 0 && !micronetId && id ) {
+
+                // Delete all gateway subnets
                 const dhcpSubnetsDeletePromise = await deleteDhcpSubnets ( hook , {} , undefined )
                 if ( mockMicronetIndex > -1 ) {
                   const mockMicronetsDelete = await axios ( {
@@ -1406,14 +1462,16 @@ module.exports = {
                     data : Object.assign ( {} , { micronets : [] } )
                   } )
                 }
-                // De-allocate subnets
+
+                // De-allocate all subnets
                 if ( ipSubnets.length > 0 ) {
-                  logger.debug('\n IP Subnets to deallocate : ' + JSON.stringify(ipSubnets))
+                  logger.debug('\n De-allocating IP subnets : ' + JSON.stringify(ipSubnets))
                   ipSubnets.map(async(subnetAddress)=> {
                     return await subnetAllocation.releaseSubnetAddress(subnetAddress)
                   })
                 }
 
+                // Delete all devices from user
                 let users = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
                 if ( !(isEmpty ( users.data )) ) {
                   users = users.data[ 0 ]
@@ -1422,6 +1480,21 @@ module.exports = {
                     devices : updatedDevices ,
                     deleteRegisteredDevices : true
                   } ) )
+                }
+
+                // Delete all devices from DPP database and MSO-Portal status database
+                if(!isEmpty(allDeviceIds)) {
+                  logger.debug('\n Devices to clear from DPP and MSO Portal status database : ' + JSON.stringify(allDeviceIds))
+                  const { msoPortalUrl } = hook.app.get('mano')
+
+                  // Clear DPP database
+                  allDeviceIds.forEach(async(deviceId) => {
+                    logger.debug('\n Device ID to remove from DPP database : ' + JSON.stringify(deviceId))
+                    await hook.app.service(`${DPP_PATH}`).remove(deviceId)
+                    logger.debug('\n Device ID to remove from MSO-Portal status database : ' + JSON.stringify(deviceId))
+                    logger.debug('\n\n MSO-PORTAL status url to delete  : ' + JSON.stringify(`${msoPortalUrl}/portal/v1/status/${deviceId}`))
+                    await axios.delete(`${msoPortalUrl}/portal/v1/status/${deviceId}`)
+                  })
                 }
 
               }

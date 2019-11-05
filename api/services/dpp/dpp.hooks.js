@@ -151,13 +151,13 @@ const postOnboardingResults = async(hook) => {
     const { msoPortalUrl } = hook.app.get('mano')
     logger.debug('\n MSO POST STATUS URI : ' + JSON.stringify(`${msoPortalUrl}/portal/v1/status`))
     const allStatus = await axios.get(`${msoPortalUrl}/portal/v1/status`)
-    const isStatusCheck = allStatus.data.length > 0 ? allStatus.data.findIndex((status) => status.deviceId == deviceId) : -1
+    logger.debug('\n All Status : ' + JSON.stringify(allStatus.data.data) + '\t\t All status length : ' + JSON.stringify(allStatus.data.data.length))
+    const isStatusCheck = allStatus.data.data.length > 0 ? allStatus.data.data.findIndex((status) => status.deviceId == deviceId) : -1
     logger.debug('\n  isStatusCheck : ' + JSON.stringify(isStatusCheck))
     if(isStatusCheck == -1){
       logger.debug('\n MSO Portal status check : ' + JSON.stringify(isStatusCheck))
       await axios.post (`${msoPortalUrl}/portal/v1/status` , onBoardingPostBody)
     }
-
 
     return onBoardingPostBody
   }
@@ -397,7 +397,7 @@ module.exports = {
               // const { msoPortalUrl } = hook.app.get('mano')
               // logger.debug('\n MSO POST STATUS URI : ' + JSON.stringify(`${msoPortalUrl}/portal/v1/status`))
               // const allStatus = await axios.get(`${msoPortalUrl}/portal/v1/status`)
-              // const isStatusCheck = allStatus.data.length > 0 ? allStatus.data.findIndex((status) => status.deviceId == deviceId) : -1
+              // const isStatusCheck = allStatus.data.data.length > 0 ? allStatus.data.data.findIndex((status) => status.deviceId == deviceId) : -1
               // logger.debug('\n  isStatusCheck : ' + JSON.stringify(isStatusCheck))
               // if(isStatusCheck == -1){
               //   logger.debug('\n MSO Portal status check : ' + JSON.stringify(isStatusCheck))
