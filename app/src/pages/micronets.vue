@@ -1,7 +1,6 @@
 <template>
   <Layout>
-    <template v-for="(micronet, index) in subscriber.micronets.micronet">
-      <!--<p>Micronets.vue {{subscriber}}</p>-->
+    <template v-for="(micronet, index) in subscriber[0].micronets">
       <template v-if="micronet['micronet-id']==$route.params.micronetId">
       <!--<template v-for="subnet in micronet.subnets">-->
         <!--<p>Device Leases from State : {{deviceLeases || []}}</p>-->
@@ -9,7 +8,7 @@
       </template>
       <!--</template>-->
     </template>
-    <template v-if="!subscriber.micronets.length">
+    <template v-if="subscriber[0].micronets.length  == 0">
       <p>No micronet found</p>
       <v-card>
         <v-card-title class="no-subnets">No Micronets found</v-card-title>
