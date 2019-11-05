@@ -49,7 +49,7 @@ services:
     labels:
       com.cablelabs.micronets.resource-type: mm-api
       com.cablelabs.micronets.subscriber-id: ${MM_SUBSCRIBER_ID}
-=======
+
 #  app:
 #    image: "${MM_APP_SOURCE_IMAGE}"
 #    depends_on:
