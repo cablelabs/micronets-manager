@@ -123,7 +123,19 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
                 "deviceId": "y2h0y79789yt1y248wfkf4k8996fb92427ae41e4649q934pa495991b7852q989",
                 "macAddress": "72:77:42:ge:1r:94",
                 "class": "Medical",
-                "mudUrl":""
+                ﻿"mudUrl" : "https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg",
+                 "deviceId" : "MQkwUwQHUoQIzj0QAQYIKoZIzj0DAQcDIgACDIBBiMf4W",
+                 "macAddress" : "5b:85:67:5f:45:cf",
+                 "deviceManufacturer" : "HotDawg",
+                 "deviceModel" : "Twitter sensor",
+                 "deviceAuthority" : "https://alpineseniorcare.com",
+                 "deviceModelUID" : "AgoNDQcDDgg",
+                 "class" : "Personal",
+                 "onboardType" : "dpp",
+                 "onboardStatus" : "complete",
+                 "psk" : "c83e6d17bc16cdc6a08b3528769dc6f0b18d620aaf8b31a8b1d8ada069ffce07",
+                 "deviceIp" : "10.135.1.2",
+                 "micronetId" : "Personal"
             }
         ]
     }
@@ -144,12 +156,11 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
       {
             "subscriberId": "9XE3-JI34-00132A",
             "identityUrl": "http://127.0.0.1:3230",
-            "dhcpUrl": "http://127.0.0.1:5000",
             "mmUrl": "http://127.0.0.1:3030",
             "mmClientUrl": "http://127.0.0.1:8080",
-            "websocketUrl": "wss://74.207.229.106:5050",
+            "webSocketUrl": "wss://74.207.229.106:5050",
             "msoPortalUrl": "http://127.0.0.1:3210",
-            "odlUrl": "http://127.0.0.1:18080"
+            "gatewayId" : "micronets-gw-0001",
       }    
      
  #### Response:
@@ -157,12 +168,11 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
     {
            "subscriberId": "9XE3-JI34-00132A",
            "identityUrl": "http://127.0.0.1:3230",
-           "dhcpUrl": "http://127.0.0.1:5000",
            "mmUrl": "http://127.0.0.1:3030",
            "mmClientUrl": "http://127.0.0.1:8080",
-           "websocketUrl": "wss://74.207.229.106:5050",
+           "webSocketUrl": "wss://74.207.229.106:5050",
            "msoPortalUrl": "http://127.0.0.1:3210",
-           "odlUrl": "http://127.0.0.1:18080"
+           "gatewayId" : "micronets-gw-0001",
     }
     
     
@@ -180,7 +190,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
     
         ﻿{
             "version" : "1.0",
-            "gatewayId" : "default-gw-7B2A-BE88-08817Z",
+            "gatewayId" : "sisterkate-gw",
             "gatewayModel" : "proto-gateway",
             "gatewayVersion" : {
                 "major" : "1",
@@ -259,7 +269,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
      
       ﻿{
                   "version" : "1.0",
-                  "gatewayId" : "default-gw-7B2A-BE88-08817Z",
+                  "gatewayId" : "sisterkate-gw",
                   "gatewayModel" : "proto-gateway",
                   "gatewayVersion" : {
                       "major" : "1",
@@ -563,7 +573,7 @@ This project uses [Feathers](http://feathersjs.com). An open source web framewor
      cd path/to/micronets-manager; npm install
      ```
  
- 3. Start your app
+ 3. Start your api
  
      ```
      npm start
