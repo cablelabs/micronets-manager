@@ -35,6 +35,7 @@ export const initialState = {
 export const getters = {}
 
 export const mutations = {
+  setSubscriberId: setState('subscriberId'),
   setSubscriber: setState('subscriber'),
   setUsers: setState('users'),
   setAccessToken: setState('accessToken'),
@@ -106,8 +107,14 @@ export const actions = {
     })
   },
 
+  fetchSubscriberId({commit, dispatch}, subscriberId) {
+    console.log('\n fetchSubscriberId called with id : ' + JSON.stringify(subscriberId))
+    commit('setSubscriberId', subscriberId)
+  },
+
   fetchMicronets ({commit, dispatch}, id) {
     console.log('\n fetchMicronets called with id : ' + JSON.stringify(id))
+
     return axios({
       ...apiInit,
       method: 'get',

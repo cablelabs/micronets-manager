@@ -9,8 +9,6 @@ const WIRED = "ethernet"
 const WIRELESS = "wifi"
 const DPP_ON_BOARD_TYPE = 'dpp'
 const START_ON_BOARD = 'initial'
-const INTERMEDIATE_ON_BOARD = 'in_progress'
-const COMPLETE_ON_BOARD = 'complete'
 const errors = require ( '@feathersjs/errors' );
 const micronetOperationalConfig = require ( './../mock-data/micronetsOperationalConfig' );
 const micronetNotifications = require ( './../mock-data/micronetNotifications' );
@@ -74,6 +72,7 @@ const getOdlConfig = async ( hook , id ) => {
       return data
     } )
 }
+
 /* Get Switch Config */
 const getODLSwitchDetails = async ( hook , gatewayId ) => {
   const odlStaticConfig = await getOdlConfig ( hook , gatewayId )
@@ -757,6 +756,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       logger.debug('\n\n ************** SAME MANUFACTURER HANDLING **************' )
       logger.debug('\n\n MUD PARSER RESPONSE : ' + JSON.stringify(mudParserRes) + '\t\t For DHCP Device : ' + JSON.stringify(dhcpDeviceToUpsert))
 
+      // TODO: Remove mud hot fix
       const staticAllowHosts = [
         "my-controller",
         "same-manufacturer",

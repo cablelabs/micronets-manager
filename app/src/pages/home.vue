@@ -1,16 +1,20 @@
 <template>
   <Layout>
-    <template v-for="(micronet, index) in subscriber.micronets">
+    <template v-for="(micronet, index) in subscriber[0].micronets">
         <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
     </template>
-    <!--<template v-if="subscriber && subscriber.micronets.length == 0">-->
-      <!--<v-card>-->
-        <!--<v-card-title class="no-subnets">No Micronets found</v-card-title>-->
-        <!--<v-card-actions>-->
-          <!--&lt;!&ndash;<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>&ndash;&gt;-->
-        <!--</v-card-actions>-->
-      <!--</v-card>-->
-    <!--</template>-->
+    <template>
+      <!--<p>Home.vue Subscriber : {{subscriber}}</p>-->
+      <!--<p>Home.vue Subscriber Micronets : {{subscriber[0].micronets}}</p>-->
+    </template>
+    <template v-if="subscriber[0].micronets.length == 0">
+      <v-card>
+        <v-card-title class="no-subnets">No Micronets found</v-card-title>
+        <v-card-actions>
+          <!--<v-btn class="primary mt-4 configure-micronet" to="/configure-micronet">Add Subnet</v-btn>-->
+        </v-card-actions>
+      </v-card>
+    </template>
   </Layout>
 </template>
 
@@ -19,13 +23,13 @@
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
   import Subscriber from '../components/Subscriber'
-  import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+  import { mapState, mapActions,  mapMutations } from 'vuex'
 
   export default {
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
     name: 'home',
     computed: {
-      ...mapState(['subscriber', 'deviceLeases', 'users'])
+      ...mapState(['subscriber', 'deviceLeases', 'users', 'subscriberId'])
     },
     data: () => ({
       dialog: false,
@@ -37,52 +41,67 @@
       connect () {
         // Fired when the socket connects.
         this.isConnected = true
-      },
-      disconnect () {
-        this.isConnected = false
-      },
-      // Fired when the server sends something on the "messageChannel" channel.
-      messageChannel (data) {
-        this.socketMessage = data
       }
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers']),
+      ...mapActions(['fetchMicronets', 'fetchSubscriberId', 'upsertDeviceLeases', 'fetchUsers']),
       getSubscriberId () {
         let subscriberId = ''
         console.log('\n Home page mounted  : ' + JSON.stringify(window.location.href))
         const pageUrl = window.location.href
         if (pageUrl.indexOf('users') > -1) {
           subscriberId = pageUrl.split('users')[1].split('/')[1]
-          console.log('The subscriberId is: ' + JSON.stringify(subscriberId))
-          console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
+          console.log('The subscriberId is from url : ' + JSON.stringify(subscriberId))
+          this.fetchSubscriberId(subscriberId).then(()=> {
+            const id = this.subscriberId
+            console.log('\n Ashwini Set subscriberId from state : ' + JSON.stringify(this.subscriberId))
+            this.fetchMicronets(id).then(() => {
+              console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
+              console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
+            })
+            this.fetchUsers().then(() => {
+              console.log('\n Users : ' + JSON.stringify(this.users))
+            })
+          })
         } else {
           console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
           subscriberId = process.env.MM_SUBSCRIBER_ID
+          this.fetchSubscriberId(process.env.MM_SUBSCRIBER_ID).then(()=> {
+            this.fetchMicronets(this.subscriberId).then(() => {
+              console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
+              console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
+            })
+            this.fetchUsers().then(() => {
+              console.log('\n Users : ' + JSON.stringify(this.users))
+            })
+          })
         }
         return subscriberId
       }
     },
     mounted () {
-      // const subscriberId = '9B4C-BE88-08817Z'
-      let subscriberId = this.getSubscriberId()
-      this.fetchMicronets(subscriberId).then(() => {
-        console.log('\n   Subscriber : ' + JSON.stringify(this.subscriber))
-        console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
-      })
-      this.fetchUsers().then(() => {
-        console.log('\n Users : ' + JSON.stringify(this.users))
+      this.fetchSubscriberId(process.env.MM_SUBSCRIBER_ID).then(()=> {
+        const id = this.subscriberId
+        this.fetchMicronets(id).then(() => {
+          console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
+          console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
+        })
+        this.fetchUsers().then(() => {
+          console.log('\n Users : ' + JSON.stringify(this.users))
+        })
       })
     },
     created () {
-      // const subscriberId = '9B4C-BE88-08817Z'
-      let subscriberId = this.getSubscriberId()
-      this.fetchMicronets(subscriberId).then(() => {
-        console.log('\n  Subscriber : ' + JSON.stringify(this.subscriber))
-      })
-      this.fetchUsers().then(() => {
-        console.log('\n Users : ' + JSON.stringify(this.users))
+      this.fetchSubscriberId(process.env.MM_SUBSCRIBER_ID).then(()=> {
+        const id = this.subscriberId
+        this.fetchMicronets(id).then(() => {
+          console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
+          console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
+        })
+        this.fetchUsers().then(() => {
+          console.log('\n Users : ' + JSON.stringify(this.users))
+        })
       })
     }
   }
@@ -90,27 +109,26 @@
 
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style  scoped>
+<style  lang="stylus" scoped>
   .no-subnets {
     font-size: 20px;
     font-weight: bold;
     margin-top: 2%;
-    margin-left: 40%;
-    margin-right: 40%;
+    margin-left 40%
+    margin-right 40%
     padding-top: 120px;
   }
   .configure-micronet {
-    margin-left: 43%;
-    margin-right: 40%;
+    margin-left 43%
+    margin-right 40%
     margin-bottom : 5%
   }
   .add-subnet-form {
-    background-color: white!important;
-    min-width: 100%;
+    background-color white!important
+    min-width 100%
   }
   .close-btn {
-    background-color: white!important;
-    margin-left: 90%
-
+    background-color white!important
+    margin-left 90%
   }
 </style>
