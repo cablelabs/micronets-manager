@@ -46,43 +46,11 @@
     methods: {
       ...mapMutations(['setEditTargetIds']),
       ...mapActions(['fetchMicronets', 'fetchSubscriberId', 'upsertDeviceLeases', 'fetchUsers']),
-      getSubscriberId () {
-        let subscriberId = ''
-        console.log('\n Home page mounted  : ' + JSON.stringify(window.location.href))
-        const pageUrl = window.location.href
-        if (pageUrl.indexOf('users') > -1) {
-          subscriberId = pageUrl.split('users')[1].split('/')[1]
-          console.log('The subscriberId is from url : ' + JSON.stringify(subscriberId))
-          this.fetchSubscriberId(subscriberId).then(()=> {
-            const id = this.subscriberId
-            console.log('\n Ashwini Set subscriberId from state : ' + JSON.stringify(this.subscriberId))
-            this.fetchMicronets(id).then(() => {
-              console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
-              console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
-            })
-            this.fetchUsers().then(() => {
-              console.log('\n Users : ' + JSON.stringify(this.users))
-            })
-          })
-        } else {
-          console.log('SubscriberId from ENV MM_SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
-          subscriberId = process.env.MM_SUBSCRIBER_ID
-          this.fetchSubscriberId(process.env.MM_SUBSCRIBER_ID).then(()=> {
-            this.fetchMicronets(this.subscriberId).then(() => {
-              console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
-              console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
-            })
-            this.fetchUsers().then(() => {
-              console.log('\n Users : ' + JSON.stringify(this.users))
-            })
-          })
-        }
-        return subscriberId
-      }
     },
     mounted () {
       this.fetchSubscriberId(process.env.MM_SUBSCRIBER_ID).then(()=> {
         const id = this.subscriberId
+        console.log('\n SubscriberId : ' + JSON.stringify(this.subscriberId))
         this.fetchMicronets(id).then(() => {
           console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
           console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
@@ -92,18 +60,7 @@
         })
       })
     },
-    created () {
-      this.fetchSubscriberId(process.env.MM_SUBSCRIBER_ID).then(()=> {
-        const id = this.subscriberId
-        this.fetchMicronets(id).then(() => {
-          console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
-          console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
-        })
-        this.fetchUsers().then(() => {
-          console.log('\n Users : ' + JSON.stringify(this.users))
-        })
-      })
-    }
+    created () {}
   }
 </script>
 

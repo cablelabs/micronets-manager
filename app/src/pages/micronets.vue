@@ -44,13 +44,12 @@
       }
     },
     mounted () {
-
       this.fetchMicronets(this.$router.currentRoute.params.id).then(() => {
-        console.log('\n Mounted micronets.vue this.subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n Mounted this.subscriber : ' + JSON.stringify(this.subscriber))
       })
 
       this.fetchUsers().then(() => {
-        console.log('\n Mounted micronets.vue this.deviceLeases : ' + JSON.stringify(this.deviceLeases))
+        console.log('\n Mounted this.deviceLeases : ' + JSON.stringify(this.deviceLeases))
       })
     },
     created () {}
