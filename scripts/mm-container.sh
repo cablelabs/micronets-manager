@@ -405,7 +405,6 @@ function create_nginx_rules_for_subscriber()
     mm_api_priv_ip_addr=$(get_ip_address_for_container ${mm_api_container_id})
 
     # mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
-    
 
     nginx_rule_file_for_subscriber=$(get_nginx_rule_file_for_subscriber $subscriber_id)
     # echo "create_nginx_rules_for_subscriber: nginx_rule_file_for_subscriber=$nginx_rule_file_for_subscriber"
@@ -530,6 +529,5 @@ elif [ "$operation" == "inspect" ]; then
 elif [ "$operation" == "setup-web-proxy" ]; then
     setup_web_proxy
 else
-    bailout_with_usage "Unrecognized operation: $operation"
+        bailout_with_usage "Unrecognized operation: $operation"
 fi
-
