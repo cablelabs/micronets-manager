@@ -7,7 +7,8 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 NGINX_CONF_DIR="/etc/nginx/micronets-subscriber-forwards"
 NGINX_RELOAD_COMMAND="sudo nginx -s reload"
 SUBSCRIBER_PREFIX="mm-sub-"
-DEF_MM_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-api:latest"
+DEF_MM_API_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-api:latest"
+DEF_MM_APP_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-app:latest"
 DOCKER_CMD="docker"
 
 function bailout()
@@ -57,8 +58,10 @@ function print_usage()
     echo ""
     echo "   subscriber-id can be any alphanumeric string, with hyphens or underscores"
     echo ""
-    echo "   [--docker-image <docker image ID>]"
-    echo "       (default \"$DEF_MM_IMAGE_LOCATION\")"
+    echo "   [--api-docker-image <api docker image ID>"
+    echo "       (default \"$DEF_MM_API_IMAGE_LOCATION\")"
+    echo "   [--app-docker-image <app docker image ID>"
+    echo "       (default \"$DEF_MM_APP_IMAGE_LOCATION\")"
     echo "   [--nginx-conf-dir <directory_to_add/remove nginx proxy rules>]"
     echo "       (default \"$NGINX_CONF_DIR\")"
     echo "   [--nginx-reload-command <command to cause nginx conf reload>]"
@@ -72,15 +75,20 @@ function process_arguments()
 
     operation=""
     subscriber_id=""
-    docker_image_id="$DEF_MM_IMAGE_LOCATION"
+    api_docker_image_id="$DEF_MM_API_IMAGE_LOCATION"
+    app_docker_image_id="$DEF_MM_APP_IMAGE_LOCATION"
     nginx_conf_dir="$NGINX_CONF_DIR"
     nginx_reload_command="$NGINX_RELOAD_COMMAND"
 
     while [[ $1 == --* ]]; do
-        if [ "$1" == "--docker-image" ]; then
+        if [ "$1" == "--api-docker-image" ]; then
             shift
-            docker_image_id="$1"
-            shift || bailout_with_usage "missing parameter to --docker-image"
+            api_docker_image_id="$1"
+            shift || bailout_with_usage "missing parameter to --api-docker-image"
+        elif [ "$1" == "--app-docker-image" ]; then
+            shift
+            app_docker_image_id="$1"
+            shift || bailout_with_usage "missing parameter to --app-docker-image"
         elif [ "$1" == "--nginx-conf-dir" ]; then
             shift
             nginx_conf_dir="$1"
@@ -89,7 +97,7 @@ function process_arguments()
             shift
             nginx_reload_command="$1"
             shift || bailout_with_usage "missing parameter to --nginx-reload-command"
-        else 
+        else
             bailout_with_usage "Unrecognized option: $1"
         fi
     done
@@ -332,7 +340,8 @@ function start_subscriber()
     echo "Creating resources for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
-       MM_API_SOURCE_IMAGE="$docker_image_id" \
+       MM_API_SOURCE_IMAGE="$api_docker_image_id" \
+       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
        docker-compose -f "${script_dir}/docker-compose.yml" \
                       --project-name $subscriber_label up -d) \
@@ -346,7 +355,8 @@ function delete_subscriber()
     echo "Deleting resources for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
-       MM_API_SOURCE_IMAGE="$docker_image_id" \
+       MM_API_SOURCE_IMAGE="$api_docker_image_id" \
+       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
        docker-compose -f "${script_dir}/docker-compose.yml" \
                       --project-name $subscriber_label down -v) \
@@ -360,7 +370,8 @@ function stop_containers_for_subscriber()
     echo "Stopping containers for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
-       MM_API_SOURCE_IMAGE="$docker_image_id" \
+       MM_API_SOURCE_IMAGE="$api_docker_image_id" \
+       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
        docker-compose -f "${script_dir}/docker-compose.yml" \
                       --project-name $subscriber_label down) \
@@ -374,7 +385,8 @@ function restart_containers_for_subscriber()
     echo "Restarting containers for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
-       MM_API_SOURCE_IMAGE="$docker_image_id" \
+       MM_API_SOURCE_IMAGE="$api_docker_image_id" \
+       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
        docker-compose -f "${script_dir}/docker-compose.yml" \
                       --project-name $subscriber_label restart) \
@@ -389,17 +401,21 @@ function create_nginx_rules_for_subscriber()
 
     subscriber_id="$1"
     mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
-    # mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
+    mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
     mm_api_priv_ip_addr=$(get_ip_address_for_container ${mm_api_container_id})
 
     # mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
     
+
     nginx_rule_file_for_subscriber=$(get_nginx_rule_file_for_subscriber $subscriber_id)
     # echo "create_nginx_rules_for_subscriber: nginx_rule_file_for_subscriber=$nginx_rule_file_for_subscriber"
     rules="\
 # Forwarding rules for container ${mm_api_container_id}
 location /sub/${subscriber_id}/api/ {
     proxy_pass http://${mm_api_priv_ip_addr}:3030/;
+}
+location /sub/${subscriber_id}/app/ {
+    proxy_pass http://${mm_app_priv_ip_addr}:8080/;
 }
 "
     # echo "Forwarding rule for subscriber $subscriber_id: $rules"
@@ -472,7 +488,8 @@ process_arguments "$@"
 
 # echo "Script directory: ${script_dir}"
 # echo "Operation: ${operation}"
-# echo "Docker image: ${docker_image_id}"
+# echo "MM API docker image: ${api_docker_image_id}"
+# echo "MM API docker image: ${app_docker_image_id}"
 # echo "Docker reload command: ${nginx_reload_command}"
 # echo "nginx config directory: ${nginx_conf_dir}"
 

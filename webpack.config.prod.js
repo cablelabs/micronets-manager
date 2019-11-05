@@ -1,28 +1,25 @@
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 module.exports = {
   module: {
     rules: [
       {
-        test: /\.vue$/,
-        loader: 'vue-loader',
-        options: {
-          loaders: {
-            css: ExtractTextPlugin.extract({
-              loader: 'css-loader',
-              fallbackLoader: 'vue-style-loader'
-            }),
-            scss: ExtractTextPlugin.extract({
-              loader: 'css-loader!sass-loader',
-              fallbackLoader: 'vue-style-loader'
-            }),
-            sass: ExtractTextPlugin.extract({
-              loader: 'css-loader!sass-loader?indentedSyntax',
-              fallbackLoader: 'vue-style-loader'
-            })
-          }
-        }
+        test: /\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              publicPath: (resourcePath, context) => {
+                // publicPath is the relative path of the resource to the context
+                // e.g. for ./css/admin/main.css the publicPath will be ../../
+                // while for ./css/main.css the publicPath will be ../
+                return path.relative(path.dirname(resourcePath), context) + '/';
+              },
+            },
+          },
+          'css-loader',
+        ],
       }
     ]
   },
@@ -41,6 +38,12 @@ module.exports = {
       minimize: true
     }),
     // Extract CSS in single file
-    new ExtractTextPlugin('css/style.css')
+    new MiniCssExtractPlugin({
+      // Options similar to the same options in webpackOptions.output
+      // both options are optional
+      filename: '[name].css',
+      chunkFilename: '[id].css',
+    }),
+    // new ExtractTextPlugin('css/style.css')
   ]
 };

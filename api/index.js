@@ -3,39 +3,20 @@ const logger = require ( './logger' );
 const app = require ( './app' );
 const server = app.listen (app.get('listenPort'), app.get('listenHost'));
 const mano = app.get('mano')
-// const io = require ( 'socket.io' ) ( server );
 const dw = require ( './hooks/dhcpWrapperPromise' )
 const paths = require ( './hooks/servicePaths' )
-const { USERS_PATH, REGISTRY_PATH, MICRONETS_PATH  } = paths
+const { USERS_PATH, REGISTRY_PATH, MICRONETS_PATH, DPP_PATH  } = paths
 const axios = require ( 'axios' );
+const DPPOnboardingStartedEvent = 'DPPOnboardingStartedEvent'
+const DPPOnboardingProgressEvent = 'DPPOnboardingProgressEvent'
+const DPPOnboardingFailedEvent = 'DPPOnboardingFailedEvent'
+const DPPOnboardingCompleteEvent = 'DPPOnboardingCompleteEvent'
+const { isEmpty } = require('./hooks/dppWrapper')
 
-// const dotenv = require('dotenv');
-// dotenv.config();
-// const {subscriberId, identityUrl, webSocketBaseUrl, msoPortalUrl} = require('./config')
-const isEmpty = function ( data ) {
-  if ( typeof(data) === 'object' ) {
-    if ( JSON.stringify ( data ) === '{}' || JSON.stringify ( data ) === '[]' ) {
-      return true;
-    } else if ( !data ) {
-      return true;
-    }
-    return false;
-  } else if ( typeof(data) === 'string' ) {
-    if ( !data.trim () ) {
-      return true;
-    }
-    return false;
-  } else if ( typeof(data) === 'undefined' ) {
-    return true;
-  } else {
-    return false;
-  }
-}
 
 process.on ( 'unhandledRejection' , ( reason , p ) =>
   logger.error ( 'Unhandled Rejection at: Promise ' , p , reason )
 );
-
 
 server.on ( 'listening' , async () => {
   address = server.address()
@@ -89,8 +70,6 @@ server.on ( 'listening' , async () => {
 
 } );
 
-// io.on ( 'connection' , (() => logger.info ( 'Socket IO connection' )) )
-
 app.service (`${REGISTRY_PATH}`).on('gatewayReconnect', async( data ) => {
   if(data.data.hasOwnProperty('webSocketUrl')) {
     logger.debug('\n Gateway Reconnect event fired for url : ' + JSON.stringify(data.data.webSocketUrl))
@@ -127,7 +106,7 @@ async function upsertDeviceLeaseStatus ( message , type ) {
 async function upsertDppDeviceOnboardStatus ( message , type ) {
   const { subscriberId } = app.get('mano')
   let eventDeviceId = '' , eventMacAddress = '', eventMicronetId = ''
-    logger.info ( '\n Dpp Onboard message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
+    logger.info ( '\n Gateway message : ' + JSON.stringify ( message ) + '\t\t Type : ' + JSON.stringify ( type ) )
     const isOnBoardComplete = type == 'DPPOnboardingCompleteEvent' ? true : false
     const isOnBoardFailed = type == 'DPPOnboardingFailedEvent' ? true : false
     logger.debug('\n isOnBoardComplete : ' + JSON.stringify(isOnBoardComplete) + '\t\t isOnBoardFailed : ' + JSON.stringify(isOnBoardFailed))
@@ -135,7 +114,7 @@ async function upsertDppDeviceOnboardStatus ( message , type ) {
   const userIndex = users.data.findIndex((user)=> user.id == subscriberId)
   if(userIndex > -1) {
     let user = users.data[ userIndex ]
-    logger.debug ( '\n  user : ' + JSON.stringify ( user ) )
+    logger.debug ( '\n  User : ' + JSON.stringify ( user ) )
     if ( isOnBoardComplete ) {
       const { deviceId , macAddress , micronetId } = message.body.DPPOnboardingCompleteEvent
       eventDeviceId = deviceId
@@ -157,7 +136,7 @@ async function upsertDppDeviceOnboardStatus ( message , type ) {
         onboardStatus : isOnBoardComplete ? 'complete' : isOnBoardFailed ? 'failed' : 'initial' ,
         micronetId : eventMicronetId
       } )
-    // user.devices[ deviceIndex ] = updatedDevice
+
     const updateResult = await app.service ( `${USERS_PATH}` ).patch( user.id , updatedDevice )
     logger.debug('\n Updated users result : ' + JSON.stringify(updateResult.data))
 
@@ -185,6 +164,30 @@ async function deleteDeviceOnFailedOnBoard (message, type) {
   }
 }
 
+async function upsertOnboardingResults (message, eventType)  {
+  // Post on-boarding results to MM
+  logger.debug(`\n Gateway Message : ` + JSON.stringify(message) + '\t\t EventType : ' + JSON.stringify(eventType))
+  const eventToPost = message.body[eventType]
+  logger.debug('\n Event to Post : ' + JSON.stringify(eventToPost))
+  const onBoardingPatchBody = Object.assign({},{
+    deviceId: eventToPost.deviceId,
+    events: Object.assign({},{
+      type: eventType,
+      ...eventToPost
+    })
+  })
+  logger.debug(`\n  OnBoarding PatchBody : ` + JSON.stringify(onBoardingPatchBody))
+  const dppPatchResult =  await app.service ( `${DPP_PATH}` ).patch( eventToPost.deviceId , onBoardingPatchBody )
+
+  // Post on-boarding results to MSO Portal
+  const { msoPortalUrl, subscriberId } = mano
+  const allStatus = await axios.get(`${msoPortalUrl}/portal/v1/status`)
+  const isStatusCheck = allStatus.data.data.length > 0 ? allStatus.data.data.findIndex((status) => status.deviceId === eventToPost.deviceId) : -1
+   if(isStatusCheck > -1){
+    await axios.patch (`${msoPortalUrl}/portal/v1/status/${eventToPost.deviceId}` ,onBoardingPatchBody)
+  }
+}
+
 dw.eventEmitter.on ( 'LeaseAcquired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseAcquiredEvent' )
 } )
@@ -193,11 +196,22 @@ dw.eventEmitter.on ( 'LeaseExpired' , async ( message ) => {
   await upsertDeviceLeaseStatus ( message , 'leaseExpiredEvent' )
 } )
 
+dw.eventEmitter.on ( 'DPPOnboardingStartedEvent' , async ( message ) => {
+  await upsertOnboardingResults(message,'DPPOnboardingStartedEvent')
+})
+
+dw.eventEmitter.on ( 'DPPOnboardingProgressEvent' , async ( message ) => {
+  await upsertOnboardingResults( message,'DPPOnboardingProgressEvent')
+})
+
+
 dw.eventEmitter.on ( 'DPPOnboardingCompleteEvent' , async ( message ) => {
+  await upsertOnboardingResults( message,'DPPOnboardingCompleteEvent')
   await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingCompleteEvent')
 } )
 
 dw.eventEmitter.on ( 'DPPOnboardingFailedEvent' , async ( message ) => {
+  await upsertOnboardingResults( message,'DPPOnboardingFailedEvent')
   await upsertDppDeviceOnboardStatus ( message , 'DPPOnboardingFailedEvent' )
   await deleteDeviceOnFailedOnBoard ( message , 'DPPOnboardingFailedEvent' )
 })

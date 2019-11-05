@@ -1,8 +1,6 @@
 import axios from 'axios'
 import {findIndex, propEq} from 'ramda'
 const setState = prop => (state, value) => { state[prop] = value }
-const micronetsUrl = `${process.env.MM_SERVER_BASE_URL}/mm/v1/subscriber`
-const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
 const msoPortalAuthPostConfig = {
   'clientID': 'https://coloradohealthcare.org/',
   'deviceID': '440c4aa0a4e595c4caa1e4294c6fdcc446444044441d44445fc4c4441cf44f1d',
@@ -12,8 +10,12 @@ const msoPortalAuthPostConfig = {
   'serial': 'GG-555555',
   'macAddress': '03:30:93:39:03:3B'
 }
+
+const micronetsUrl = `${process.env.MM_SERVER_BASE_URL}/mm/v1/subscriber`
 const authTokenUri = `${process.env.MSO_PORTAL_BASE_URL}/portal/v1/registration/token`
 const usersUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets/users`
+const apiInit = {crossDomain: true, headers: {'Content-type': 'application/json'}}
+
 // const micronetsUri = `${process.env.MM_SERVER_BASE_URL}/mm/v1/micronets`
 // const omitOperationalStateMeta = omit(['logEvents', 'statusCode', 'statusText', '_id', '__v'])
 // const omitStateMeta = omit(['_id', '__v'])
@@ -35,6 +37,7 @@ export const initialState = {
 export const getters = {}
 
 export const mutations = {
+  setSubscriberId: setState('subscriberId'),
   setSubscriber: setState('subscriber'),
   setUsers: setState('users'),
   setAccessToken: setState('accessToken'),
@@ -68,24 +71,18 @@ export const actions = {
   },
 
   fetchDevicesLeases ({state, commit, dispatch}, data) {
-    console.log('\n fetchDevicesLeases data : ' + JSON.stringify(data))
     let deviceLeasesForState = {}
     let deviceLeases = data.devices.map((device, index) => {
-      console.log('\n Current device : ' + JSON.stringify(device) + '\t\t Index : ' + JSON.stringify(index))
       deviceLeasesForState[device.deviceId] = Object.assign({}, {status: device.deviceLeaseStatus})
       return deviceLeasesForState
     })
-    console.log('\n This.deviceLeases : ' + JSON.stringify(state.deviceLeases))
-    console.log('\n deviceLeases : ' + JSON.stringify(deviceLeases))
-    console.log('\n deviceLeasesForState : ' + JSON.stringify(deviceLeasesForState))
     deviceLeases = [].concat(...deviceLeases)
-    console.log('\n Constructed Device Lease status : ' + JSON.stringify(deviceLeasesForState))
+    console.log('\n Setting Device Lease state : ' + JSON.stringify(deviceLeasesForState))
     commit('setDeviceLeases', deviceLeasesForState)
   },
 
   fetchUsers ({state, commit, dispatch}) {
     dispatch('fetchAuthToken').then((accessToken) => {
-      console.log('\n Inside then of dispatch accessToken : ' + JSON.stringify(accessToken))
       return axios({
         ...{
           crossDomain: true,
@@ -106,8 +103,13 @@ export const actions = {
     })
   },
 
+  fetchSubscriberId({commit, dispatch}, subscriberId) {
+    console.log('\n Setting subscriberId : ' + JSON.stringify(subscriberId))
+    commit('setSubscriberId', subscriberId)
+  },
+
   fetchMicronets ({commit, dispatch}, id) {
-    console.log('\n fetchMicronets called with id : ' + JSON.stringify(id))
+    console.log('\n Fetching micronets for id : ' + JSON.stringify(id))
     return axios({
       ...apiInit,
       method: 'get',
@@ -115,13 +117,12 @@ export const actions = {
     })
       .then(({data}) => {
         if (id) {
-          console.log('\n Fetch micronets called with id : ' + JSON.stringify(id))
-          console.log('\n Fetch Micronets response : ' + JSON.stringify(data))
+          console.log('\n Micronets response : ' + JSON.stringify(data))
           commit('setSubscriber', data)
           return data
         }
         if (!id) {
-          console.log('\n Fetch Micronets response without id : ' + JSON.stringify(data.data))
+          console.log('\n Micronets response without id : ' + JSON.stringify(data.data))
           commit('setSubscriber', data.data)
           return data.data
         }

@@ -1,7 +1,12 @@
 <template>
   <Layout>
     <template v-for="(micronet, index) in subscriber.micronets">
-        <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
+        <SubnetCard :subnet="micronet" :micronetId="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
+    </template>
+    <template>
+      <!--<p>Home.vue Subscriber : {{subscriber}}</p>-->
+      <!--<p>Home.vue Subscriber Micronets : {{subscriber.micronets}}</p>-->
+      <!--<p>Home.vue Subscriber Micronets Length : {{subscriber.micronets.length}}</p>-->
     </template>
     <template v-if="subscriber.micronets.length == 0">
       <v-card>
@@ -19,14 +24,13 @@
   import Layout from '../components/Layout'
   import AddSubnetForm from '../components/AddSubnetForm'
   import Subscriber from '../components/Subscriber'
-  import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
+  import { mapState, mapActions,  mapMutations } from 'vuex'
 
   export default {
     components: { SubnetCard, Layout, AddSubnetForm, Subscriber },
     name: 'home',
     computed: {
-      ...mapState(['subscriber', 'deviceLeases', 'users']),
-      ...mapGetters(['editTarget'])
+      ...mapState(['subscriber', 'deviceLeases', 'users', 'subscriberId'])
     },
     data: () => ({
       dialog: false,
@@ -38,82 +42,54 @@
       connect () {
         // Fired when the socket connects.
         this.isConnected = true
-      },
-      disconnect () {
-        this.isConnected = false
-      },
-      // Fired when the server sends something on the "messageChannel" channel.
-      messageChannel (data) {
-        this.socketMessage = data
       }
     },
     methods: {
       ...mapMutations(['setEditTargetIds']),
-      ...mapActions(['fetchMicronets', 'upsertDeviceLeases', 'fetchUsers']),
-      getSubscriberId () {
-        let subscriberId = ''
-        console.log('\n Home page mounted  : ' + JSON.stringify(window.location.href))
-        const pageUrl = window.location.href
-        if (pageUrl.indexOf('users') > -1) {
-          subscriberId = pageUrl.split('users')[1].split('/')[1]
-          console.log('The subscriberId is: ' + JSON.stringify(subscriberId))
-          console.log('SubscriberId from ENV SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
-          console.log('SubscriberId from ENV TEST_ID : ' + process.env.TEST_ID)
-        } else {
-          console.log('SubscriberId from ENV SUBSCRIBER_ID : ' + process.env.SUBSCRIBER_ID)
-          console.log('SubscriberId from ENV TEST_ID : ' + process.env.TEST_ID)
-          subscriberId = process.env.SUBSCRIBER_ID
-        }
-        return subscriberId
-      }
+      ...mapActions(['fetchMicronets', 'fetchSubscriberId', 'upsertDeviceLeases', 'fetchUsers']),
     },
     mounted () {
-      // const subscriberId = '9B4C-BE88-08817Z'
-      let subscriberId = this.getSubscriberId()
-      this.fetchMicronets(subscriberId).then(() => {
-        console.log('\n   Subscriber : ' + JSON.stringify(this.subscriber))
-        console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
-      })
-      this.fetchUsers().then(() => {
-        console.log('\n Users : ' + JSON.stringify(this.users))
+      console.log('\n Env Subscriber Id : ' + JSON.stringify(process.env.SUBSCRIBER_ID))
+      console.log('\n Env MM_SERVER_BASE_URL : ' + JSON.stringify(process.env.MM_SERVER_BASE_URL))
+      console.log('\n Env MSO_PORTAL_BASE_URL : ' + JSON.stringify(process.env.MSO_PORTAL_BASE_URL))
+      this.fetchSubscriberId(process.env.SUBSCRIBER_ID).then(()=> {
+        const id = this.subscriberId
+        console.log('\n SubscriberId : ' + JSON.stringify(this.subscriberId))
+        this.fetchMicronets(id).then(() => {
+          console.log('\n Subscriber : ' + JSON.stringify(this.subscriber))
+          console.log('\n DeviceLeases : ' + JSON.stringify(this.deviceLeases))
+        })
+        this.fetchUsers().then(() => {
+          console.log('\n Users : ' + JSON.stringify(this.users))
+        })
       })
     },
-    created () {
-      // const subscriberId = '9B4C-BE88-08817Z'
-      let subscriberId = this.getSubscriberId()
-      this.fetchMicronets(subscriberId).then(() => {
-        console.log('\n  Subscriber : ' + JSON.stringify(this.subscriber))
-      })
-      this.fetchUsers().then(() => {
-        console.log('\n Users : ' + JSON.stringify(this.users))
-      })
-    }
+    created () {}
   }
 </script>
 
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style  scoped>
+<style  lang="stylus" scoped>
   .no-subnets {
     font-size: 20px;
     font-weight: bold;
     margin-top: 2%;
-    margin-left: 40%;
-    margin-right: 40%;
+    margin-left 40%
+    margin-right 40%
     padding-top: 120px;
   }
   .configure-micronet {
-    margin-left: 43%;
-    margin-right: 40%;
+    margin-left 43%
+    margin-right 40%
     margin-bottom : 5%
   }
   .add-subnet-form {
-    background-color: white!important;
-    min-width: 100%;
+    background-color white!important
+    min-width 100%
   }
   .close-btn {
-    background-color: white!important;
-    margin-left: 90%
-
+    background-color white!important
+    margin-left 90%
   }
 </style>

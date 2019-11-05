@@ -1,14 +1,15 @@
 <template>
   <Layout>
-    <template v-for="(micronet, index) in subscriber.micronets.micronet">
+    <template v-for="(micronet, index) in subscriber.micronets">
       <template v-if="micronet['micronet-id']==$route.params.micronetId">
       <!--<template v-for="subnet in micronet.subnets">-->
         <!--<p>Device Leases from State : {{deviceLeases || []}}</p>-->
-        <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber._id" ></SubnetCard>
+        <SubnetCard :subnet="micronet" :micronetId="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
       </template>
       <!--</template>-->
     </template>
-    <template v-if="!subscriber.micronets.micronet.length">
+    <template v-if="subscriber.micronets.length  == 0">
+      <p>No micronet found</p>
       <v-card>
         <v-card-title class="no-subnets">No Micronets found</v-card-title>
       </v-card>
@@ -25,7 +26,7 @@
     components: { SubnetCard, Layout, AddSubnetForm },
     name: 'micronets',
     computed: {
-      ...mapState(['subscriber', 'deviceLeases', 'users'])
+      ...mapState(['subscriber', 'deviceLeases', 'users', 'subscriberId'])
     },
     data: () => ({
       dialog: false,
@@ -44,10 +45,11 @@
     },
     mounted () {
       this.fetchMicronets(this.$router.currentRoute.params.id).then(() => {
-        console.log('\n Mounted this.subscriber : ' + JSON.stringify(this.subscriber))
+        console.log('\n Subscriber from state: ' + JSON.stringify(this.subscriber))
       })
+
       this.fetchUsers().then(() => {
-        console.log('\n Mounted this.deviceLeases : ' + JSON.stringify(this.deviceLeases))
+        console.log('\n DeviceLeases from state : ' + JSON.stringify(this.deviceLeases))
       })
     },
     created () {}

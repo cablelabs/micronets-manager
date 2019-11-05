@@ -1,11 +1,20 @@
 FROM node:8
 
+## Create app directory
 WORKDIR /usr/src/app
 
-# Bundle app source
-COPY . .
 RUN ls -a
 
+## Install app dependencies
+COPY package.json .
+
+## Install app dependencies
 RUN npm install
 
-CMD ["npm", "run", "client"]
+## Copy all the bits
+COPY . .
+
+## Setup the default run command
+CMD ["npm", "run", "start"]
+
+CMD ["npm", "run", "start"]
