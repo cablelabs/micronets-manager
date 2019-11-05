@@ -55,7 +55,7 @@ export default {
     }
   },
   mounted () {
-    console.log('\n SubnetCard mounted method this.subnet : ' + JSON.stringify(this.subnet) + '\t\t micronetID : ' + JSON.stringify(this.micronetId) + '\t\t Subscriber ID : ' + JSON.stringify(this.subscriberId))
+    // console.log('\n SubnetCard mounted method this.subnet : ' + JSON.stringify(this.subnet) + '\t\t micronetID : ' + JSON.stringify(this.micronetId) + '\t\t Subscriber ID : ' + JSON.stringify(this.subscriberId))
   },
   created () {}
 }

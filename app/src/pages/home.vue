@@ -1,13 +1,14 @@
 <template>
   <Layout>
-    <template v-for="(micronet, index) in subscriber[0].micronets">
-        <SubnetCard :subnet="micronet" :key="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
+    <template v-for="(micronet, index) in subscriber.micronets">
+        <SubnetCard :subnet="micronet" :micronetId="micronet['micronet-id']" :subscriberId="subscriber.id" ></SubnetCard>
     </template>
     <template>
       <!--<p>Home.vue Subscriber : {{subscriber}}</p>-->
-      <!--<p>Home.vue Subscriber Micronets : {{subscriber[0].micronets}}</p>-->
+      <!--<p>Home.vue Subscriber Micronets : {{subscriber.micronets}}</p>-->
+      <!--<p>Home.vue Subscriber Micronets Length : {{subscriber.micronets.length}}</p>-->
     </template>
-    <template v-if="subscriber[0].micronets.length == 0">
+    <template v-if="subscriber.micronets.length == 0">
       <v-card>
         <v-card-title class="no-subnets">No Micronets found</v-card-title>
         <v-card-actions>
@@ -48,7 +49,10 @@
       ...mapActions(['fetchMicronets', 'fetchSubscriberId', 'upsertDeviceLeases', 'fetchUsers']),
     },
     mounted () {
-      this.fetchSubscriberId(process.env.MM_SUBSCRIBER_ID).then(()=> {
+      console.log('\n Env Subscriber Id : ' + JSON.stringify(process.env.SUBSCRIBER_ID))
+      console.log('\n Env MM_SERVER_BASE_URL : ' + JSON.stringify(process.env.MM_SERVER_BASE_URL))
+      console.log('\n Env MSO_PORTAL_BASE_URL : ' + JSON.stringify(process.env.MSO_PORTAL_BASE_URL))
+      this.fetchSubscriberId(process.env.SUBSCRIBER_ID).then(()=> {
         const id = this.subscriberId
         console.log('\n SubscriberId : ' + JSON.stringify(this.subscriberId))
         this.fetchMicronets(id).then(() => {
