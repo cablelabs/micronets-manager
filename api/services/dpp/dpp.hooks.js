@@ -19,6 +19,7 @@ const DPPOnboardingCompleteEvent = 'DPPOnboardingCompleteEvent'
 const dw = require ( './../../hooks/dhcpWrapperPromise' )
 const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v', '_id' ] );
 var child_process = require('child_process');
+const errors = require ( '@feathersjs/errors' );
 const defaultDPPMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
 
 
@@ -76,25 +77,26 @@ const getMudUri = async(hook) => {
   const { data } = hook
   const {bootstrap, user, device} = data
   const { registryBaseUrl } = hook.app.get('mud')
-  const registerDeviceUrl = `${registryBaseUrl}/register-device/${bootstrap.vendor}/${device.modelUID}/${bootstrap.pubkey}`
+ // const registerDeviceUrl = `${registryBaseUrl}/register-device/${bootstrap.vendor}/${device.modelUID}/${bootstrap.pubkey}`
   const mudUrlForDeviceUrl = `${registryBaseUrl}/mud-url/${bootstrap.vendor}/${bootstrap.pubkey}`
-  logger.debug('\n Register Device Url : ' + JSON.stringify(registerDeviceUrl) + '\t\t  MudUrlForDevice ' +JSON.stringify(mudUrlForDeviceUrl))
+ // logger.debug('\n Register Device Url : ' + JSON.stringify(registerDeviceUrl))
+    logger.debug('\n\n  MudUrlForDevice ' +JSON.stringify(mudUrlForDeviceUrl))
 
   // Register device with curl commands
-  const registerDeviceCurl = `curl -L -X  POST \"${registerDeviceUrl}\"`
-  const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
-  console.log(registerDeviceRes);
+ // const registerDeviceCurl = `curl -L -X  POST \"${registerDeviceUrl}\"`
+ // const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
+ // console.log(registerDeviceRes);
 
   // Get MUD URL with curl commands
-  if(registerDeviceRes){
+ // if(registerDeviceRes){
     const getMudUrlCurl = `curl -L -X  GET \"${mudUrlForDeviceUrl}\"`
     const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
     console.log(getMudUrlRes);
     return getMudUrlRes
-  }
-  else {
-    return Promise.reject(new errors.GeneralError(new Error('Error occured to obtain MUD url')))
-  }
+ // }
+ //  else {
+ //    return Promise.reject(new errors.GeneralError(new Error('Error occured to obtain MUD url')))
+ //  }
 }
 
 const validateDppRequest = async(hook) => {
@@ -171,6 +173,13 @@ const onboardDppDevice = async(hook) => {
 
   //Retrieve mud-uri from mud-registry using vendor and pubkey parameters
   const dppMudUrl = await getMudUri(hook)
+  logger.debug('\n MUD URL Obtained : ' + JSON.stringify(dppMudUrl))
+  let malformedMudUrlIndex  =  dppMudUrl.indexOf('undefined')
+  logger.debug('\n malformedMudUrlIndex : ' + JSON.stringify(malformedMudUrlIndex))
+
+  if( malformedMudUrlIndex > -1 ) {
+    return Promise.reject(new errors.BadRequest(new Error(`Malformed MUD Url : ${testMudUrl}`)))
+  }
 
   //Generate PSK for device
   const dppDevicePsk = await generateDevicePSK(hook, 64)
