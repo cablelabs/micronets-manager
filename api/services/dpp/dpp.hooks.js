@@ -80,7 +80,7 @@ const getMudUri = async(hook) => {
  // const registerDeviceUrl = `${registryBaseUrl}/register-device/${bootstrap.vendor}/${device.modelUID}/${bootstrap.pubkey}`
   const mudUrlForDeviceUrl = `${registryBaseUrl}/mud-url/${bootstrap.vendor}/${bootstrap.pubkey}`
  // logger.debug('\n Register Device Url : ' + JSON.stringify(registerDeviceUrl))
-    logger.debug('\n\n  MudUrlForDevice ' +JSON.stringify(mudUrlForDeviceUrl))
+  logger.debug('\n\n  Mud Request Url for device  ' +JSON.stringify(mudUrlForDeviceUrl))
 
   // Register device with curl commands
  // const registerDeviceCurl = `curl -L -X  POST \"${registerDeviceUrl}\"`
@@ -175,7 +175,7 @@ const onboardDppDevice = async(hook) => {
   const dppMudUrl = await getMudUri(hook)
   logger.debug('\n MUD URL Obtained : ' + JSON.stringify(dppMudUrl))
   let malformedMudUrlIndex  =  dppMudUrl.indexOf('undefined')
-  logger.debug('\n malformedMudUrlIndex : ' + JSON.stringify(malformedMudUrlIndex))
+  logger.debug('\n Malformed MudUrl Index : ' + JSON.stringify(malformedMudUrlIndex))
 
   if( malformedMudUrlIndex > -1 ) {
     return Promise.reject(new errors.BadRequest(new Error(`Malformed MUD Url : ${testMudUrl}`)))
