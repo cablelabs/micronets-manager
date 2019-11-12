@@ -88,7 +88,7 @@ const getMudUri = async(hook) => {
  // console.log(registerDeviceRes);
 
   logger.debug('\n Awaiting 2 sec ... ')
-  await wait(2000)
+  wait(2000)
 
   // Get MUD URL with curl commands
  // if(registerDeviceRes){
