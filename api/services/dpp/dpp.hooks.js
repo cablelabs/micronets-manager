@@ -26,9 +26,11 @@ const defaultDPPMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg
 const wait = function ( ms ) {
   var start = new Date().getTime();
   var end = start;
+  logger.debug('\n Current Time : ' + JSON.stringify(new Date().getTime()))
   while(end < start + ms) {
     end = new Date().getTime();
   }
+  logger.debug('\n Current Time : ' + JSON.stringify(new Date().getTime()))
 }
 
 const randHex = (len) => {
@@ -87,8 +89,8 @@ const getMudUri = async(hook) => {
  // const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
  // console.log(registerDeviceRes);
 
-  logger.debug('\n Awaiting 2 sec ... ')
-  wait(2000)
+  logger.debug('\n Awaiting 5 secs ... ')
+  wait(5000)
 
   // Get MUD URL with curl commands
  // if(registerDeviceRes){
