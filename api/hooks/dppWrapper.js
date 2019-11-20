@@ -713,20 +713,32 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
   let sameManufacturerDeviceMacAddrs = []
   // Get MUD Url from users
   const mud = hook.app.get ( 'mud' )
- logger.debug('\n MUD URL : ' + JSON.stringify( mud.managerBaseUrl ) + '\t\t MUD VERSION : ' + JSON.stringify(mud.version))
+ logger.debug('\n MUD POST URL : ' + JSON.stringify( mud.managerBaseUrl ) + '\t\t MUD VERSION : ' + JSON.stringify(mud.version))
   let user = await hook.app.service ( `${USERS_PATH}` ).find ( {} )
   user = user.data[ 0 ]
   let userDevices = user.devices
-  // logger.debug('\n\n User Devices : ' + JSON.stringify(userDevices))
+  logger.debug('\n\n User Devices : ' + JSON.stringify(userDevices))
   let dhcpDevicesWithMudConfig = await Promise.all ( dhcpDevicesToUpsert.map ( async ( dhcpDeviceToUpsert , index ) => {
-    // logger.debug('\n dhcpDeviceToUpsert : ' + JSON.stringify(dhcpDeviceToUpsert))
+   logger.debug('\n  DhcpDeviceToUpsert to match against : ' + JSON.stringify(dhcpDeviceToUpsert))
     let userDeviceIndex = userDevices.findIndex ( ( userDevice ) => userDevice.macAddress == dhcpDeviceToUpsert.macAddress.eui48 && userDevice.deviceId == dhcpDeviceToUpsert.deviceId )
     let mudUrlForDevice = userDeviceIndex != -1 ? userDevices[ userDeviceIndex ].mudUrl : ''
+    let onBoardType = userDeviceIndex != -1 ? userDevices[ userDeviceIndex ].onboardType : 'undefined'
     let deviceToUpsertManufacturer = userDevices[userDeviceIndex].deviceManufacturer
     let deviceToUpsertAuthority = userDevices[userDeviceIndex].deviceAuthority
 
+    logger.debug('\n Mud Url Obtained : ' + JSON.stringify(mudUrlForDevice) + '\t\t onBoardType : ' + JSON.stringify(onBoardType))
     // Handling same manufacturer entries
     logger.debug('\n\n DeviceToUpsertManufacturer : ' + JSON.stringify(deviceToUpsertManufacturer) + '\t\t DeviceToUpsertAuthority : ' + JSON.stringify(deviceToUpsertAuthority))
+
+    // MUD URL not present but its still a DPP on-board request.Add PSK.
+    if(isEmpty(mudUrlForDevice) && !isEmpty(onBoardType) && onBoardType == DPP_ON_BOARD_TYPE ) {
+     logger.debug('\n No Mud Url present. No mud parsing required. Only add PSK for device ...')
+      if ( userDevices[ userDeviceIndex ].hasOwnProperty ( 'psk' ) ) {
+        dhcpDeviceToUpsert[ 'psk' ] = userDevices[ userDeviceIndex ].psk
+      }
+      logger.debug('\n Gateway Device after psk without mud processing : ' + JSON.stringify(dhcpDeviceToUpsert))
+      return dhcpDeviceToUpsert
+    }
 
 
     // MUD URL Present. Call MUD Parser
@@ -941,7 +953,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       // return Object.assign({dhcpDeviceToUpsert:dhcpDeviceToUpsert, sameManufacturer: true })
       return dhcpDeviceToUpsert
     } else {
-      logger.debug ( '\n Empty MUD url.' + JSON.stringify ( mudUrlForDevice ) + ' Do nothing' )
+      logger.debug ( '\n Empty MUD url.' + JSON.stringify ( mudUrlForDevice ) + ' Yet add PSK for device' )
       return dhcpDeviceToUpsert
     }
   } ) )
@@ -997,6 +1009,8 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
         method : 'get' ,
         url : `${mmUrl}/${paths.DHCP_PATH}/${subnetId}/devices` ,
       } )
+
+      logger.debug('\n DhcpDevicesPostBody : ' + JSON.stringify(dhcpDevicesPostBody))
       const dhcpDevicePromises = await Promise.all ( dhcpDevicesPostBody.map ( async ( dhcpDevice , index ) => {
 
         // Check DHCP device to add does not exist in DHCP Subnet
@@ -1023,6 +1037,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
             // TODO : Update users api to include deviceIp for added device on gateway.
             logger.debug('\n Gateway device created successfully .... ')
             let gatewayDevice = dhcpDeviceToAdd.data.body.device
+            logger.debug('\n Added Gateway device : ' + JSON.stringify(gatewayDevice))
             const users = await hook.app.service ( `${USERS_PATH}` ).get (hook.data.subscriberId);
             logger.debug('\n\n Users with devices : ' + JSON.stringify(users))
             let userDevices = users.devices
@@ -1043,12 +1058,18 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
 
 
             let sameManufacturesDeviceIps = [], devicesToUpsert = []
-             sameManufacturesDeviceIps = gatewayDevice.allowHosts.map((host) => {
-               logger.debug('\n GatewayDevice Host : ' + JSON.stringify(host))
-              if(validator.isIP(host,4)){
-                return host
-              }
-            })
+
+            // Hnadle empty MUD URL will lead to missing allowHosts.
+            if(gatewayDevice.hasOwnProperty('allowHosts'))
+            {
+              sameManufacturesDeviceIps = gatewayDevice.allowHosts.map((host) => {
+                logger.debug('\n GatewayDevice Host : ' + JSON.stringify(host))
+                if(validator.isIP(host,4)){
+                  return host
+                }
+              })
+            }
+
 
            sameManufacturesDeviceIps = sameManufacturesDeviceIps.filter ( ( el ) => { return el != null } )
            logger.debug('\n Same manufacturer DeviceIps found are : ' + JSON.stringify(sameManufacturesDeviceIps))

@@ -96,7 +96,9 @@ const getMudUri = async(hook) => {
  // if(registerDeviceRes){
     const getMudUrlCurl = `curl -L -X  GET \"${mudUrlForDeviceUrl}\"`
     const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
+    logger.debug('\n ***** GET MUD URL RESPONSE ******* ')
     console.log(getMudUrlRes);
+    logger.debug('\n ***** GET MUD URL RESPONSE ******* ')
     return getMudUrlRes
  // }
  //  else {
@@ -178,7 +180,7 @@ const onboardDppDevice = async(hook) => {
 
   //Retrieve mud-uri from mud-registry using vendor and pubkey parameters
   const dppMudUrl = await getMudUri(hook)
-  logger.debug('\n MUD URL Obtained : ' + JSON.stringify(dppMudUrl))
+  logger.debug('\n MUD URL Obtained from registry : ' + JSON.stringify(dppMudUrl))
   let malformedMudUrlIndex  =  dppMudUrl.indexOf('undefined')
   logger.debug('\n Malformed MudUrl Index : ' + JSON.stringify(malformedMudUrlIndex))
 
@@ -308,9 +310,9 @@ const onboardDppDevice = async(hook) => {
             }
           })
 
-          logger.debug('\n  Device - Id : ' + JSON.stringify(deviceId) + '\t\t\t Gateway Put Body : ' + JSON.stringify(gatewayPutBody))
+          logger.debug('\n  Device - Id : ' + JSON.stringify(deviceId) + '\t\t\t DPP ON-board PUT Request : ' + JSON.stringify(gatewayPutBody))
           const onBoardResponse =  await dw.send(Object.assign({},gatewayPutBody), 'PUT','onboard',subnetIdToUpsert, deviceId)
-          logger.debug('\n On Board Response data : ' + JSON.stringify(onBoardResponse.data) + '\t\t Status : ' + JSON.stringify(onBoardResponse.status))
+          logger.debug('\n  DPP ON-board Response data : ' + JSON.stringify(onBoardResponse.data) + '\t\t Status : ' + JSON.stringify(onBoardResponse.status))
           if(onBoardResponse.status == 200) {
             return await postOnboardingResults(hook)
           }
