@@ -21,7 +21,7 @@ const omitMeta = omit ( [ 'updatedAt' , 'createdAt'  , '__v', '_id' ] );
 var child_process = require('child_process');
 const errors = require ( '@feathersjs/errors' );
 const defaultDPPMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
-
+const crypto = require('crypto');
 
 const wait = function ( ms ) {
   var start = new Date().getTime();
@@ -57,7 +57,11 @@ const generateDevicePSK = async ( hook , len ) => {
 const getDeviceId = async(hook) => {
   const { data } = hook
   const { subscriberId, bootstrap, device, user } = data
-  return bootstrap.pubkey.split('+')[0]
+  const partPubKey =  bootstrap.pubkey.substring(0,5)
+  console.log('\n Substring of pubKey : ' + JSON.stringify(partPubKey))
+  const deviceId = crypto.createHash('sha1').update(partPubKey).digest('hex');
+ console.log('\n Generated Device ID hash : ' + JSON.stringify(deviceId))
+  return deviceId
 }
 
 const runCurlCmd = async(hook,cmd) => {
@@ -89,8 +93,8 @@ const getMudUri = async(hook) => {
  // const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
  // console.log(registerDeviceRes);
 
-  logger.debug('\n Awaiting 5 secs ... ')
-  wait(5000)
+   logger.debug('\n Awaiting 5 secs ... ')
+   wait(5000)
 
   // Get MUD URL with curl commands
  // if(registerDeviceRes){
@@ -193,8 +197,9 @@ const onboardDppDevice = async(hook) => {
   const deviceAuthority = !isEmpty(dppMudUrl) && dppMudUrl.split('/micronets-mud')[0]
   logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk) + '\t\t Device MUD URL : ' + JSON.stringify(dppMudUrl) + '\t\t Device Authority : ' + JSON.stringify(deviceAuthority))
   //Add device to users api
+  const deviceId = await getDeviceId(hook)
   const userPatchBody = Object.assign({},{
-    deviceId: bootstrap.pubkey.split('+')[0],
+    deviceId: deviceId,
     macAddress: bootstrap.mac,
     isRegistered: false,
     deviceName: user.deviceName,
@@ -254,10 +259,10 @@ const onboardDppDevice = async(hook) => {
   if(micronetToUpsertIndex != -1 ) {
     const micronetIdToUpsert = micronetsFromDb.micronets[ micronetToUpsertIndex ][ 'micronet-id' ]
     const subnetIdToUpsert = micronetsFromDb.micronets[ micronetToUpsertIndex ][ 'micronet-subnet-id' ]
-
+    const deviceId = await getDeviceId(hook)
     const dppDevicesToAddToMicronetPost = Object.assign ( {} , {
       deviceName : hook.data.user.deviceName ,
-      deviceId : hook.data.bootstrap.pubkey.split ( '+' )[ 0 ] ,
+      deviceId : deviceId ,
       macAddress : hook.data.bootstrap.mac ,
       onboardType : DPP_ON_BOARD_TYPE ,
       onboardStatus : START_ON_BOARD
@@ -269,7 +274,7 @@ const onboardDppDevice = async(hook) => {
           "connected-devices" : [
             {
               "device-name" : hook.data.user.deviceName ,
-              "device-id" : hook.data.bootstrap.pubkey.split ( '+' )[ 0 ] ,
+              "device-id" : deviceId ,
               "device-mac" : hook.data.bootstrap.mac
             }
           ]
@@ -302,7 +307,7 @@ const onboardDppDevice = async(hook) => {
           logger.debug('\n Gateway Device added . Awaiting 5 secs before on-board call ... ')
           wait(5000)
           // PUT request to on-board device
-          const deviceId = hook.data.bootstrap.pubkey.split ( '+' )[ 0 ]
+          const deviceId = await getDeviceId(hook)
           const gatewayPutBody = Object.assign({},{
             dpp: {
               uri: hook.data.bootstrap.uri,
