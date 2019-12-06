@@ -58,9 +58,8 @@ const getDeviceId = async(hook) => {
   const { data } = hook
   const { subscriberId, bootstrap, device, user } = data
   const partPubKey =  bootstrap.pubkey.substring(0,5)
-  console.log('\n Substring of pubKey : ' + JSON.stringify(partPubKey))
   const deviceId = crypto.createHash('sha1').update(partPubKey).digest('hex');
- console.log('\n Generated Device ID hash : ' + JSON.stringify(deviceId))
+  console.log('\n Generated Device ID : ' + JSON.stringify(deviceId))
   return deviceId
 }
 
