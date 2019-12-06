@@ -92,8 +92,8 @@ const getMudUri = async(hook) => {
  // const registerDeviceRes = runCurlCmd(hook,registerDeviceCurl);
  // console.log(registerDeviceRes);
 
-   logger.debug('\n Awaiting 5 secs ... ')
-   wait(5000)
+  // logger.debug('\n Awaiting 5 secs ... ')
+  // wait(5000)
 
   // Get MUD URL with curl commands
  // if(registerDeviceRes){
@@ -304,7 +304,7 @@ const onboardDppDevice = async(hook) => {
 
         if(addedDhcpDevices.length > 0) {
           logger.debug('\n Gateway Device added . Awaiting 5 secs before on-board call ... ')
-          wait(5000)
+          // wait(5000)
           // PUT request to on-board device
           const deviceId = await getDeviceId(hook)
           const gatewayPutBody = Object.assign({},{

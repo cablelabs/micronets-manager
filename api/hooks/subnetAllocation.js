@@ -173,7 +173,7 @@ module.exports.releaseSubnetAddress = function (subnetAddress) {
   let me = this
   return new Promise(async function (resolve, reject) {
     await me.lock.acquireAsync()
-    // console.log("Releasing " + subnetAddress)
+    console.log("Releasing subnet " + subnetAddress)
     count = me.db.deleteOne({subnetAddress: subnetAddress}, function(err, obj) {
       if (err) {
         // console.log("Error releasing subnet address " + subnetAddress + ": " + err)
@@ -380,7 +380,7 @@ module.exports.releaseDeviceAddress = function (subnetAddress, deviceAddress) {
   let me = this
   return new Promise(async function (resolve, reject) {
     await me.lock.acquireAsync()
-    // console.log("Deleting device " + deviceAddress + " from subnet " + subnetAddress)
+    console.log("Releasing device " + deviceAddress + " from subnet " + subnetAddress)
 
     me.db.find({subnetAddress: subnetAddress}).toArray(function (err, results) {
       if (err) {
