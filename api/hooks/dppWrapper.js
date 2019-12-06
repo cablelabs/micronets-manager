@@ -756,18 +756,18 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         data : mudParserPost
       } )
 
-      logger.debug('\n MUD MANAGER Response : ' + JSON.stringify(mudParserRes.data) + '\t\t Status Code : ' + JSON.stringify(mudParserRes.status) + '\t\t Error : ' + JSON.stringify(mudParserRes.error))
+      logger.debug('\n MUD Manager Response : ' + JSON.stringify(mudParserRes.data) + '\t\t Status Code : ' + JSON.stringify(mudParserRes.status) + '\t\t Error : ' + JSON.stringify(mudParserRes.error))
 
       // if ( !(mudParserRes.device.hasOwnProperty ( 'allowHosts' )) || !(mudParserRes.device.hasOwnProperty ( 'denyHosts' )) ) {
       //   return Promise.reject ( new errors.GeneralError ( new Error ( 'MUD Parser error' ) ) )
       // }
 
-
+    // MUD Manager returned valid response
       if(mudParserRes.status == '200') {
         mudParserRes = mudParserRes.data
         let manufacturerIndex = -1 , sameManufacturerIndex = -1 , localNetworksIndex = -1
         // Handle same manufacturer
-        logger.debug ( '\n\n MUD MANAGER Response : ' + JSON.stringify ( mudParserRes ) + '\t\t for Gateway Device : ' + JSON.stringify ( dhcpDeviceToUpsert ) )
+        logger.debug ( '\n\n MUD Manager Response : ' + JSON.stringify ( mudParserRes ) + '\t\t for Gateway Device : ' + JSON.stringify ( dhcpDeviceToUpsert ) )
         // const staticAllowHosts = [
         //   "my-controller",
         //   "same-manufacturer",
