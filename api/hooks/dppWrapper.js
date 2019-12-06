@@ -756,204 +756,204 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         data : mudParserPost
       } )
 
-      // MUD PARSER REAL RESPONSE
-      mudParserRes = mudParserRes.data
-      let manufacturerIndex = -1 , sameManufacturerIndex = -1 , localNetworksIndex =  -1
+      logger.debug('\n MUD MANAGER Response : ' + JSON.stringify(mudParserRes.data) + '\t\t Status Code : ' + JSON.stringify(mudParserRes.status) + '\t\t Error : ' + JSON.stringify(mudParserRes.error))
 
-      logger.debug ( '\n\n MUD Parser response : ' + JSON.stringify ( mudParserRes ) )
-
-      // Handle same manufacturer
-
-      logger.debug('\n\n * SAME MANUFACTURER HANDLING *' )
-      logger.debug('\n\n MUD Parser Response : ' + JSON.stringify(mudParserRes) + '\t\t for Gateway Device : ' + JSON.stringify(dhcpDeviceToUpsert))
-
-      
-      // const staticAllowHosts = [
-      //   "my-controller",
-      //   "same-manufacturer",
-      //   "local-networks" ]
-
-      // mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
-
-      logger.debug('\n Mud Parser Response AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
-
-      if(mudParserRes.hasOwnProperty('device') && mudParserRes.device.hasOwnProperty('allowHosts')) {
-
-        const allowHosts = mudParserRes.device.allowHosts
-        logger.debug('\n\n Allow Hosts : ' + JSON.stringify(allowHosts))
-        sameManufacturerIndex = allowHosts.findIndex((ah) => ah == 'same-manufacturer')
-
-       // let manufacturerIndex = allowHosts.findIndex((ah) => ah == 'manufacturer')
-        manufacturerIndex = allowHosts.findIndex((ah,idx) =>  {
-          if(ah.includes('manufacturer:')) {
-            logger.debug('\n\n AH : ' + JSON.stringify(ah) + '\t\t Index : ' + JSON.stringify(idx))
-            return idx
-          }})
-
-        // Fix for multiple controllers
-        // let controllerIndex = allowHosts.map((ah,idx) =>  {
-        //   if(ah.includes('controller:')) {
-        //     logger.debug('\n\n AH : ' + JSON.stringify(ah) + '\t\t Index : ' + JSON.stringify(idx))
-        //     return idx
-        //   }})
-
-        let controllerIndex = allowHosts.findIndex((ah,idx) =>  {
-          if(ah.includes('controller:')) {
-            logger.debug('\n\n AH : ' + JSON.stringify(ah) + '\t\t Index : ' + JSON.stringify(idx))
-            return idx
-          }})
-
-        let myControllerIndex = allowHosts.findIndex((ah) => ah == 'my-controller')
-
-        localNetworksIndex = allowHosts.findIndex((ah) => ah == 'local-networks')
-
-        logger.debug('\n SameManufacturerIndex : ' + JSON.stringify(sameManufacturerIndex))
-        logger.debug('\n ManufacturerIndex : ' + JSON.stringify(manufacturerIndex))
-        logger.debug('\n ControllerIndex : ' + JSON.stringify(controllerIndex))
-        logger.debug('\n MyControllerIndex : ' + JSON.stringify(myControllerIndex))
-        logger.debug('\n LocalNetworksIndex : ' + JSON.stringify(localNetworksIndex))
+      // if ( !(mudParserRes.device.hasOwnProperty ( 'allowHosts' )) || !(mudParserRes.device.hasOwnProperty ( 'denyHosts' )) ) {
+      //   return Promise.reject ( new errors.GeneralError ( new Error ( 'MUD Parser error' ) ) )
+      // }
 
 
-        // Same manufacturer case
-        if( sameManufacturerIndex > -1 ){
-          logger.debug('\n Same manufacturer found in mud response ... Updating allowHosts ')
-          sameManufacturerDeviceMacAddrs = userDevices.map((userDevice, index) => {
-            if(userDevice.deviceManufacturer == deviceToUpsertManufacturer && index!= userDeviceIndex)
-              return userDevice.deviceIp
-          })
+      if(mudParserRes.status == '200') {
+        mudParserRes = mudParserRes.data
+        let manufacturerIndex = -1 , sameManufacturerIndex = -1 , localNetworksIndex = -1
+        // Handle same manufacturer
+        logger.debug ( '\n\n MUD MANAGER Response : ' + JSON.stringify ( mudParserRes ) + '\t\t for Gateway Device : ' + JSON.stringify ( dhcpDeviceToUpsert ) )
+        // const staticAllowHosts = [
+        //   "my-controller",
+        //   "same-manufacturer",
+        //   "local-networks" ]
+        // mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
+        logger.debug ( '\n Mud Parser Response AllowHosts : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+        if ( mudParserRes.hasOwnProperty ( 'device' ) && mudParserRes.device.hasOwnProperty ( 'allowHosts' ) ) {
 
-          sameManufacturerDeviceMacAddrs = sameManufacturerDeviceMacAddrs.filter ( ( el ) => { return el != null } )
-          logger.debug('\n Same manufacturer : ' + JSON.stringify(sameManufacturerDeviceMacAddrs))
+          const allowHosts = mudParserRes.device.allowHosts
+          logger.debug ( '\n\n Allow Hosts : ' + JSON.stringify ( allowHosts ) )
+          sameManufacturerIndex = allowHosts.findIndex ( ( ah ) => ah == 'same-manufacturer' )
 
-          if(sameManufacturerDeviceMacAddrs.length == 0 && sameManufacturerIndex > -1 ) {
-            logger.debug('\n Same manufacturer allowHosts before update : ' + JSON.stringify(mudParserRes.device.allowHosts))
-            mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'same-manufacturer')
-            logger.debug('\n Same manufacturer allowHosts after update : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          // let manufacturerIndex = allowHosts.findIndex((ah) => ah == 'manufacturer')
+          manufacturerIndex = allowHosts.findIndex ( ( ah , idx ) => {
+            if ( ah.includes ( 'manufacturer:' ) ) {
+              logger.debug ( '\n\n AH : ' + JSON.stringify ( ah ) + '\t\t Index : ' + JSON.stringify ( idx ) )
+              return idx
+            }
+          } )
+
+          // Fix for multiple controllers
+          // let controllerIndex = allowHosts.map((ah,idx) =>  {
+          //   if(ah.includes('controller:')) {
+          //     logger.debug('\n\n AH : ' + JSON.stringify(ah) + '\t\t Index : ' + JSON.stringify(idx))
+          //     return idx
+          //   }})
+
+          let controllerIndex = allowHosts.findIndex ( ( ah , idx ) => {
+            if ( ah.includes ( 'controller:' ) ) {
+              logger.debug ( '\n\n AH : ' + JSON.stringify ( ah ) + '\t\t Index : ' + JSON.stringify ( idx ) )
+              return idx
+            }
+          } )
+
+          let myControllerIndex = allowHosts.findIndex ( ( ah ) => ah == 'my-controller' )
+
+          localNetworksIndex = allowHosts.findIndex ( ( ah ) => ah == 'local-networks' )
+
+          logger.debug ( '\n SameManufacturerIndex : ' + JSON.stringify ( sameManufacturerIndex ) )
+          logger.debug ( '\n ManufacturerIndex : ' + JSON.stringify ( manufacturerIndex ) )
+          logger.debug ( '\n ControllerIndex : ' + JSON.stringify ( controllerIndex ) )
+          logger.debug ( '\n MyControllerIndex : ' + JSON.stringify ( myControllerIndex ) )
+          logger.debug ( '\n LocalNetworksIndex : ' + JSON.stringify ( localNetworksIndex ) )
+
+          // Same manufacturer case
+          if ( sameManufacturerIndex > -1 ) {
+            logger.debug ( '\n Same manufacturer found in mud response ... Updating allowHosts ' )
+            sameManufacturerDeviceMacAddrs = userDevices.map ( ( userDevice , index ) => {
+              if ( userDevice.deviceManufacturer == deviceToUpsertManufacturer && index != userDeviceIndex )
+                return userDevice.deviceIp
+            } )
+
+            sameManufacturerDeviceMacAddrs = sameManufacturerDeviceMacAddrs.filter ( ( el ) => {
+              return el != null
+            } )
+            logger.debug ( '\n Same manufacturer : ' + JSON.stringify ( sameManufacturerDeviceMacAddrs ) )
+
+            if ( sameManufacturerDeviceMacAddrs.length == 0 && sameManufacturerIndex > -1 ) {
+              logger.debug ( '\n Same manufacturer allowHosts before update : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+              mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter ( ( allowHost ) => allowHost != 'same-manufacturer' )
+              logger.debug ( '\n Same manufacturer allowHosts after update : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            }
+
+            if ( sameManufacturerDeviceMacAddrs.length > 0 && sameManufacturerIndex > -1 ) {
+              logger.debug ( '\n Found same manufacturer for other devices ... Updating allowHosts ' )
+              // let deviceIpsWithSameManufacturer = await replaceMacWithDeviceIps(hook, sameManufacturerDeviceMacAddrs)
+              // logger.debug('\n deviceIpsWithSameManufacturer : ' + JSON.stringify(deviceIpsWithSameManufacturer))
+              dhcpDeviceToUpsert[ 'allowHosts' ] = sameManufacturerDeviceMacAddrs
+              //dhcpDeviceToUpsert[ 'allowHosts' ] = deviceIpsWithSameManufacturer
+              // mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'same-manufacturer')
+              logger.debug ( '\n Updated  same manufacturer use case  : ' + JSON.stringify ( dhcpDeviceToUpsert ) )
+              logger.debug ( '\n Updated allowHosts same manufacturer use case  : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            }
           }
 
-          if(sameManufacturerDeviceMacAddrs.length > 0  && sameManufacturerIndex > -1) {
-            logger.debug('\n Found same manufacturer for other devices ... Updating allowHosts ')
-           // let deviceIpsWithSameManufacturer = await replaceMacWithDeviceIps(hook, sameManufacturerDeviceMacAddrs)
-           // logger.debug('\n deviceIpsWithSameManufacturer : ' + JSON.stringify(deviceIpsWithSameManufacturer))
-             dhcpDeviceToUpsert[ 'allowHosts' ] = sameManufacturerDeviceMacAddrs
-            //dhcpDeviceToUpsert[ 'allowHosts' ] = deviceIpsWithSameManufacturer
-           // mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'same-manufacturer')
-            logger.debug('\n Updated  same manufacturer use case  : ' + JSON.stringify(dhcpDeviceToUpsert))
-            logger.debug('\n Updated allowHosts same manufacturer use case  : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          // Add devices with manufacturer use case
+          if ( manufacturerIndex > -1 ) {
+            let manufacturerToMatch = mudParserRes.device.allowHosts[ manufacturerIndex ]
+            manufacturerToMatch = manufacturerToMatch.split ( 'manufacturer:' )[ 1 ]
+            logger.debug ( '\n Manufacturer found in mud response ... Update allowHosts for manufacturer : ' + JSON.stringify ( manufacturerToMatch ) )
+            let manufacturerDeviceMacAddrs = userDevices.map ( ( userDevice , index ) => {
+              if ( userDevice.deviceAuthority == manufacturerToMatch && index != userDeviceIndex )
+                return userDevice.deviceIp
+            } )
+            manufacturerDeviceMacAddrs = manufacturerDeviceMacAddrs.filter ( ( el ) => {
+              return el != null
+            } )
+            logger.debug ( '\n Same manufacturer : ' + JSON.stringify ( manufacturerDeviceMacAddrs ) )
+
+            // No matching entries found. Remove manufacturer entry from mud response
+            if ( manufacturerDeviceMacAddrs.length == 0 && manufacturerIndex > -1 ) {
+              logger.debug ( '\n Manufacturer allowHosts before update : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+              mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter ( ( allowHost ) => allowHost != mudParserRes.device.allowHosts[ manufacturerIndex ] )
+              logger.debug ( '\n Manufacturer allowHosts after update : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            }
+
+            // Matching entries found. Remove manufacturer entry from mud response and add mac addresses
+            if ( manufacturerDeviceMacAddrs.length > 0 && manufacturerIndex > -1 ) {
+              logger.debug ( '\n Found manufacturer for other devices ... Updating allowHosts ' )
+              let deviceIpsWithSameManufacturer = await replaceMacWithDeviceIps ( hook , manufacturerDeviceMacAddrs )
+              // logger.debug('\n  deviceIpsWithSameManufacturer : ' + JSON.stringify(deviceIpsWithSameManufacturer))
+              // dhcpDeviceToUpsert[ 'allowHosts' ] = deviceIpsWithSameManufacturer
+              dhcpDeviceToUpsert[ 'allowHosts' ] = manufacturerDeviceMacAddrs
+              //   mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= mudParserRes.device.allowHosts[manufacturerIndex])
+              logger.debug ( '\n Updated same manufacturer use case  : ' + JSON.stringify ( dhcpDeviceToUpsert ) )
+              logger.debug ( '\n Updated allowHosts same manufacturer use case   : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            }
+          }
+
+          // Controller use case
+          if ( controllerIndex > -1 ) {
+            logger.debug ( '\n Controller found in mud response ...  Updating allowHosts ' )
+            let allowHostToUpdate = mudParserRes.device.allowHosts[ controllerIndex ]
+            logger.debug ( '\n Controller found in mud response ... AllowHosts : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            logger.debug ( '\n Controller found in mud response ... allowHostToUpdate : ' + JSON.stringify ( allowHostToUpdate ) )
+            let controllerToAdd = allowHostToUpdate.split ( 'controller:' )[ 1 ]
+            logger.debug ( '\n Controller to add : ' + JSON.stringify ( controllerToAdd ) )
+            mudParserRes.device.allowHosts[ controllerIndex ] = controllerToAdd
+            // logger.debug('\n\n mudParserRes.device.allowHosts[controllerIndex].split[0] : ' + JSON.stringify(allowHostToUpdate.split('controller:')))
+            logger.debug ( '\n Controller found in mud response ... Updated AllowHosts : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+
+          }
+
+          // My Controller use case
+          if ( myControllerIndex > -1 ) {
+            logger.debug ( '\n MyController found in mud response ...  Updating allowHosts ' )
+            let allowHostToUpdate = mudParserRes.device.allowHosts[ myControllerIndex ]
+            logger.debug ( '\n MyController found in mud response ... AllowHosts : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            logger.debug ( '\n MyController found in mud response ... allowHostToUpdate : ' + JSON.stringify ( allowHostToUpdate ) )
+            let publicHostName = hook.app.get ( 'publicBaseUrl' )
+            if ( publicHostName.indexOf ( '/sub' ) ) {
+              publicHostName = publicHostName.split ( '/sub' )[ 0 ]
+              publicHostName = publicHostName.split ( ':443' )[ 0 ]
+              publicHostName = publicHostName.split ( '//' )[ 1 ]
+            }
+            else {
+              publicHostName = hook.app.get ( 'listenHost' )
+            }
+
+            logger.debug ( '\n Derived publicHostName :  ' + JSON.stringify ( publicHostName ) )
+            allowHostToUpdate = publicHostName
+            mudParserRes.device.allowHosts[ myControllerIndex ] = allowHostToUpdate
+            logger.debug ( '\n MyController found in mud response ... Updated AllowHosts : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+
           }
         }
 
-        // Add devices with manufacturer use case
-        if( manufacturerIndex > -1 ){
-          let manufacturerToMatch =  mudParserRes.device.allowHosts[manufacturerIndex]
-          manufacturerToMatch = manufacturerToMatch.split('manufacturer:')[1]
-          logger.debug('\n Manufacturer found in mud response ... Update allowHosts for manufacturer : ' + JSON.stringify(manufacturerToMatch))
-          let manufacturerDeviceMacAddrs = userDevices.map((userDevice, index) => {
-            if(userDevice.deviceAuthority == manufacturerToMatch && index!= userDeviceIndex)
-              return userDevice.deviceIp
-          })
-          manufacturerDeviceMacAddrs = manufacturerDeviceMacAddrs.filter ( ( el ) => { return el != null } )
-          logger.debug('\n Same manufacturer : ' + JSON.stringify(manufacturerDeviceMacAddrs))
-
-          // No matching entries found. Remove manufacturer entry from mud response
-          if(manufacturerDeviceMacAddrs.length == 0 && manufacturerIndex > -1 ) {
-            logger.debug('\n Manufacturer allowHosts before update : ' + JSON.stringify(mudParserRes.device.allowHosts))
-            mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= mudParserRes.device.allowHosts[manufacturerIndex])
-            logger.debug('\n Manufacturer allowHosts after update : ' + JSON.stringify(mudParserRes.device.allowHosts))
+        if ( mudParserRes.device.allowHosts.length > 0 ) {
+          // Remove manufacturer from MUD response
+          if ( manufacturerIndex > -1 ) {
+            logger.debug ( '\n Mud Parser Allow hosts before filtering manufacturer : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter ( ( allowHost ) => allowHost != mudParserRes.device.allowHosts[ manufacturerIndex ] )
+            logger.debug ( '\n Mud Parser Allow hosts after filtering manufacturer : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+          }
+          // Remove same-manufacturer from MUD response
+          if ( sameManufacturerIndex > -1 ) {
+            logger.debug ( '\n Mud Parser Allow hosts before filtering same manufacturer : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter ( ( allowHost ) => allowHost != 'same-manufacturer' )
+            logger.debug ( '\n Mud Parser Allow hosts after filtering same manufacturer : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
           }
 
-          // Matching entries found. Remove manufacturer entry from mud response and add mac addresses
-          if(manufacturerDeviceMacAddrs.length > 0  && manufacturerIndex > -1) {
-            logger.debug('\n Found manufacturer for other devices ... Updating allowHosts ')
-            let deviceIpsWithSameManufacturer = await replaceMacWithDeviceIps(hook,  manufacturerDeviceMacAddrs)
-            // logger.debug('\n  deviceIpsWithSameManufacturer : ' + JSON.stringify(deviceIpsWithSameManufacturer))
-            // dhcpDeviceToUpsert[ 'allowHosts' ] = deviceIpsWithSameManufacturer
-            dhcpDeviceToUpsert['allowHosts'] = manufacturerDeviceMacAddrs
-         //   mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= mudParserRes.device.allowHosts[manufacturerIndex])
-            logger.debug('\n Updated same manufacturer use case  : ' + JSON.stringify(dhcpDeviceToUpsert))
-            logger.debug('\n Updated allowHosts same manufacturer use case   : ' + JSON.stringify(mudParserRes.device.allowHosts))
+          // Remove local-networks from MUD response
+          if ( localNetworksIndex > -1 ) {
+            logger.debug ( '\n Mud Parser Allow hosts before filtering local networks : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter ( ( allowHost ) => allowHost != 'local-networks' )
+            logger.debug ( '\n Mud Parser Allow hosts after filtering local networks  : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
           }
+
+          dhcpDeviceToUpsert[ 'allowHosts' ] = dhcpDeviceToUpsert.hasOwnProperty ( 'allowHosts' ) && dhcpDeviceToUpsert[ 'allowHosts' ].length > 0 ? dhcpDeviceToUpsert[ 'allowHosts' ].concat ( mudParserRes.device.allowHosts ) : mudParserRes.device.allowHosts
+          logger.debug ( '\n allowHosts : ' + JSON.stringify ( dhcpDeviceToUpsert[ 'allowHosts' ] ) )
+        }
+        if ( mudParserRes.device.denyHosts.length > 0 ) {
+          dhcpDeviceToUpsert[ 'denyHosts' ] = mudParserRes.device.denyHosts
         }
 
-        // Controller use case
-        if( controllerIndex > -1 ) {
-          logger.debug('\n Controller found in mud response ...  Updating allowHosts ')
-          let allowHostToUpdate =  mudParserRes.device.allowHosts[controllerIndex]
-          logger.debug('\n Controller found in mud response ... AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
-          logger.debug('\n Controller found in mud response ... allowHostToUpdate : ' + JSON.stringify(allowHostToUpdate))
-          let controllerToAdd = allowHostToUpdate.split('controller:')[1]
-          logger.debug('\n Controller to add : ' + JSON.stringify(controllerToAdd))
-          mudParserRes.device.allowHosts[controllerIndex] =  controllerToAdd
-         // logger.debug('\n\n mudParserRes.device.allowHosts[controllerIndex].split[0] : ' + JSON.stringify(allowHostToUpdate.split('controller:')))
-          logger.debug('\n Controller found in mud response ... Updated AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
-
+        // Device is from DPP Onboarding process and must include PSK property
+        if ( userDevices[ userDeviceIndex ].hasOwnProperty ( 'psk' ) ) {
+          dhcpDeviceToUpsert[ 'psk' ] = userDevices[ userDeviceIndex ].psk
         }
-
-        // My Controller use case
-        if( myControllerIndex > -1 ) {
-          logger.debug('\n MyController found in mud response ...  Updating allowHosts ')
-          let allowHostToUpdate =  mudParserRes.device.allowHosts[myControllerIndex]
-          logger.debug('\n MyController found in mud response ... AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
-          logger.debug('\n MyController found in mud response ... allowHostToUpdate : ' + JSON.stringify(allowHostToUpdate))
-         let publicHostName = hook.app.get('publicBaseUrl')
-          if(publicHostName.indexOf('/sub')){
-            publicHostName = publicHostName.split('/sub')[0]
-            publicHostName = publicHostName.split(':443')[0]
-            publicHostName = publicHostName.split('//')[1]
-          }
-          else {
-            publicHostName = hook.app.get('listenHost')
-          }
-
-          logger.debug('\n Derived publicHostName :  ' + JSON.stringify(publicHostName))
-          allowHostToUpdate = publicHostName
-          mudParserRes.device.allowHosts[myControllerIndex] = allowHostToUpdate
-          logger.debug('\n MyController found in mud response ... Updated AllowHosts : ' + JSON.stringify(mudParserRes.device.allowHosts))
-
-        }
+        logger.debug ( '\n Gateway Device after psk : ' + JSON.stringify ( dhcpDeviceToUpsert ) )
+        // TODO : Uncomment later after testing PUT request
+        // return Object.assign({dhcpDeviceToUpsert:dhcpDeviceToUpsert, sameManufacturer: true })
+        return dhcpDeviceToUpsert
       }
-
-      if ( !(mudParserRes.device.hasOwnProperty ( 'allowHosts' )) || !(mudParserRes.device.hasOwnProperty ( 'denyHosts' )) ) {
-        return Promise.reject ( new errors.GeneralError ( new Error ( 'MUD Parser error' ) ) )
-      }
-      if ( mudParserRes.device.allowHosts.length > 0 ) {
-        // Remove manufacturer from MUD response
-        if(manufacturerIndex > -1  ){
-          logger.debug('\n Mud Parser Allow hosts before filtering manufacturer : ' + JSON.stringify(mudParserRes.device.allowHosts))
-          mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= mudParserRes.device.allowHosts[manufacturerIndex])
-          logger.debug('\n Mud Parser Allow hosts after filtering manufacturer : ' + JSON.stringify(mudParserRes.device.allowHosts))
-        }
-        // Remove same-manufacturer from MUD response
-        if(sameManufacturerIndex > -1  ){
-          logger.debug('\n Mud Parser Allow hosts before filtering same manufacturer : ' + JSON.stringify(mudParserRes.device.allowHosts))
-          mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'same-manufacturer')
-          logger.debug('\n Mud Parser Allow hosts after filtering same manufacturer : ' + JSON.stringify(mudParserRes.device.allowHosts))
-        }
-
-        // Remove local-networks from MUD response
-        if(localNetworksIndex > -1){
-          logger.debug('\n Mud Parser Allow hosts before filtering local networks : ' + JSON.stringify(mudParserRes.device.allowHosts))
-          mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter((allowHost) => allowHost!= 'local-networks')
-          logger.debug('\n Mud Parser Allow hosts after filtering local networks  : ' + JSON.stringify(mudParserRes.device.allowHosts))
-        }
-
-        dhcpDeviceToUpsert[ 'allowHosts' ] = dhcpDeviceToUpsert.hasOwnProperty('allowHosts') && dhcpDeviceToUpsert['allowHosts'].length > 0 ? dhcpDeviceToUpsert['allowHosts'].concat(mudParserRes.device.allowHosts) : mudParserRes.device.allowHosts
-        logger.debug('\n allowHosts : ' + JSON.stringify( dhcpDeviceToUpsert[ 'allowHosts' ]))
-      }
-      if ( mudParserRes.device.denyHosts.length > 0 ) {
-         dhcpDeviceToUpsert[ 'denyHosts' ] = mudParserRes.device.denyHosts
-      }
-
-      // Device is from DPP Onboarding process and must include PSK property
-      if ( userDevices[ userDeviceIndex ].hasOwnProperty ( 'psk' ) ) {
-        dhcpDeviceToUpsert[ 'psk' ] = userDevices[ userDeviceIndex ].psk
-      }
-      logger.debug('\n Gateway Device after psk : ' + JSON.stringify(dhcpDeviceToUpsert))
-      // TODO : Uncomment later after testing PUT request
-      // return Object.assign({dhcpDeviceToUpsert:dhcpDeviceToUpsert, sameManufacturer: true })
-      return dhcpDeviceToUpsert
     } else {
-      logger.debug ( '\n Empty MUD url.' + JSON.stringify ( mudUrlForDevice ) + ' Yet add PSK for device' )
+      logger.debug ( '\n Empty MUD url.' + JSON.stringify ( mudUrlForDevice ) + ' Added PSK for device' )
       return dhcpDeviceToUpsert
     }
   } ) )
