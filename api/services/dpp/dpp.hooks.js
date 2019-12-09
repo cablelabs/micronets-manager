@@ -308,7 +308,7 @@ const onboardDppDevice = async(hook) => {
         const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
 
         if(addedDhcpDevices.length > 0) {
-          logger.debug('\n Gateway Device added . Awaiting 5 secs before on-board call ... ')
+          logger.debug('\n Gateway Device added . Initiating before on-board call ... ')
           // wait(5000)
           // PUT request to on-board device
           const deviceId = await getDeviceId(hook)
