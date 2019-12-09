@@ -57,8 +57,8 @@ const generateDevicePSK = async ( hook , len ) => {
 const getDeviceId = async(hook) => {
   const { data } = hook
   const { subscriberId, bootstrap, device, user } = data
-  const partPubKey =  bootstrap.pubkey.substring(0,5)
-  const deviceId = crypto.createHash('sha1').update(partPubKey).digest('hex');
+  // const partPubKey =  bootstrap.pubkey.substring(0,5)
+  const deviceId = crypto.createHash('sha1').update(bootstrap.pubkey).digest('hex');
   console.log('\n Generated Device ID : ' + JSON.stringify(deviceId))
   return deviceId
 }
@@ -98,10 +98,15 @@ const getMudUri = async(hook) => {
   // Get MUD URL with curl commands
  // if(registerDeviceRes){
     const getMudUrlCurl = `curl -L -X  GET \"${mudUrlForDeviceUrl}\"`
-    const getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
+    let getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
     logger.debug('\n ***** GET MUD URL RESPONSE ******* ')
+    getMudUrlRes = JSON.stringify(getMudUrlRes)
     console.log(getMudUrlRes);
-    logger.debug('\n ***** GET MUD URL RESPONSE ******* ')
+    console.log(isEmpty(getMudUrlRes));
+    if (getMudUrlRes.indexOf('status') > -1 || getMudUrlRes == '{}'){
+       console.log('\n Error in mud url obtained : ' + JSON.stringify(getMudUrlRes) + '\t Defaulting to no mud url')
+       getMudUrlRes = ''
+    }
     return getMudUrlRes
  // }
  //  else {
