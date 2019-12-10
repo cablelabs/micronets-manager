@@ -100,13 +100,7 @@ const getMudUri = async(hook) => {
     const getMudUrlCurl = `curl -L -X  GET \"${mudUrlForDeviceUrl}\"`
     let getMudUrlRes = runCurlCmd(hook,getMudUrlCurl);
     logger.debug('\n ***** GET MUD URL RESPONSE ******* ')
-    getMudUrlRes = JSON.stringify(getMudUrlRes)
     console.log(getMudUrlRes);
-    console.log(isEmpty(getMudUrlRes));
-    if (getMudUrlRes.indexOf('status') > -1 || getMudUrlRes == '{}'){
-       console.log('\n Error in mud url obtained : ' + JSON.stringify(getMudUrlRes) + '\t Defaulting to no mud url')
-       getMudUrlRes = ''
-    }
     return getMudUrlRes
  // }
  //  else {
@@ -187,14 +181,21 @@ const onboardDppDevice = async(hook) => {
   let emitterResult = ''
 
   //Retrieve mud-uri from mud-registry using vendor and pubkey parameters
-  const dppMudUrl = await getMudUri(hook)
+  let dppMudUrl = await getMudUri(hook)
   logger.debug('\n MUD URL Obtained from registry : ' + JSON.stringify(dppMudUrl))
-  let malformedMudUrlIndex  =  dppMudUrl.indexOf('undefined')
-  logger.debug('\n Malformed MudUrl Index : ' + JSON.stringify(malformedMudUrlIndex))
-
-  if( malformedMudUrlIndex > -1 ) {
-    return Promise.reject(new errors.BadRequest(new Error(`Malformed MUD Url : ${testMudUrl}`)))
+  console.log('\n MUD URL status check : ' + JSON.stringify(dppMudUrl.toString().indexOf('status') > -1 ))
+  console.log('\n MUD URL undefined check : ' + JSON.stringify(dppMudUrl.toString().indexOf('undefined') > -1 ))
+  console.log('\n MUD URL empty object check : ' + JSON.stringify(dppMudUrl.toString() == '{}' ))
+  if (dppMudUrl.toString().indexOf('status') > -1 || dppMudUrl.toString().indexOf('undefined') > -1 || dppMudUrl.toString() == '{}'){
+     console.log('\n Error in mud url obtained : ' + JSON.stringify(dppMudUrl) + '\t Defaulting to no mud url')
+     dppMudUrl = ''
   }
+  // let malformedMudUrlIndex  =  dppMudUrl.indexOf('undefined')
+  // logger.debug('\n Malformed MudUrl Index : ' + JSON.stringify(malformedMudUrlIndex))
+  //
+  // if( malformedMudUrlIndex > -1 ) {
+  //   return Promise.reject(new errors.BadRequest(new Error(`Malformed MUD Url : ${testMudUrl}`)))
+  // }
 
   //Generate PSK for device
   const dppDevicePsk = await generateDevicePSK(hook, 64)
