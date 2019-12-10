@@ -179,17 +179,16 @@ const onboardDppDevice = async(hook) => {
   const { data } = hook
   const {bootstrap, user, device} = data
   let emitterResult = ''
-
   //Retrieve mud-uri from mud-registry using vendor and pubkey parameters
   let dppMudUrl = await getMudUri(hook)
   logger.debug('\n MUD URL Obtained from registry : ' + JSON.stringify(dppMudUrl))
-  console.log('\n MUD URL status check : ' + JSON.stringify(dppMudUrl.toString().indexOf('status') > -1 ))
-  console.log('\n MUD URL undefined check : ' + JSON.stringify(dppMudUrl.toString().indexOf('undefined') > -1 ))
-  console.log('\n MUD URL empty object check : ' + JSON.stringify(dppMudUrl.toString() == '{}' ))
-  if (dppMudUrl.toString().indexOf('status') > -1 || dppMudUrl.toString().indexOf('undefined') > -1 || dppMudUrl.toString() == '{}'){
-     console.log('\n Error in mud url obtained : ' + JSON.stringify(dppMudUrl) + '\t Defaulting to no mud url')
+  console.log('\n MUD URL invalid. Does not contains http : ' + JSON.stringify(dppMudUrl.toString().indexOf('http') == -1 ))
+  console.log('\n MUD URL invalid. Does not contains https : ' + JSON.stringify(dppMudUrl.toString().indexOf('https') == -1 ))
+  if (dppMudUrl.toString().indexOf('http') == -1 || dppMudUrl.toString().indexOf('https') == -1){
+    console.log('\n Error obtaining mud url : ' + JSON.stringify(dppMudUrl) + '\t Defaulting to no mud url')
      dppMudUrl = ''
   }
+
   // let malformedMudUrlIndex  =  dppMudUrl.indexOf('undefined')
   // logger.debug('\n Malformed MudUrl Index : ' + JSON.stringify(malformedMudUrlIndex))
   //
