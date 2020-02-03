@@ -22,6 +22,7 @@ var child_process = require('child_process');
 const errors = require ( '@feathersjs/errors' );
 const defaultDPPMudUrl = 'https://alpineseniorcare.com/micronets-mud/AgoNDQcDDgg'
 const crypto = require('crypto');
+const apiInit = { crossDomain : true , headers : { 'Content-type' : 'application/json' } }
 
 const wait = function ( ms ) {
   var start = new Date().getTime();
@@ -78,7 +79,7 @@ const micronetExistsCheck = async(hook) => {
    return dppDeviceClassIndex
 }
 
-const getMudUri = async(hook) => {
+const getMudUriFromRegistry = async(hook) => {
   const { data } = hook
   const {bootstrap, user, device} = data
   const { registryBaseUrl } = hook.app.get('mud')
@@ -106,6 +107,23 @@ const getMudUri = async(hook) => {
  //  else {
  //    return Promise.reject(new errors.GeneralError(new Error('Error occured to obtain MUD url')))
  //  }
+}
+
+const getMudUri = async(hook, mudUrlFromRegistry) => {
+  const { data } = hook
+  const {bootstrap, user, device} = data
+  const { registryBaseUrl, managerBaseUrl } = hook.app.get('mud')
+
+  logger.debug('\n Manager Base Url: ' + JSON.stringify(managerBaseUrl) + '\t\t for url from registry : ' + JSON.stringify(mudUrlFromRegistry))
+  // Retreive MUD URL from mud manager with curl commands
+  const mudUriResponse = await axios ( {
+    ...apiInit ,
+    method : 'POST' ,
+    url : `${managerBaseUrl}/getMudInfo`,
+    data : Object.assign ( {} , { url : mudUrlFromRegistry } )
+  } )
+ logger.debug('\n MUD URI from mud manager: ' + JSON.stringify(mudUriResponse.data))
+ return mudUriResponse.data
 }
 
 const validateDppRequest = async(hook) => {
@@ -180,14 +198,24 @@ const onboardDppDevice = async(hook) => {
   const {bootstrap, user, device} = data
   let emitterResult = ''
   //Retrieve mud-uri from mud-registry using vendor and pubkey parameters
-  let dppMudUrl = await getMudUri(hook)
-  logger.debug('\n MUD URL Obtained from registry : ' + JSON.stringify(dppMudUrl))
-  console.log('\n MUD URL invalid. Does not contains http : ' + JSON.stringify(dppMudUrl.toString().indexOf('http') == -1 ))
-  console.log('\n MUD URL invalid. Does not contains https : ' + JSON.stringify(dppMudUrl.toString().indexOf('https') == -1 ))
-  if (dppMudUrl.toString().indexOf('http') == -1 || dppMudUrl.toString().indexOf('https') == -1){
-    console.log('\n Error obtaining mud url : ' + JSON.stringify(dppMudUrl) + '\t Defaulting to no mud url')
-     dppMudUrl = ''
+  let dppMudUrlFromRegistry = await getMudUriFromRegistry(hook)
+
+
+  logger.debug('\n MUD URL Obtained from registry : ' + JSON.stringify(dppMudUrlFromRegistry))
+  console.log('\n MUD URL invalid. Does not contains http : ' + JSON.stringify(dppMudUrlFromRegistry.toString().indexOf('http') == -1 ))
+  console.log('\n MUD URL invalid. Does not contains https : ' + JSON.stringify(dppMudUrlFromRegistry.toString().indexOf('https') == -1 ))
+  if (dppMudUrlFromRegistry.toString().indexOf('http') == -1 || dppMudUrlFromRegistry.toString().indexOf('https') == -1){
+    console.log('\n Error obtaining mud url : ' + JSON.stringify(dppMudUrlFromRegistry) + '\t Defaulting to no mud url')
+    dppMudUrlFromRegistry = ''
   }
+
+  // Retrieve mud-uri from mud manager using mud-uri from mud-registry
+  // TODO : Add check fpr empty MUD url from registry
+  let { mfgName, modelName, mudUrl } = await getMudUri(hook,dppMudUrlFromRegistry)
+  logger.debug('\n Manufacturer name for device :  ' +  JSON.stringify(mfgName))
+  logger.debug('\n Model name for device :  ' +  JSON.stringify(modelName))
+  logger.debug('\n MUD-URL for device :  ' +  JSON.stringify(mudUrl))
+
 
   // let malformedMudUrlIndex  =  dppMudUrl.indexOf('undefined')
   // logger.debug('\n Malformed MudUrl Index : ' + JSON.stringify(malformedMudUrlIndex))
@@ -198,8 +226,8 @@ const onboardDppDevice = async(hook) => {
 
   //Generate PSK for device
   const dppDevicePsk = await generateDevicePSK(hook, 64)
-  const deviceAuthority = !isEmpty(dppMudUrl) && dppMudUrl.split('/micronets-mud')[0]
-  logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk) + '\t\t Device MUD URL : ' + JSON.stringify(dppMudUrl) + '\t\t Device Authority : ' + JSON.stringify(deviceAuthority))
+  const deviceAuthority = !isEmpty(dppMudUrlFromRegistry) && !isEmpty(mudUrl) && mudUrl.split('/micronets-mud')[0]
+  logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk) + '\t\t Device MUD URL : ' + JSON.stringify(mudUrl) + '\t\t Device Authority : ' + JSON.stringify(deviceAuthority))
   //Add device to users api
   const deviceId = await getDeviceId(hook)
   const userPatchBody = Object.assign({},{
@@ -207,13 +235,14 @@ const onboardDppDevice = async(hook) => {
     macAddress: bootstrap.mac,
     isRegistered: false,
     deviceName: user.deviceName,
-    deviceManufacturer:device.manufacturer,
-    deviceModel:device.model,
+    deviceManufacturer:mfgName,
+    deviceModel:modelName,
     deviceAuthority: deviceAuthority,
     deviceModelUID: device.modelUID,
     class: device.class,
     deviceConnection: WIFI,
-    mudUrl: dppMudUrl,
+    mudUrlFromRegistry: dppMudUrlFromRegistry,
+    mudUrl: mudUrl,
     onboardType: DPP_ON_BOARD_TYPE,
     onboardStatus: START_ON_BOARD,
     psk: dppDevicePsk

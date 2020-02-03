@@ -761,9 +761,12 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
       // if ( !(mudParserRes.device.hasOwnProperty ( 'allowHosts' )) || !(mudParserRes.device.hasOwnProperty ( 'denyHosts' )) ) {
       //   return Promise.reject ( new errors.GeneralError ( new Error ( 'MUD Parser error' ) ) )
       // }
-
+      logger.debug('\n MUD PARSER Response status code check : ' + JSON.stringify(mudParserRes.status.toString() =='200'))
+      logger.debug('\n MUD PARSER Response data valid check for property device : ' + JSON.stringify(mudParserRes.data.hasOwnProperty('device')))
+     // TODO : Fix later
+     // logger.debug('\n MUD PARSER Response data valid check missing Cannot download MUD file : ' + JSON.stringify(mudParserRes.data.indexOf('Cannot download MUD file') == -1))
     // MUD Manager returned valid response
-      if(mudParserRes.status == '200') {
+      if(mudParserRes.status.toString() == '200' && mudParserRes.data.hasOwnProperty('device')) {
         mudParserRes = mudParserRes.data
         let manufacturerIndex = -1 , sameManufacturerIndex = -1 , localNetworksIndex = -1
         // Handle same manufacturer
@@ -813,10 +816,11 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
           logger.debug ( '\n LocalNetworksIndex : ' + JSON.stringify ( localNetworksIndex ) )
 
           // Same manufacturer case
+          // TODO: Change it compare device authority instead of deviceManufacturer.
           if ( sameManufacturerIndex > -1 ) {
             logger.debug ( '\n Same manufacturer found in mud response ... Updating allowHosts ' )
             sameManufacturerDeviceMacAddrs = userDevices.map ( ( userDevice , index ) => {
-              if ( userDevice.deviceManufacturer == deviceToUpsertManufacturer && index != userDeviceIndex )
+              if ( userDevice.deviceAuthority == deviceToUpsertAuthority && index != userDeviceIndex )
                 return userDevice.deviceIp
             } )
 
@@ -959,6 +963,9 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
   } ) )
 
   dhcpDevicesWithMudConfig = flattenArray ( dhcpDevicesWithMudConfig )
+  dhcpDevicesWithMudConfig = dhcpDevicesWithMudConfig.filter ( ( el ) => {
+    return el != null
+  } )
   logger.debug ( '\n DHCP Devices with MUD Config : ' + JSON.stringify ( dhcpDevicesWithMudConfig ) )
   return dhcpDevicesWithMudConfig
 }

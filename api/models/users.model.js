@@ -24,6 +24,7 @@ module.exports = function (app) {
       class: { type: String, required: false },
       deviceConnection: {type: String, required: true, default: 'ethernet'},
       deviceLeaseStatus: { type: String, required:true, default: 'intermediary' },
+      mudUrlFromRegistry: { type: String, required:false, default: '' },
       mudUrl: { type: String, required:false, default: '' },
       deviceManufacturer: { type: String, required:false },
       deviceModel: { type: String, required:false },
