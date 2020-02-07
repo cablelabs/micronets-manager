@@ -26,6 +26,7 @@ module.exports = function (app) {
       deviceLeaseStatus: { type: String, required:true, default: 'intermediary' },
       mudUrlFromRegistry: { type: String, required:false, default: '' },
       mudUrl: { type: String, required:false, default: '' },
+      manufacturers:[{ type: String, required: false }],
       deviceManufacturer: { type: String, required:false },
       deviceModel: { type: String, required:false },
       deviceAuthority: { type: String, required:false },

@@ -53,9 +53,7 @@ module.exports = {
                   const foundDeviceIndex = originalUser.devices.findIndex( device =>  device.deviceId == hook.data.deviceId && device.macAddress == hook.data.macAddress && device.class == hook.data.class);
 
                   if(foundDeviceIndex >= 0 ) {
-
                     logger.debug('\n Device Found to update Index : ' + JSON.stringify(foundDeviceIndex))
-
                     // Update Device to include the obntained DeviceIP
                     if(!(originalUser.devices[foundDeviceIndex].hasOwnProperty('deviceIp')) && hook.data.hasOwnProperty('deviceIp')) {
                       logger.debug('\n User patch request to add Device IP hook.data ' + JSON.stringify(hook.data))
