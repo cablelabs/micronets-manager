@@ -955,7 +955,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
               }
             } )
             mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.filter ( ( allowHost ) => allowHost != mudParserRes.device.allowHosts[ updatedControllerIndex ] )
-            logger.debug ( '\n Updated AllowHosts aafter filtering controller : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
+            logger.debug ( '\n Updated AllowHosts after filtering controller : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
           }
 
           // My Controller use case
