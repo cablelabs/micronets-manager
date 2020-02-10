@@ -226,7 +226,8 @@ const onboardDppDevice = async(hook) => {
 
   //Generate PSK for device
   const dppDevicePsk = await generateDevicePSK(hook, 64)
-  const deviceAuthority = !isEmpty(dppMudUrlFromRegistry) && !isEmpty(mudUrl) && mudUrl.split('/micronets-mud')[0]
+  const fakeMudUrlForTesting =﻿"https://mudfiles.nist.getyikes.com/directionaltestsame-man"
+  const deviceAuthority = !isEmpty(dppMudUrlFromRegistry) && !isEmpty(mudUrl) && mudUrl.split('://')[1].split('/')[0]
   logger.debug('\n Device PSK : ' + JSON.stringify(dppDevicePsk) + '\t\t Device MUD URL : ' + JSON.stringify(mudUrl) + '\t\t Device Authority : ' + JSON.stringify(deviceAuthority))
   //Add device to users api
   const deviceId = await getDeviceId(hook)
