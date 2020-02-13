@@ -334,9 +334,7 @@ const onboardDppDevice = async(hook) => {
       if ( patchResult ) {
         logger.debug ( '\n DPP devices to add to dhcp : ' + JSON.stringify ( dppDevicesToAddToDhcpPost ) )
 
-
         const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
-        // await oneDirectionalMudRules(hook,dppMudUrlFromRegistry)
 
         if(addedDhcpDevices.length > 0) {
           logger.debug('\n Gateway Device added . Initiating before on-board call ... ')
