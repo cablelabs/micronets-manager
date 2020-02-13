@@ -335,8 +335,9 @@ const onboardDppDevice = async(hook) => {
         logger.debug ( '\n DPP devices to add to dhcp : ' + JSON.stringify ( dppDevicesToAddToDhcpPost ) )
 
         const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
+        logger.debug('\n NCCOE ADDED DHCP DEVICES : ' + JSON.stringify(addedDhcpDevices))
 
-        if(addedDhcpDevices.length > 0) {
+        // if(addedDhcpDevices.length > 0) {
           logger.debug('\n Gateway Device added . Initiating before on-board call ... ')
           // wait(5000)
           // PUT request to on-board device
@@ -354,7 +355,7 @@ const onboardDppDevice = async(hook) => {
           if(onBoardResponse.status == 200) {
             return await postOnboardingResults(hook)
           }
-        }
+        // }
       }
     }
   }

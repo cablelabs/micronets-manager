@@ -1378,7 +1378,7 @@ const upsertOneDirectionalSameManufacturerMudRules = async (hook, mmUrl, allDevi
 const upsertOneDirectionalMudRules = async (hook, mmUrl, allDevices, deviceToUpdate, deviceIndex) => {
   logger.debug('\n One-directional device to update from users : ' + JSON.stringify(deviceToUpdate) + '\t\t DeviceIndex : ' + JSON.stringify(deviceIndex))
   await upsertOneDirectionalSameManufacturerMudRules(hook, mmUrl, allDevices, deviceToUpdate, deviceIndex)
-  await upsertOneDirectionalManufacturerMudRules(hook, mmUrl, allDevices, deviceToUpdate, deviceIndex)
+  // await upsertOneDirectionalManufacturerMudRules(hook, mmUrl, allDevices, deviceToUpdate, deviceIndex)
   logger.debug('\n\n ************ ONE--DIRECTIONAL--MUD--RULES--UPDATES **************')
 }
 
