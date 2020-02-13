@@ -35,7 +35,9 @@ module.exports = function (app) {
       onboardType: { type: String, required: false },
       onboardStatus: { type: String, required: false },
       psk: { type: String, required: false  },
-      micronetId : { type: String, required: false  }
+      micronetId : { type: String, required: false  },
+      allowHosts: [{ type: String, required: false }],
+      denyHosts: [{ type: String, required: false }]
     }]
   }, {
     timestamps: true

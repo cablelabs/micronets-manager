@@ -6,7 +6,7 @@ const { DPP_PATH , MICRONETS_PATH, DHCP_PATH, USERS_PATH, MSO_DPP_API_ONBOARD, M
 const DPP_ONBOARD = `/${DPP_PATH}/onboard`
 const DPP_CONFIG = `/${DPP_PATH}/config`
 var random = require ( 'random-hex-character-generator' );
-const { upsertSubnetsToMicronet, mockOdlOperationsForUpserts, addDhcpSubnets, isEmpty, addDevicesInSubnet, addDhcpDevices } = require('../../hooks/dppWrapper')
+const { upsertSubnetsToMicronet, mockOdlOperationsForUpserts, addDhcpSubnets, isEmpty, addDevicesInSubnet, addDhcpDevices, oneDirectionalMudRules } = require('../../hooks/dppWrapper')
 const DPP_ON_BOARD_TYPE = 'dpp'
 const WIFI = 'wifi'
 const START_ON_BOARD = 'initial'
@@ -336,6 +336,7 @@ const onboardDppDevice = async(hook) => {
 
 
         const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
+        // await oneDirectionalMudRules(hook,dppMudUrlFromRegistry)
 
         if(addedDhcpDevices.length > 0) {
           logger.debug('\n Gateway Device added . Initiating before on-board call ... ')

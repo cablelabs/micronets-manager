@@ -247,7 +247,7 @@ const getDeviceForSubnet = async ( hook , subnetDetails , subnets, interface, co
   return devicesWithIp
 }
 
-// TODO : Pass Switch Config object and wired and wireless subnet
+//  Pass Switch Config object and wired and wireless subnet
 const getSubnetAndDeviceIps = async ( hook , requestBody ) => {
   const noOfSubnets = requestBody.length
   const subnetDetails = requestBody.map ( ( micronet , index ) => {
@@ -777,12 +777,22 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
         // const staticAllowHosts = [ "same-manufacturer", "local-networks", "controller:www.yahoo.com" ]
         // const staticAllowHosts = [ "same-manufacturer", "controller:www.yahoo.com" ]
         // mudParserRes.device.allowHosts = mudParserRes.device.allowHosts.concat(...staticAllowHosts)
+        // logger.debug ( '\n Mud Parser Response with static AllowHosts : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
 
         logger.debug ( '\n Mud Parser Response AllowHosts : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
         if ( mudParserRes.hasOwnProperty ( 'device' ) && mudParserRes.device.hasOwnProperty ( 'allowHosts' ) ) {
-
           const allowHosts = mudParserRes.device.allowHosts
+          // Add the MUD Parser allowHosts to users
           logger.debug ( '\n\n Allow Hosts : ' + JSON.stringify ( allowHosts ) )
+          let userDeviceToUpdate =  userDevices[userDeviceIndex]
+          logger.debug('\n\n User Device : ' + JSON.stringify(userDeviceToUpdate))
+          let updatedDeviceAllowHosts = user.devices[userDeviceIndex].allowHosts.concat(mudParserRes.device.allowHosts)
+          updatedDeviceAllowHosts = [...new Set(updatedDeviceAllowHosts)]
+          logger.debug('\n Updated Device Allow Hosts after removing duplicates : ' + JSON.stringify(updatedDeviceAllowHosts))
+          user.devices[userDeviceIndex].allowHosts = updatedDeviceAllowHosts
+          logger.debug('\n Updated User devices object : ' + JSON.stringify(user.devices))
+          const updateAllowHostsForUsers = await hook.app.service ( `${USERS_PATH}` ).update ( data.subscriberId , { ssid:user.ssid, name:user.name, devices:user.devices });
+
           sameManufacturerIndex = allowHosts.findIndex ( ( ah ) => ah == 'same-manufacturer' )
 
           // let manufacturerIndex = allowHosts.findIndex((ah) => ah == 'manufacturer')
@@ -818,7 +828,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
           logger.debug ( '\n LocalNetworksIndex : ' + JSON.stringify ( localNetworksIndex ) )
 
           // Same manufacturer case
-          // TODO: Change it compare device authority instead of deviceManufacturer.
+
           if ( sameManufacturerIndex > -1 ) {
             logger.debug ( '\n Same manufacturer found in mud response ... Updating devices manufacturers ....  ' )
             logger.debug('\n DeviceToUpsertAuthority : ' + JSON.stringify(deviceToUpsertAuthority))
@@ -831,7 +841,7 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
             logger.debug('\n Updated User devices object : ' + JSON.stringify(user.devices))
             const updateManufacturerForUsers = await hook.app.service ( `${USERS_PATH}` ).update ( data.subscriberId , { ssid:user.ssid, name:user.name, devices:user.devices });
             logger.debug ( '\n Same manufacturer found in mud response ... Updating allowHosts ' )
-            //TODO: this comparison will change
+
             sameManufacturerDeviceMacAddrs = userDevices.map ( ( userDevice , index ) => {
               logger.debug('\n Current userDevice manufacturers : ' + JSON.stringify(userDevice.manufacturers))
               let matchedDeviceIps =  userDevice.manufacturers.map((deviceManufacturer) => {
@@ -847,6 +857,8 @@ const upsertDhcpDevicesWithMudConfig = async ( hook , dhcpDevicesToUpsert ) => {
             // Flatten arrays
             sameManufacturerDeviceMacAddrs = [].concat.apply([], sameManufacturerDeviceMacAddrs);
             logger.debug ( '\n Same manufacturers mac address found  : ' + JSON.stringify ( sameManufacturerDeviceMacAddrs ) )
+
+            let reverseSameManufacturerMatchedDeviceMacAddrs  = []
 
             if ( sameManufacturerDeviceMacAddrs.length == 0 && sameManufacturerIndex > -1 ) {
               logger.debug ( '\n Same manufacturer allowHosts before update : ' + JSON.stringify ( mudParserRes.device.allowHosts ) )
@@ -1097,7 +1109,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
     if ( status != 404 && ((body.hasOwnProperty ( 'micronets' ) && body.micronets.micronetId == subnetId) || (body.hasOwnProperty ( 'micronet' ) && body.micronet.micronetId == subnetId)) ) {
       const dhcpSubnetDevices = await axios ( {
         ...apiInit ,
-        method : 'get' ,
+        method : 'GET' ,
         url : `${mmUrl}/${paths.DHCP_PATH}/${subnetId}/devices` ,
       } )
 
@@ -1122,10 +1134,10 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
 
           logger.debug('\n Added Gateway device response  .. : ' + JSON.stringify(dhcpDeviceToAdd.data))
 
-          // TODO : Check if MUD response contains same manufacturer or manufacturer property
+          // Check if MUD response contains same manufacturer or manufacturer property
           if(dhcpDeviceToAdd.data.hasOwnProperty('status') && dhcpDeviceToAdd.data.status == '201'){
 
-            // TODO : Update users api to include deviceIp for added device on gateway.
+            // Update users api to include deviceIp for added device on gateway.
             logger.debug('\n Gateway device created successfully .... ')
             let gatewayDevice = dhcpDeviceToAdd.data.body.device
             logger.debug('\n Added Gateway device : ' + JSON.stringify(gatewayDevice))
@@ -1146,11 +1158,8 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
               const upsertDeviceToUser = await hook.app.service ( `${USERS_PATH}` ).patch ( hook.data.subscriberId , userDeviceToUpsert);
               logger.debug('\n Upserted users  : ' + JSON.stringify(upsertDeviceToUser))
             }
-
-
             let sameManufacturesDeviceIps = [], devicesToUpsert = []
-
-            // Hnadle empty MUD URL will lead to missing allowHosts.
+            // Handle empty MUD URL will lead to missing allowHosts.
             if(gatewayDevice.hasOwnProperty('allowHosts'))
             {
               sameManufacturesDeviceIps = gatewayDevice.allowHosts.map((host) => {
@@ -1160,17 +1169,13 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
                 }
               })
             }
-
-
            sameManufacturesDeviceIps = sameManufacturesDeviceIps.filter ( ( el ) => { return el != null } )
            logger.debug('\n Same manufacturer DeviceIps found are : ' + JSON.stringify(sameManufacturesDeviceIps))
-
             let deviceIpToPut =  gatewayDevice.networkAddress.ipv4
-
             if(deviceIpToPut.length > 0 ) {
              let allDevices = await hook.app.service ( `${USERS_PATH}` ).find({})
              logger.debug('\n All found devices : ' + JSON.stringify(allDevices.data))
-              allDevices = allDevices.data[0].devices
+             allDevices = allDevices.data[0].devices
              devicesToUpsert = allDevices.map((device) => {
                 return sameManufacturesDeviceIps.map((sameManufacturerDeviceIp) => {
                  if(sameManufacturerDeviceIp == device.deviceIp){
@@ -1182,6 +1187,7 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
               devicesToUpsert = [].concat(...devicesToUpsert);
               devicesToUpsert = devicesToUpsert.filter ( ( el ) => { return el != null } )
               logger.debug('\n Devices to upsert : ' + JSON.stringify(devicesToUpsert))
+              // Find Devices and add IPs with same-manufacturer to add the currently on-boarded device (bi-directional)
               let devicesToUpsertPromises = devicesToUpsert.map(async(deviceToUpsert) => {
                 logger.debug('\n Current device to upsert ' + JSON.stringify(deviceToUpsert))
                 logger.debug('\n Gateway Url for device ' + JSON.stringify(`${mmUrl}/${paths.DHCP_PATH}/${deviceToUpsert.class}/devices/${deviceToUpsert.deviceId}`))
@@ -1195,13 +1201,13 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
                 logger.debug('\n  Obtained device from gateway body : ' + JSON.stringify(gatewayDeviceToUpsert.data.body))
 
                 // If device exists do a PUT
-
                 if(gatewayDeviceToUpsert.status == '200'){
                   let devicePutBody = []
                   logger.debug('\n SubnetID : ' + JSON.stringify(subnetId) + '\t\t DeviceToUpsert class : ' + JSON.stringify(deviceToUpsert.class) + '\t\t DeviceToUpsert deviceId : ' + JSON.stringify(deviceToUpsert.deviceId))
                   gatewayDeviceToUpsert = gatewayDeviceToUpsert.data.body.device
                   logger.debug('\n gatewayDeviceToUpsert.allowHosts : ' + JSON.stringify(gatewayDeviceToUpsert.allowHosts))
                   logger.debug('\n deviceIpToPut : ' + JSON.stringify(deviceIpToPut))
+                  // Add IP on just on-boarded device
                   devicePutBody = [].concat(...gatewayDeviceToUpsert.allowHosts).concat(deviceIpToPut)
                   devicePutBody = [].concat(...devicePutBody)
                   logger.debug('\n Updated PUT request : ' + JSON.stringify(devicePutBody))
@@ -1215,15 +1221,183 @@ const addDhcpDevices = async ( hook , requestBody , micronetId , subnetId ) => {
                 }
               })
             }
-          }
 
+            logger.debug('\n Find and add IPs of one directional same-manufacturers of recently on-boarded devices .... ')
+            await oneDirectionalMudRules(hook,mmUrl,users,userDeviceIndex,gatewayDevice)
+          }
           return dhcpDeviceToAdd.data
         }
       } ) )
-
-      return dhcpDevicePromises
+     return dhcpDevicePromises
     }
   }
+}
+
+// Handle one-directional manufacturer use case
+const upsertOneDirectionalManufacturerMudRules = async (hook, mmUrl, allDevices, deviceToUpdate, deviceIndex) => {
+  let hasManufacturerIndex = deviceToUpdate.allowHosts.map((allowHost, idx) => {
+    if(allowHost.includes('manufacturer:')) {
+      console.log('\n Manufacturer Index match : ' + JSON.stringify(allowHost) + '\t\t INDEX : ' + JSON.stringify(idx))
+      return idx
+    }
+  })
+  hasManufacturerIndex = hasManufacturerIndex.filter((el) =>{ return el!= null })
+  logger.debug('\n Has manufacturer Index : ' + JSON.stringify(hasManufacturerIndex))
+  if(hasManufacturerIndex.length > 0) {
+    let manufacturersToMatch = hasManufacturerIndex.map((manufacturerIndex) =>  { return deviceToUpdate.allowHosts[manufacturerIndex] })
+    manufacturersToMatch = manufacturersToMatch.filter((el) =>{ return el!= null })
+    logger.debug('\n Manufacturers To Match : ' + JSON.stringify(manufacturersToMatch))
+    await Promise.all(manufacturersToMatch.map(async(tManufacturer,index) => {
+      logger.debug('\n Current Target Manufacturer to match : ' + JSON.stringify(tManufacturer) + '\t\t Index : ' + JSON.stringify(index))
+      let targetManufacturer = tManufacturer.split('manufacturer:')[1]
+      logger.debug('\n Current Target Manufacturer after processing : ' + JSON.stringify(targetManufacturer) + '\t\t Index : ' + JSON.stringify(index))
+      const dhcpDeviceFromGateway = await axios({
+        ...apiInit ,
+        method : 'GET' ,
+        url : `﻿${mmUrl}/${paths.DHCP_PATH}/${deviceToUpdate.class}/devices/${deviceToUpdate.deviceId}`
+      })
+      logger.debug('\n\n Current device to update from gateway : ' + JSON.stringify(dhcpDeviceFromGateway.data))
+      const deviceToUpdateAllowHosts = dhcpDeviceFromGateway.data.body.device.allowHosts
+      let manufacturerMatchedDeviceIps = []
+      manufacturerMatchedDeviceIps = await Promise.all(allDevices.map(async(device, idx) => {
+        // logger.debug('\n Current deviceIndex: ' + JSON.stringify(deviceIndex) + '\t\t Idx : ' + JSON.stringify(idx))
+        // if(idx > deviceIndex && idx <= allDevices.length) {
+        if((device.deviceIp!= deviceToUpdate.deviceIp && device.deviceId !=deviceToUpdate.deviceId ) && device.deviceAuthority == targetManufacturer){
+          return device.deviceIp
+        }
+        // }
+      }))
+
+      // Remove nested arrays, duplicates and null values
+      manufacturerMatchedDeviceIps = [].concat(...manufacturerMatchedDeviceIps);
+      manufacturerMatchedDeviceIps = manufacturerMatchedDeviceIps.filter((el) =>{ return el!= null })
+      manufacturerMatchedDeviceIps = [...new Set(manufacturerMatchedDeviceIps)]
+
+      logger.debug('\n Matched Manufacturer device IPS with duplicates : ' + JSON.stringify(manufacturerMatchedDeviceIps))
+
+      // Check allowHosts to see if ManufacturerMatchedDeviceIps already exists ....
+      let filteredManufacturerMatchedDeviceIps = await Promise.all(manufacturerMatchedDeviceIps.map(async(manufacturerMatchedDeviceIp, index) => {
+        let filteredManufacturerMatchedDeviceIp =  await Promise.all(dhcpDeviceFromGateway.data.body.device.allowHosts.map(async(gatewayDeviceAllowHost) => {
+          if(manufacturerMatchedDeviceIp != gatewayDeviceAllowHost)
+            return manufacturerMatchedDeviceIp
+        }))
+        return filteredManufacturerMatchedDeviceIp
+      }))
+
+      // Remove nested arrays, duplicates and null values
+      filteredManufacturerMatchedDeviceIps = [].concat(...filteredManufacturerMatchedDeviceIps);
+      filteredManufacturerMatchedDeviceIps = filteredManufacturerMatchedDeviceIps.filter((el) =>{ return el!= null })
+      filteredManufacturerMatchedDeviceIps = [...new Set(filteredManufacturerMatchedDeviceIps)]
+
+      logger.debug('\n Matched Manufacturer device IPS without duplicates : ' + JSON.stringify(filteredManufacturerMatchedDeviceIps))
+      logger.debug('\n Obtained one directional manufacturers devices from later on-boarding : ' + JSON.stringify(filteredManufacturerMatchedDeviceIps))
+      logger.debug('\n Device to update Allow Hosts from gateway : ' + JSON.stringify(deviceToUpdateAllowHosts))
+      if(filteredManufacturerMatchedDeviceIps.length > 0){
+        let updatedAllowHostsForGatewayDevice = deviceToUpdateAllowHosts.concat(filteredManufacturerMatchedDeviceIps)
+        updatedAllowHostsForGatewayDevice = [...new Set(updatedAllowHostsForGatewayDevice)]
+        // logger.debug('\n Updated AllowHosts for Gateway Device  : ' + JSON.stringify(updatedAllowHostsForGatewayDevice))
+        let allowHostsPutBody = Object.assign({},{ allowHosts:  updatedAllowHostsForGatewayDevice })
+        logger.debug('\n  Updated AllowHosts PUT Body  : ' + JSON.stringify(allowHostsPutBody))
+        const dhcpDeviceFromGatewayPutResponse = await axios({
+          ...apiInit ,
+          method : 'PUT' ,
+          url : `${mmUrl}/${paths.DHCP_PATH}/${deviceToUpdate.class}/devices/${deviceToUpdate.deviceId}`,
+          data: allowHostsPutBody
+        })
+        // return dhcpDeviceFromGatewayPutResponse
+      }
+    }))
+  }
+}
+
+// Handle one-directional same-manufacturer use case
+const upsertOneDirectionalSameManufacturerMudRules = async (hook, mmUrl, allDevices, deviceToUpdate, deviceIndex) => {
+  const hasSameManufacturerIndex = deviceToUpdate.allowHosts.findIndex((allowHost) => allowHost == 'same-manufacturer')
+  logger.debug('\n Has same manufacturer Index : ' + JSON.stringify(hasSameManufacturerIndex))
+  // Handle one-directional same-manufacturer use case
+  if(hasSameManufacturerIndex != -1) {
+    const dhcpDeviceFromGateway = await axios({
+      ...apiInit ,
+      method : 'GET' ,
+      url : `﻿${mmUrl}/${paths.DHCP_PATH}/${deviceToUpdate.class}/devices/${deviceToUpdate.deviceId}`
+    })
+    logger.debug('\n\n Current device to update from gateway : ' + JSON.stringify(dhcpDeviceFromGateway.data))
+    const deviceToUpdateAllowHosts = dhcpDeviceFromGateway.data.body.device.allowHosts
+    let sameManufacturerMatchedDeviceIps = []
+    sameManufacturerMatchedDeviceIps = await Promise.all(allDevices.map(async(device, idx) => {
+      // logger.debug('\n Current deviceIndex: ' + JSON.stringify(deviceIndex) + '\t\t Idx : ' + JSON.stringify(idx))
+      // if(idx > deviceIndex && idx <= allDevices.length) {
+      if((device.deviceIp!= deviceToUpdate.deviceIp && device.deviceId !=deviceToUpdate.deviceId ) && device.deviceAuthority == deviceToUpdate.deviceAuthority){
+        return device.deviceIp
+      }
+      // }
+    }))
+
+    // Remove nested arrays, duplicates and null values
+    sameManufacturerMatchedDeviceIps = [].concat(...sameManufacturerMatchedDeviceIps);
+    sameManufacturerMatchedDeviceIps = sameManufacturerMatchedDeviceIps.filter((el) =>{ return el!= null })
+    sameManufacturerMatchedDeviceIps = [...new Set(sameManufacturerMatchedDeviceIps)]
+
+    logger.debug('\n Matched Same Manufacturer device IPS with duplicates : ' + JSON.stringify(sameManufacturerMatchedDeviceIps))
+
+    // Check allowHosts to see if sameManufacturerMatchedDeviceIps already exists ....
+    let filteredSameManufacturerMatchedDeviceIps = await Promise.all(sameManufacturerMatchedDeviceIps.map(async(sameManufacturerMatchedDeviceIp, index) => {
+      let filteredSameManufacturerMatchedDeviceIp =  await Promise.all(dhcpDeviceFromGateway.data.body.device.allowHosts.map(async(gatewayDeviceAllowHost) => {
+        if(sameManufacturerMatchedDeviceIp != gatewayDeviceAllowHost)
+          return sameManufacturerMatchedDeviceIp
+      }))
+      return filteredSameManufacturerMatchedDeviceIp
+    }))
+
+    // Remove nested arrays, duplicates and null values
+    filteredSameManufacturerMatchedDeviceIps = [].concat(...filteredSameManufacturerMatchedDeviceIps);
+    filteredSameManufacturerMatchedDeviceIps = filteredSameManufacturerMatchedDeviceIps.filter((el) =>{ return el!= null })
+    filteredSameManufacturerMatchedDeviceIps = [...new Set(filteredSameManufacturerMatchedDeviceIps)]
+
+    logger.debug('\n Matched Same Manufacturer device IPS without duplicates : ' + JSON.stringify(filteredSameManufacturerMatchedDeviceIps))
+    logger.debug('\n Obtained one directional same-manufacturers devices from later on-boarding : ' + JSON.stringify(filteredSameManufacturerMatchedDeviceIps))
+    logger.debug('\n Device to update Allow Hosts from gateway : ' + JSON.stringify(deviceToUpdateAllowHosts))
+    if(filteredSameManufacturerMatchedDeviceIps.length > 0){
+      let updatedAllowHostsForGatewayDevice = deviceToUpdateAllowHosts.concat(filteredSameManufacturerMatchedDeviceIps)
+      updatedAllowHostsForGatewayDevice = [...new Set(updatedAllowHostsForGatewayDevice)]
+      // logger.debug('\n Updated AllowHosts for Gateway Device  : ' + JSON.stringify(updatedAllowHostsForGatewayDevice))
+      let allowHostsPutBody = Object.assign({},{ allowHosts:  updatedAllowHostsForGatewayDevice })
+      logger.debug('\n  Updated AllowHosts PUT Body  : ' + JSON.stringify(allowHostsPutBody))
+      const dhcpDeviceFromGatewayPutResponse = await axios({
+        ...apiInit ,
+        method : 'PUT' ,
+        url : `${mmUrl}/${paths.DHCP_PATH}/${deviceToUpdate.class}/devices/${deviceToUpdate.deviceId}`,
+        data: allowHostsPutBody
+      })
+      // return dhcpDeviceFromGatewayPutResponse
+    }
+  }
+
+}
+
+const upsertOneDirectionalMudRules = async (hook, mmUrl, allDevices, deviceToUpdate, deviceIndex) => {
+  logger.debug('\n One-directional device to update from users : ' + JSON.stringify(deviceToUpdate) + '\t\t DeviceIndex : ' + JSON.stringify(deviceIndex))
+  await upsertOneDirectionalSameManufacturerMudRules(hook, mmUrl, allDevices, deviceToUpdate, deviceIndex)
+  await upsertOneDirectionalManufacturerMudRules(hook, mmUrl, allDevices, deviceToUpdate, deviceIndex)
+  logger.debug('\n\n ************ ONE--DIRECTIONAL--MUD--RULES--UPDATES **************')
+}
+
+/* Find and add IPs of one directional for same-manufacturer / manufacturers of recently on-boarded devices */
+const oneDirectionalMudRules = async(hook,mmUrl) => {
+  // Find and add IPs of one directional same-manufacturers of recently on-boarded devices
+  logger.debug('\n\n ************ ONE--DIRECTIONAL--MUD--RULES--UPDATES **************')
+  logger.debug('\n MM-URL : ' + JSON.stringify(mmUrl))
+  logger.debug('\n Find and add IPs of one directional same-manufacturers of recently on-boarded devices .... ')
+  const users = await hook.app.service ( `${USERS_PATH}` ).get (hook.data.subscriberId);
+  logger.debug('\n\n Users with devices : ' + JSON.stringify(users))
+  const allDevices = users.devices
+  logger.debug('\n\n   All present devices : ' + JSON.stringify(allDevices))
+  //  logger.debug('\n  Currently on-boarded device : ' + JSON.stringify(gatewayDevice))
+  const mudRulesUpdateResponses = await Promise.all(allDevices.map(async(deviceToUpdate, deviceIndex) => {
+    await upsertOneDirectionalMudRules(hook, mmUrl, allDevices, deviceToUpdate,deviceIndex)
+  }))
+  logger.debug('\n One - Directional Mud Rules  : ' + JSON.stringify(mudRulesUpdateResponses.data))
+   return mudRulesUpdateResponses
 }
 
 /* Delete DHCP Subnets */
@@ -1271,36 +1445,12 @@ const deallocateIPSubnets = async ( hook , ipSubnets ) => {
 }
 
 module.exports = {
-  isGatewayAlive ,
-  flattenArray ,
   isEmpty ,
-  isODLAlive ,
-  connectToGateway ,
-  getOdlConfig ,
-  getODLSwitchDetails ,
-  populateOdlConfig ,
   getSubnet ,
-  getStaticSubnetIps ,
-  getSubnetIps ,
-  getDeviceForSubnet ,
-  getSubnetAndDeviceIps ,
-  getRegistryForSubscriber ,
-  getSubscriberId ,
-  getRegistry ,
-  getMicronet ,
-  populatePostObj ,
-  upsertOdLConfigState ,
-  fetchOdlOperationalState ,
   mockOdlOperationsForUpserts ,
-  odlOperationsForUpserts ,
-  subnetPresentCheck ,
-  createSubnetInMicronet ,
+  oneDirectionalMudRules,
   upsertSubnetsToMicronet ,
-  upsertRegisteredDeviceToMicronet ,
   addDevicesInSubnet ,
   addDhcpSubnets ,
-  upsertDhcpDevicesWithMudConfig ,
-  addDhcpDevices ,
-  deleteDhcpSubnets ,
-  deallocateIPSubnets
+  addDhcpDevices
 }
