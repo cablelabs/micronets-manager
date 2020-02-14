@@ -32,6 +32,7 @@ services:
     # restart: on-failure
     networks:
       - mm-priv-network
+    command: ["node", "--inspect=0.0.0.0:9229", "api/"]
     environment:
       NODE_ENV: production
       MM_API_LISTEN_HOST: 0.0.0.0
@@ -69,5 +70,4 @@ services:
 #      - "${MM_API_ENV_FILE}"
 #    labels:
 #      - com.cablelabs.micronets.containertype: micronets-manager-api
-
 
