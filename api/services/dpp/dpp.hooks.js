@@ -335,7 +335,7 @@ const onboardDppDevice = async(hook) => {
         logger.debug ( '\n DPP devices to add to dhcp : ' + JSON.stringify ( dppDevicesToAddToDhcpPost ) )
 
         const addedDhcpDevices = await addDhcpDevices ( hook , dppDevicesToAddToDhcpPost , micronetIdToUpsert , subnetIdToUpsert )
-        logger.debug('\n NCCOE ADDED DHCP DEVICES : ' + JSON.stringify(addedDhcpDevices))
+        logger.debug('\n ADDED DHCP DEVICES : ' + JSON.stringify(addedDhcpDevices))
 
         // if(addedDhcpDevices.length > 0) {
           logger.debug('\n Gateway Device added . Initiating before on-board call ... ')
@@ -442,13 +442,13 @@ module.exports = {
         const { data , params } = hook
         const { requestHeaders , requestUrl } = params
         if ( requestUrl == DPP_ONBOARD ) {
-          logger.debug ( '\n\n DPP On-board path ... ' + JSON.stringify ( requestUrl ) + '\t\t Data : ' + JSON.stringify ( data ) )
+          logger.debug ( '\n\n DPP ON-BOARD PATH ... ' + JSON.stringify ( requestUrl ) + '\t\t DATA : ' + JSON.stringify ( data ) )
           if ( validateDppRequest ( hook ) ) {
             const { dppOnboardDeviceIndex, user } = await checkUserAndDeviceToOnboard(hook)
             if ( dppOnboardDeviceIndex == -1 ) {
               logger.debug ( '\n Device ' + JSON.stringify ( data.bootstrap.mac ) + '\t not present. On-boarding device ... ' )
               const dppResult = await onboardDppDevice ( hook )
-              logger.debug('\n Dpp on-boarding post body : ' + JSON.stringify(dppResult))
+              logger.debug('\n DPP ON-BOARDING Response : ' + JSON.stringify(dppResult))
 
               // // POST Results to MSO-Portal
               // const { msoPortalUrl } = hook.app.get('mano')

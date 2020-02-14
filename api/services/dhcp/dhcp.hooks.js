@@ -143,6 +143,22 @@ module.exports = {
     patch: [
       async(hook) => {
         const { data,id,params } = hook;
+        const {route} = params
+        const subnetId = route.hasOwnProperty('id') ? route.id : id
+        logger.debug('\n PATCH DHCP HOOK ROUTE : ' + JSON.stringify(route) + '\t\t PARAMS : ' + JSON.stringify(params) + '\t\t\t ID : ' + JSON.stringify(id) + '\t\t\t DATA : ' + JSON.stringify(data))
+        // Update existing device in subnet
+        if( subnetId && route.deviceId ) {
+          const dhcpResponse =  await dw.send({device:data}, 'PUT','device',subnetId, route.deviceId)
+          hook.result = dhcpResponse.data
+          return Promise.resolve(hook)
+        }
+
+        // Update existing subnet
+        if(subnetId) {
+          const dhcpResponse =  await dw.send({subnet:data}, 'PUT','subnet',subnetId)
+          hook.result = dhcpResponse
+          return Promise.resolve(hook)
+        }
       }
     ],
     remove: [

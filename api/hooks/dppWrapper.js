@@ -1300,7 +1300,7 @@ const upsertOneDirectionalManufacturerMudRules = async (hook, mmUrl, allDevices,
         logger.debug('\n  Updated AllowHosts PUT Body  : ' + JSON.stringify(allowHostsPutBody))
         const dhcpDeviceFromGatewayPutResponse = await axios({
           ...apiInit ,
-          method : 'PUT' ,
+          method : 'PATCH' ,
           url : `${mmUrl}/${paths.DHCP_PATH}/${deviceToUpdate.class}/devices/${deviceToUpdate.deviceId}`,
           data: allowHostsPutBody
         })
@@ -1365,10 +1365,11 @@ const upsertOneDirectionalSameManufacturerMudRules = async (hook, mmUrl, allDevi
       logger.debug('\n  Updated AllowHosts PUT Body  : ' + JSON.stringify(allowHostsPutBody))
       const dhcpDeviceFromGatewayPutResponse = await axios({
         ...apiInit ,
-        method : 'PUT' ,
+        method : 'PATCH' ,
         url : `${mmUrl}/${paths.DHCP_PATH}/${deviceToUpdate.class}/devices/${deviceToUpdate.deviceId}`,
         data: allowHostsPutBody
       })
+      // await hook.app.service ( `${DHCP_PATH}` ).update ( data.subscriberId , { ssid:user.ssid, name:user.name, devices:user.devices });
       // return dhcpDeviceFromGatewayPutResponse
     }
   }
@@ -1394,7 +1395,7 @@ const oneDirectionalMudRules = async(hook,mmUrl) => {
   logger.debug('\n\n   All present devices : ' + JSON.stringify(allDevices))
   //  logger.debug('\n  Currently on-boarded device : ' + JSON.stringify(gatewayDevice))
   const mudRulesUpdateResponses = await Promise.all(allDevices.map(async(deviceToUpdate, deviceIndex) => {
-    await upsertOneDirectionalMudRules(hook, mmUrl, allDevices, deviceToUpdate,deviceIndex)
+  await upsertOneDirectionalMudRules(hook, mmUrl, allDevices, deviceToUpdate,deviceIndex)
   }))
   logger.debug('\n One - Directional Mud Rules  : ' + JSON.stringify(mudRulesUpdateResponses.data))
    return mudRulesUpdateResponses
