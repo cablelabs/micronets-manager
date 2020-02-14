@@ -909,6 +909,65 @@ const deleteDhcpSubnets = async ( hook , micronet , micronetId ) => {
     } )
   }
 }
+// Update all one-directional references of deleted gateway device
+const upsertDhcpDevicesWithOneDirectionalReferences = async (hook, mmUrl, id, micronetId, deviceId, gatewayDeviceToDelete, deviceToDeleteClass) => {
+  logger.debug(`\n upsertDhcpDevicesWithOneDirectionalReferences called with arguments mmUrl ${mmUrl} 
+  \t micronetId ${micronetId} 
+  \t deviceId ${deviceId} 
+  \t gatewayDeviceToDelete ${JSON.stringify(gatewayDeviceToDelete)} \t deviceToDeleteClass ${deviceToDeleteClass}`)
+  // Find and update all devices which have one-directional rules for the device to be deleted
+  if(gatewayDeviceToDelete.hasOwnProperty('status') && gatewayDeviceToDelete.status == '200') {
+    let deviceIpToDelete = gatewayDeviceToDelete.hasOwnProperty('body') && gatewayDeviceToDelete.body.hasOwnProperty('device') ? gatewayDeviceToDelete.body.device.networkAddress.ipv4 : null
+    logger.debug('\n Device IP for device to delete : ' + JSON.stringify(deviceIpToDelete))
+    // Check f valid Device exists with device IP
+    if(deviceIpToDelete != null) {
+      let gatewayMicronets = await axios({
+        ...apiInit ,
+        method : 'GET' ,
+        url : `﻿${mmUrl}/${paths.DHCP_PATH}`
+      })
+      gatewayMicronets = gatewayMicronets.data
+      logger.debug('\n All micronets on gateway : ' + JSON.stringify(gatewayMicronets))
+      let allGatewayDeviceIdsToUpsert = []
+      if(gatewayMicronets.hasOwnProperty('body') && gatewayMicronets.body.hasOwnProperty('micronets') && gatewayMicronets.body.micronets.length > 0) {
+        allGatewayDeviceIdsToUpsert =  await Promise.all(gatewayMicronets.body.micronets.map(async(gatewayMicronet, idx) => {
+          if(gatewayMicronet.hasOwnProperty('micronetId')){
+            let gatewayDevicesInMicronet = await axios({
+              ...apiInit ,
+              method : 'GET' ,
+              url : `﻿${mmUrl}/${paths.DHCP_PATH}/${gatewayMicronet.micronetId}/devices`
+            })
+            gatewayDevicesInMicronet = gatewayDevicesInMicronet.data
+            logger.debug( `\n All Devices in micronet ${gatewayMicronet.micronetId} are ` + JSON.stringify(gatewayDevicesInMicronet))
+
+            if(gatewayDevicesInMicronet.hasOwnProperty('body') && gatewayDevicesInMicronet.body.hasOwnProperty('devices') && gatewayDevicesInMicronet.body.devices.length > 0) {
+              return await Promise.all(gatewayDevicesInMicronet.body.devices.map(async(gatewayDevice) => {
+                if(gatewayDevice.deviceId != deviceId && gatewayDevice.allowHosts.length > 0) {
+                  let isDeviceToDeleteExists = gatewayDevice.allowHosts.findIndex((allowHost) => allowHost == deviceId)
+                  logger.debug('\n isDeviceToDeleteExists : ' + JSON.stringify(isDeviceToDeleteExists))
+                  if(isDeviceToDeleteExists) {
+                    let updatedAllowHosts =   gatewayDevice.allowHosts.filter((allowHost)=> allowHost != deviceIpToDelete)
+                    let allowHostsPutBody = Object.assign({},{ allowHosts: updatedAllowHosts })
+                    logger.debug('\n Updated allowHosts minus the deleted device IP : ' + JSON.stringify(allowHostsPutBody))
+
+                    // PATCH for gateway devices excluding the deviceIP of deleted device
+                    const dhcpDeviceFromGatewayPutResponse = await axios({
+                      ...apiInit ,
+                      method : 'PATCH' ,
+                      url : `${mmUrl}/${paths.DHCP_PATH}/${gatewayMicronet.micronetId}/devices/${gatewayDevice.deviceId}`,
+                      data: allowHostsPutBody
+                    })
+                   logger.debug('\n\n Dhcp Device From Gateway Put Response : ' + JSON.stringify(dhcpDeviceFromGatewayPutResponse.data))
+                  }
+                }
+              }))
+            }
+          }
+        }))
+      }
+    }
+  }
+}
 
 /* Delete DHCP Device in Subnet */
 const deleteDhcpDeviceInSubnet = async ( hook , micronet  ) => {
@@ -1203,7 +1262,7 @@ module.exports = {
         /**************** Delete a specific device from micronet *************************/
         if ( (id && micronetId && deviceId) || requestUrl ==`/mm/v1/subscriber/${id}/micronets/${micronetId}/devices/${deviceId}` ) {
 
-          logger.debug(`\n Device ID  ${deviceId} to remove from micronet ${micronetId}`)
+          logger.debug(`\n Device ID  ${deviceId} to remove from micronet ${micronetId} for subscriber ${id}`)
           const registry = await getRegistry ( hook , {} )
           const { mmUrl } = registry
           let postBodyForDelete = [] , micronetToDelete = {} , registeredDevicesToDelete = [] , subnetAllocator = Object.assign({}) , deviceToDeleteIndex = '', ipSubnets = [], allDeviceIds = []
@@ -1217,6 +1276,16 @@ module.exports = {
             const mockMicronetsFromDb = await hook.app.service ( `${MOCK_MICRONET_PATH}` ).find ( {} )
             const mockMicronetIndex = mockMicronetsFromDb.data.length > 0 ? mockMicronetsFromDb.data.findIndex ( ( mockMicronet ) => mockMicronet.id == id ) : -1
             logger.debug ( '\n\n Mock micronet Index : ' + JSON.stringify ( mockMicronetIndex ) )
+            logger.debug('\n Mock Micronets FromDb.data[0].micronets : ' + JSON.stringify(mockMicronetsFromDb.data[0].micronets))
+            let deviceToDeleteClass = mockMicronetsFromDb.data[0].micronets[mockMicronetIndex].class
+            // Obtain the deviceIP of device to delete to update one-directional rules for other devices.
+            logger.debug('\n Class of Device IP to delete : ' + JSON.stringify(deviceToDeleteClass))
+            let gatewayDeviceToDelete = await axios({
+              ...apiInit ,
+              method : 'GET' ,
+              url : `﻿${mmUrl}/${paths.DHCP_PATH}/${deviceToDeleteClass}/devices/${deviceId}`
+            })
+            gatewayDeviceToDelete = gatewayDeviceToDelete.data
 
             // Delete single micro-net
             if ( micronetId && deviceId ) {
@@ -1256,19 +1325,22 @@ module.exports = {
             }
 
             logger.debug ( '\n Micronets delete Post body : ' + JSON.stringify ( postBodyForDelete ))
-            const patchResult = await hook.app.service ( `${MICRONETS_PATH}` ).patch ( id ,
-              {
-                micronets : postBodyForDelete
-              } );
-
+            const patchResult = await hook.app.service ( `${MICRONETS_PATH}` ).patch ( id , { micronets : postBodyForDelete } );
             logger.debug ( '\n Micronets deleted. Updated result : ' + JSON.stringify ( patchResult ) )
 
             if ( patchResult ) {
 
               // Delete Gateway device from micronet
               if ( micronetId ) {
-                logger.debug ( '\n Deleting gateway device from subnet ... '  )
+                logger.debug ( '\n Deleting gateway device from micronet ... '  )
                 const dhcpDhcpDeviceDeletePromise = await deleteDhcpDeviceInSubnet ( hook , micronetToDelete , micronetId )
+                logger.debug('\n DHCP DEVICE DELETED SUCCESSFULLY dhcpDhcpDeviceDeletePromise : ' + JSON.stringify(dhcpDhcpDeviceDeletePromise))
+
+                // Delete all one-directional references on gateway devices of deleted device if any
+                // if(dhcpDhcpDeviceDeletePromise) {
+                  logger.debug ( '\n Deleting one-directional gateway device references in other or same micronets ... '  )
+                  await upsertDhcpDevicesWithOneDirectionalReferences(hook,mmUrl, id, micronetId, deviceId,gatewayDeviceToDelete,deviceToDeleteClass)
+               // }
 
                 // Delete mock micronet
                 if ( mockMicronetIndex > -1 ) {
@@ -1522,7 +1594,11 @@ module.exports = {
         } );
       }
     ] ,
-    remove : []
+    remove : [
+      async(hook) => {
+        const {data, id, params } = hook
+      }
+    ]
   } ,
 
   error : {
