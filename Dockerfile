@@ -1,10 +1,8 @@
 # NOTE: This Dockerfile is for the API only
 
-FROM node:8
+FROM node:8-alpine
 
 WORKDIR /usr/src/micronets-manager
-
-RUN apt-get update;
 
 # TODO: Only copy what's needed for the API
 COPY . .
