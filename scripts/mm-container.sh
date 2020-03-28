@@ -9,6 +9,7 @@ NGINX_RELOAD_COMMAND="sudo nginx -s reload"
 SUBSCRIBER_PREFIX="mm-sub-"
 DEF_MM_API_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-api:latest"
 DEF_MM_APP_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-app:latest"
+DEF_MM_CERTS_DIR="/etc/micronets/micronets-manager.d/lib"
 DOCKER_CMD="docker"
 DEF_DOCKER_COMPOSE_FILE="${script_dir}/docker-compose.yml"
 
@@ -69,6 +70,10 @@ function print_usage()
     echo "       (default \"$NGINX_RELOAD_COMMAND\")"
     echo "   [--docker-compose-file <full path to docker compose file>]"
     echo "       (default \"$DEF_DOCKER_COMPOSE_FILE\")"
+    echo "   [--certs-dir <directory with CA and client certs>]"
+    echo "       (default \"$DEF_MM_CERTS_DIR\")"
+    echo "       Should contain \"micronets-ws-root.cert.pem\", \"micronets-manager.cert.pem\","
+    echo "       and \"micronets-manager.key.pem\" files"
 }
 
 function process_arguments()
@@ -83,6 +88,7 @@ function process_arguments()
     nginx_conf_dir="$NGINX_CONF_DIR"
     nginx_reload_command="$NGINX_RELOAD_COMMAND"
     docker_compose_file="$DEF_DOCKER_COMPOSE_FILE"
+    certs_dir="$DEF_MM_CERTS_DIR"
 
     while [[ $1 == --* ]]; do
         opt_name=$1
@@ -106,6 +112,11 @@ function process_arguments()
             shift
             docker_compose_file="$1"
             shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--certs-dir" ]; then
+            shift
+            certs_dir="$1"
+            shift || bailout_with_usage "missing parameter to $opt_name"
+            [ -d $certs_dir ] || bailout_with_usage "$certs_dir is not a directory"
         else
             bailout_with_usage "Unrecognized option: $opt_name"
         fi
@@ -255,7 +266,7 @@ function list_container_addresses_for_subscriber()
     done
 }
 
-list_container_env_for_subscriber()
+function list_container_env_for_subscriber()
 {
     subscriber_id=$1
     mm_mongodb_container_id=$(get_container_name_for_subscriber $subscriber_id mm-mongo)
@@ -352,6 +363,7 @@ function start_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
+       MM_CERTS_DIR="$certs_dir" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label up -d) \
          || bailout "Couldn't start subscriber ${subscriber_id}"
@@ -538,5 +550,5 @@ elif [ "$operation" == "inspect" ]; then
 elif [ "$operation" == "setup-web-proxy" ]; then
     setup_web_proxy
 else
-        bailout_with_usage "Unrecognized operation: $operation"
+    bailout_with_usage "Unrecognized operation: $operation"
 fi
