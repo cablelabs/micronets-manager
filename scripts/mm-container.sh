@@ -84,7 +84,7 @@ function process_arguments()
     operation=""
     subscriber_id=""
     api_docker_image_id="$DEF_MM_API_IMAGE_LOCATION"
-    app_docker_image_id="$DEF_MM_APP_IMAGE_LOCATION"
+    # app_docker_image_id="$DEF_MM_APP_IMAGE_LOCATION"
     nginx_conf_dir="$NGINX_CONF_DIR"
     nginx_reload_command="$NGINX_RELOAD_COMMAND"
     docker_compose_file="$DEF_DOCKER_COMPOSE_FILE"
@@ -96,10 +96,10 @@ function process_arguments()
             shift
             api_docker_image_id="$1"
             shift || bailout_with_usage "missing parameter to $opt_name"
-        elif [ "$opt_name" == "--app-docker-image" ]; then
-            shift
-            app_docker_image_id="$1"
-            shift || bailout_with_usage "missing parameter to $opt_name"
+        # elif [ "$opt_name" == "--app-docker-image" ]; then
+        #     shift
+        #     app_docker_image_id="$1"
+        #     shift || bailout_with_usage "missing parameter to $opt_name"
         elif [ "$opt_name" == "--nginx-conf-dir" ]; then
             shift
             nginx_conf_dir="$1"
@@ -361,7 +361,6 @@ function start_subscriber()
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
-       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
        MM_CERTS_DIR="$certs_dir" \
        docker-compose -f "$docker_compose_file" \
@@ -377,7 +376,6 @@ function delete_subscriber()
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
-       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
        MM_CERTS_DIR="$certs_dir" \
        docker-compose -f "$docker_compose_file" \
@@ -393,7 +391,6 @@ function stop_containers_for_subscriber()
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
-       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
        MM_CERTS_DIR="$certs_dir" \
        docker-compose -f "$docker_compose_file" \
@@ -425,7 +422,7 @@ function create_nginx_rules_for_subscriber()
 
     subscriber_id="$1"
     mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
-    mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
+    # mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
     mm_api_priv_ip_addr=$(get_ip_address_for_container ${mm_api_container_id})
 
     # mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
@@ -436,9 +433,6 @@ function create_nginx_rules_for_subscriber()
 # Forwarding rules for container ${mm_api_container_id}
 location /sub/${subscriber_id}/api/ {
     proxy_pass http://${mm_api_priv_ip_addr}:3030/;
-}
-location /sub/${subscriber_id}/app/ {
-    proxy_pass http://${mm_app_priv_ip_addr}:8080/;
 }
 "
     # echo "Forwarding rule for subscriber $subscriber_id: $rules"
