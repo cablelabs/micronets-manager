@@ -10,6 +10,7 @@ SUBSCRIBER_PREFIX="mm-sub-"
 DEF_MM_API_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-api:latest"
 DEF_MM_APP_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-app:latest"
 DOCKER_CMD="docker"
+DEF_DOCKER_COMPOSE_FILE="${script_dir}/docker-compose.yml"
 
 function bailout()
 {
@@ -66,6 +67,8 @@ function print_usage()
     echo "       (default \"$NGINX_CONF_DIR\")"
     echo "   [--nginx-reload-command <command to cause nginx conf reload>]"
     echo "       (default \"$NGINX_RELOAD_COMMAND\")"
+    echo "   [--docker-compose-file <full path to docker compose file>]"
+    echo "       (default \"$DEF_DOCKER_COMPOSE_FILE\")"
 }
 
 function process_arguments()
@@ -79,26 +82,32 @@ function process_arguments()
     app_docker_image_id="$DEF_MM_APP_IMAGE_LOCATION"
     nginx_conf_dir="$NGINX_CONF_DIR"
     nginx_reload_command="$NGINX_RELOAD_COMMAND"
+    docker_compose_file="$DEF_DOCKER_COMPOSE_FILE"
 
     while [[ $1 == --* ]]; do
-        if [ "$1" == "--api-docker-image" ]; then
+        opt_name=$1
+        if [ "$opt_name" == "--api-docker-image" ]; then
             shift
             api_docker_image_id="$1"
-            shift || bailout_with_usage "missing parameter to --api-docker-image"
-        elif [ "$1" == "--app-docker-image" ]; then
+            shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--app-docker-image" ]; then
             shift
             app_docker_image_id="$1"
-            shift || bailout_with_usage "missing parameter to --app-docker-image"
-        elif [ "$1" == "--nginx-conf-dir" ]; then
+            shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--nginx-conf-dir" ]; then
             shift
             nginx_conf_dir="$1"
-            shift || bailout_with_usage "missing parameter to --nginx-conf-dir"
-        elif [ "$1" == "--nginx-reload-command" ]; then
+            shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--nginx-reload-command" ]; then
             shift
             nginx_reload_command="$1"
-            shift || bailout_with_usage "missing parameter to --nginx-reload-command"
+            shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--docker-compose-file" ]; then
+            shift
+            docker_compose_file="$1"
+            shift || bailout_with_usage "missing parameter to $opt_name"
         else
-            bailout_with_usage "Unrecognized option: $1"
+            bailout_with_usage "Unrecognized option: $opt_name"
         fi
     done
 
@@ -343,9 +352,9 @@ function start_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
-       docker-compose -f "${script_dir}/docker-compose.yml" \
+       docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label up -d) \
-     || bailout "Couldn't start subscriber ${subscriber_id}"
+         || bailout "Couldn't start subscriber ${subscriber_id}"
 }
 
 function delete_subscriber()
@@ -358,9 +367,9 @@ function delete_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
-       docker-compose -f "${script_dir}/docker-compose.yml" \
+       docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label down -v) \
-     || bailout "Couldn't delete subscriber ${subscriber_id}"
+       || bailout "Couldn't delete subscriber ${subscriber_id}"
 }
 
 function stop_containers_for_subscriber()
@@ -373,9 +382,9 @@ function stop_containers_for_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
-       docker-compose -f "${script_dir}/docker-compose.yml" \
+       docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label down) \
-     || bailout "Couldn't stop subscriber ${subscriber_id}"
+       || bailout "Couldn't stop subscriber ${subscriber_id}"
 }
 
 function restart_containers_for_subscriber()
@@ -388,9 +397,9 @@ function restart_containers_for_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
-       docker-compose -f "${script_dir}/docker-compose.yml" \
+       docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label restart) \
-     || bailout "Error restarting subscriber ${subscriber_id}"
+       || bailout "Error restarting subscriber ${subscriber_id}"
 }
 
 function create_nginx_rules_for_subscriber()
