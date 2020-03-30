@@ -379,6 +379,7 @@ function delete_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
+       MM_CERTS_DIR="$certs_dir" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label down -v) \
        || bailout "Couldn't delete subscriber ${subscriber_id}"
@@ -394,6 +395,7 @@ function stop_containers_for_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
+       MM_CERTS_DIR="$certs_dir" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label down) \
        || bailout "Couldn't stop subscriber ${subscriber_id}"
@@ -409,6 +411,7 @@ function restart_containers_for_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
+       MM_CERTS_DIR="$certs_dir" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label restart) \
        || bailout "Error restarting subscriber ${subscriber_id}"
