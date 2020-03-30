@@ -31,7 +31,7 @@ services:
     mem_limit: 200m
     # restart: on-failure
     volumes:
-      - ${MM_CERTS_DIR}:/usr/src/micronets-manager/certs
+      - ${MM_CERTS_DIR}:/usr/src/micronets-manager/certs:ro
     networks:
       - mm-priv-network
     command: ["node", "--inspect=0.0.0.0:9229", "api/"]
