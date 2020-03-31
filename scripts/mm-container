@@ -517,7 +517,7 @@ function setup_web_proxy()
     echo "-------------------------------------------------------------------------------------------"
 }
 
-function create_mso_proxy_file()
+function create_mso_secret_file()
 {
     $OPENSSL_CMD rand -out $mso_secret_file -hex 512
     if [[ $? == 0 ]]; then
@@ -618,7 +618,7 @@ elif [ "$operation" == "inspect" ]; then
 elif [ "$operation" == "setup-web-proxy" ]; then
     setup_web_proxy
 elif [ "$operation" == "create-mso-secret" ]; then
-    create_mso_proxy_file
+    create_mso_secret_file
 else
     bailout_with_usage "Unrecognized operation: $operation"
 fi
