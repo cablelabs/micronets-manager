@@ -2,6 +2,10 @@
 
 set -e
 
+# dump_vars=1
+
+# set -x
+
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 NGINX_CONF_DIR="/etc/nginx/micronets-subscriber-forwards"
@@ -74,6 +78,11 @@ function print_usage()
     echo "       (default \"$DEF_MM_CERTS_DIR\")"
     echo "       Should contain \"micronets-ws-root.cert.pem\", \"micronets-manager.cert.pem\","
     echo "       and \"micronets-manager.key.pem\" files"
+    echo "   [--auth-secret <512 hex digit secret>]"
+    echo "       The auth secret to use for communication with the MSO Portal"
+    echo "   [--auth-secret-file <filename containing a 512 hex digit secret>]"
+    echo "       A file containing the auth secret to use for communication with the MSO Portal"
+    echo "       (default \"$DEF_MM_CERTS_DIR/mso-auth-secret\")"
 }
 
 function process_arguments()
@@ -89,6 +98,8 @@ function process_arguments()
     nginx_reload_command="$NGINX_RELOAD_COMMAND"
     docker_compose_file="$DEF_DOCKER_COMPOSE_FILE"
     certs_dir="$DEF_MM_CERTS_DIR"
+    mso_secret=""
+    mso_secret_file="$DEF_MM_CERTS_DIR/mso-auth-secret"
 
     while [[ $1 == --* ]]; do
         opt_name=$1
@@ -117,6 +128,15 @@ function process_arguments()
             certs_dir="$1"
             shift || bailout_with_usage "missing parameter to $opt_name"
             [ -d $certs_dir ] || bailout_with_usage "$certs_dir is not a directory"
+        elif [ "$opt_name" == "--auth-secret" ]; then
+            shift
+            mso_secret="$1"
+            shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--auth-secret-file" ]; then
+            shift
+            mso_secret_file="$1"
+            shift || bailout_with_usage "missing parameter to $opt_name"
+            [ -r $mso_secret_file ] || bailout "could not access $mso_secret_file"
         else
             bailout_with_usage "Unrecognized option: $opt_name"
         fi
@@ -359,10 +379,18 @@ function start_subscriber()
     subscriber_id="$1"
     echo "Creating resources for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
+    if [[ -z "$mso_secret" ]]; then
+      if [[ -r "$mso_secret_file" ]]; then
+        mso_secret=$(cat $mso_secret_file)
+      else
+        bailout "Could not open file $mso_secret_file"
+      fi
+    fi
     (MM_SUBSCRIBER_ID="$subscriber_id" \
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
        MM_CERTS_DIR="$certs_dir" \
+       MM_MSO_SECRET="$mso_secret" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label up -d) \
          || bailout "Couldn't start subscriber ${subscriber_id}"
@@ -503,12 +531,17 @@ function cleanup_subscriber_resources()
 
 process_arguments "$@"
 
-# echo "Script directory: ${script_dir}"
-# echo "Operation: ${operation}"
-# echo "MM API docker image: ${api_docker_image_id}"
-# echo "MM API docker image: ${app_docker_image_id}"
-# echo "Docker reload command: ${nginx_reload_command}"
-# echo "nginx config directory: ${nginx_conf_dir}"
+if [[ $dump_vars ]]; then
+  echo "Script directory: ${script_dir}"
+  echo "Operation: ${operation}"
+  echo "MM API docker image: ${api_docker_image_id}"
+  echo "MM API docker image: ${app_docker_image_id}"
+  echo "Docker reload command: ${nginx_reload_command}"
+  echo "nginx config directory: ${nginx_conf_dir}"
+  echo "certificate directory: ${certs_dir}"
+  echo "mso secret: ${mso_secret}"
+  echo "mso secret file: ${mso_secret_file}"
+fi
 
 subscriber_env_tmp_file="/tmp/mm-sub-${subscriber_id}.end"
 
