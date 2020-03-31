@@ -61,6 +61,8 @@ function print_usage()
     echo "     env <subscriber-id>: List the container environment variables for the subscriber"
     echo "     setup-web-proxy: Create the nginx directory for saving proxy conf files and set"
     echo "                      the permissions (requires sudo)"
+    echo "     create-mso-secret: Create an MSO secret and write it to the MSO auth secret file"
+    echo "                        (default \"$DEF_MM_CERTS_DIR/mso-auth-secret\")"
     echo ""
     echo "   subscriber-id can be any alphanumeric string, with hyphens or underscores"
     echo ""
@@ -186,6 +188,8 @@ function process_arguments()
         subscriber_id="$1"
         shift || bailout_with_usage "missing subscriber ID for env operation"
     elif [ "$operation" == "setup-web-proxy" ]; then
+        subscriber_id=
+    elif [ "$operation" == "create-mso-secret" ]; then
         subscriber_id=
     else
         bailout_with_usage "Unrecognized operation: $operation"
@@ -497,6 +501,16 @@ function setup_web_proxy()
     echo "-------------------------------------------------------------------------------------------"
 }
 
+function create_mso_proxy_file()
+{
+    openssl rand -out $mso_secret_file -hex 512
+    if [[ $? == 0 ]]; then
+        echo "Saved a 512-hex-digit MSO shared secret to $mso_secret_file"
+    else
+        echo "Error: Could not write to $mso_secret_file (use --auth-secret-file to specify a different filename)"
+    fi
+}
+
 # NOTE: ThiS FUNCTION ISN'T USED CURRENTLY - "docker-compose down" is used now instead
 function cleanup_subscriber_resources()
 {
@@ -579,6 +593,8 @@ elif [ "$operation" == "inspect" ]; then
     inspect_mmapi_for_subscriber $subscriber_id
 elif [ "$operation" == "setup-web-proxy" ]; then
     setup_web_proxy
+elif [ "$operation" == "create-mso-secret" ]; then
+    create_mso_proxy_file
 else
     bailout_with_usage "Unrecognized operation: $operation"
 fi
