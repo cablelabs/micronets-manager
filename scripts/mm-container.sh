@@ -11,10 +11,13 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 NGINX_CONF_DIR="/etc/nginx/micronets-subscriber-forwards"
 NGINX_RELOAD_COMMAND="sudo nginx -s reload"
 SUBSCRIBER_PREFIX="mm-sub-"
-DEF_MM_API_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-api:latest"
-DEF_MM_APP_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-app:latest"
+DEF_MM_API_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-api"
+DEF_MM_APP_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-app"
+DEF_MM_DOCKER_TAG="latest"
 DEF_MM_CERTS_DIR="/etc/micronets/micronets-manager.d/lib"
 DOCKER_CMD="docker"
+DOCKER_COMPOSE_CMD="docker-compose"
+OPENSSL_CMD="openssl"
 DEF_DOCKER_COMPOSE_FILE="${script_dir}/docker-compose.yml"
 
 function bailout()
@@ -71,6 +74,8 @@ function print_usage()
     echo "       (default \"$DEF_MM_API_IMAGE_LOCATION\")"
     echo "   [--app-docker-image <app docker image ID>"
     echo "       (default \"$DEF_MM_APP_IMAGE_LOCATION\")"
+    echo "   [--docker-image-tag <image tag>"
+    echo "       (default \"$DEF_MM_DOCKER_TAG\")"
     echo "   [--nginx-conf-dir <directory_to_add/remove nginx proxy rules>]"
     echo "       (default \"$NGINX_CONF_DIR\")"
     echo "   [--nginx-reload-command <command to cause nginx conf reload>]"
@@ -97,6 +102,7 @@ function process_arguments()
     subscriber_id=""
     api_docker_image_id="$DEF_MM_API_IMAGE_LOCATION"
     # app_docker_image_id="$DEF_MM_APP_IMAGE_LOCATION"
+    docker_image_tag="$DEF_MM_DOCKER_TAG"
     nginx_conf_dir="$NGINX_CONF_DIR"
     nginx_reload_command="$NGINX_RELOAD_COMMAND"
     docker_compose_file="$DEF_DOCKER_COMPOSE_FILE"
@@ -114,6 +120,10 @@ function process_arguments()
         #     shift
         #     app_docker_image_id="$1"
         #     shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--docker-image-tag" ]; then
+            shift
+            docker_image_tag="$1"
+            shift || bailout_with_usage "missing parameter to $opt_name"
         elif [ "$opt_name" == "--nginx-conf-dir" ]; then
             shift
             nginx_conf_dir="$1"
@@ -394,12 +404,12 @@ function start_subscriber()
       fi
     fi
     (MM_SUBSCRIBER_ID="$subscriber_id" \
-       MM_API_SOURCE_IMAGE="$api_docker_image_id" \
+       MM_API_SOURCE_IMAGE="$api_docker_image_id:$docker_image_tag" \
        MM_API_ENV_FILE="$docker_env_file" \
        MM_CERTS_DIR="$certs_dir" \
        MM_MSO_SECRET="$mso_secret" \
-       docker-compose -f "$docker_compose_file" \
-                      --project-name $subscriber_label up -d) \
+       $DOCKER_COMPOSE_CMD -f "$docker_compose_file" \
+                           --project-name $subscriber_label up -d) \
          || bailout "Couldn't start subscriber ${subscriber_id}"
 }
 
@@ -410,12 +420,12 @@ function delete_subscriber()
     echo "Deleting resources for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
-       MM_API_SOURCE_IMAGE="$api_docker_image_id" \
+       MM_API_SOURCE_IMAGE="$api_docker_image_id:$docker_image_tag" \
        MM_API_ENV_FILE="$docker_env_file" \
        MM_CERTS_DIR="$certs_dir" \
        MM_MSO_SECRET="$mso_secret" \
-       docker-compose -f "$docker_compose_file" \
-                      --project-name $subscriber_label down -v) \
+       $DOCKER_COMPOSE_CMD -f "$docker_compose_file" \
+                           --project-name $subscriber_label down -v) \
        || bailout "Couldn't delete subscriber ${subscriber_id}"
 }
 
@@ -426,12 +436,12 @@ function stop_containers_for_subscriber()
     echo "Stopping containers for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
-       MM_API_SOURCE_IMAGE="$api_docker_image_id" \
+       MM_API_SOURCE_IMAGE="$api_docker_image_id:$docker_image_tag" \
        MM_API_ENV_FILE="$docker_env_file" \
        MM_CERTS_DIR="$certs_dir" \
        MM_MSO_SECRET="$mso_secret" \
-       docker-compose -f "$docker_compose_file" \
-                      --project-name $subscriber_label down) \
+       $DOCKER_COMPOSE_CMD -f "$docker_compose_file" \
+                           --project-name $subscriber_label down) \
        || bailout "Couldn't stop subscriber ${subscriber_id}"
 }
 
@@ -442,13 +452,13 @@ function restart_containers_for_subscriber()
     echo "Restarting containers for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
-       MM_API_SOURCE_IMAGE="$api_docker_image_id" \
-       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
+       MM_API_SOURCE_IMAGE="$api_docker_image_id:$docker_image_tag" \
+       MM_APP_SOURCE_IMAGE="$app_docker_image_id:$docker_image_tag" \
        MM_API_ENV_FILE="$docker_env_file" \
        MM_CERTS_DIR="$certs_dir" \
        MM_MSO_SECRET="$mso_secret" \
-       docker-compose -f "$docker_compose_file" \
-                      --project-name $subscriber_label restart) \
+       $DOCKER_COMPOSE_CMD -f "$docker_compose_file" \
+                           --project-name $subscriber_label restart) \
        || bailout "Error restarting subscriber ${subscriber_id}"
 }
 
@@ -509,7 +519,7 @@ function setup_web_proxy()
 
 function create_mso_proxy_file()
 {
-    openssl rand -out $mso_secret_file -hex 512
+    $OPENSSL_CMD rand -out $mso_secret_file -hex 512
     if [[ $? == 0 ]]; then
         echo "Saved a 512-hex-digit MSO shared secret to $mso_secret_file"
     else
@@ -519,7 +529,7 @@ function create_mso_proxy_file()
 
 function pull_docker_image()
 {
-    docker pull $api_docker_image_id
+    $DOCKER_CMD pull $api_docker_image_id:$docker_image_tag
 }
 
 # NOTE: ThiS FUNCTION ISN'T USED CURRENTLY - "docker-compose down" is used now instead
@@ -561,6 +571,7 @@ if [[ $dump_vars ]]; then
   echo "Operation: ${operation}"
   echo "MM API docker image: ${api_docker_image_id}"
   echo "MM API docker image: ${app_docker_image_id}"
+  echo "MM docker image tag: ${docker_image_tag}"
   echo "Docker reload command: ${nginx_reload_command}"
   echo "nginx config directory: ${nginx_conf_dir}"
   echo "certificate directory: ${certs_dir}"
