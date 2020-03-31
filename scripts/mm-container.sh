@@ -2,6 +2,10 @@
 
 set -e
 
+# dump_vars=1
+
+# set -x
+
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 NGINX_CONF_DIR="/etc/nginx/micronets-subscriber-forwards"
@@ -9,6 +13,7 @@ NGINX_RELOAD_COMMAND="sudo nginx -s reload"
 SUBSCRIBER_PREFIX="mm-sub-"
 DEF_MM_API_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-api:latest"
 DEF_MM_APP_IMAGE_LOCATION="community.cablelabs.com:4567/micronets-docker/micronets-manager-app:latest"
+DEF_MM_CERTS_DIR="/etc/micronets/micronets-manager.d/lib"
 DOCKER_CMD="docker"
 DEF_DOCKER_COMPOSE_FILE="${script_dir}/docker-compose.yml"
 
@@ -37,6 +42,7 @@ function print_usage()
     echo ""
     echo "   operation can be one of:"
     echo ""
+    echo "     pull: Download the mm docker image"
     echo "     create <subscriber-id>: Create and start the docker containers and nginx"
     echo "                             mappings for the given subscriber"
     echo "     delete <subscriber-id>: Remove the docker containers, resources, and nginx"
@@ -56,6 +62,8 @@ function print_usage()
     echo "     env <subscriber-id>: List the container environment variables for the subscriber"
     echo "     setup-web-proxy: Create the nginx directory for saving proxy conf files and set"
     echo "                      the permissions (requires sudo)"
+    echo "     create-mso-secret: Create an MSO secret and write it to the MSO auth secret file"
+    echo "                        (default \"$DEF_MM_CERTS_DIR/mso-auth-secret\")"
     echo ""
     echo "   subscriber-id can be any alphanumeric string, with hyphens or underscores"
     echo ""
@@ -69,6 +77,15 @@ function print_usage()
     echo "       (default \"$NGINX_RELOAD_COMMAND\")"
     echo "   [--docker-compose-file <full path to docker compose file>]"
     echo "       (default \"$DEF_DOCKER_COMPOSE_FILE\")"
+    echo "   [--certs-dir <directory with CA and client certs>]"
+    echo "       (default \"$DEF_MM_CERTS_DIR\")"
+    echo "       Should contain \"micronets-ws-root.cert.pem\", \"micronets-manager.cert.pem\","
+    echo "       and \"micronets-manager.key.pem\" files"
+    echo "   [--auth-secret <512 hex digit secret>]"
+    echo "       The auth secret to use for communication with the MSO Portal"
+    echo "   [--auth-secret-file <filename containing a 512 hex digit secret>]"
+    echo "       A file containing the auth secret to use for communication with the MSO Portal"
+    echo "       (default \"$DEF_MM_CERTS_DIR/mso-auth-secret\")"
 }
 
 function process_arguments()
@@ -79,10 +96,13 @@ function process_arguments()
     operation=""
     subscriber_id=""
     api_docker_image_id="$DEF_MM_API_IMAGE_LOCATION"
-    app_docker_image_id="$DEF_MM_APP_IMAGE_LOCATION"
+    # app_docker_image_id="$DEF_MM_APP_IMAGE_LOCATION"
     nginx_conf_dir="$NGINX_CONF_DIR"
     nginx_reload_command="$NGINX_RELOAD_COMMAND"
     docker_compose_file="$DEF_DOCKER_COMPOSE_FILE"
+    certs_dir="$DEF_MM_CERTS_DIR"
+    mso_secret=""
+    mso_secret_file="$DEF_MM_CERTS_DIR/mso-auth-secret"
 
     while [[ $1 == --* ]]; do
         opt_name=$1
@@ -90,10 +110,10 @@ function process_arguments()
             shift
             api_docker_image_id="$1"
             shift || bailout_with_usage "missing parameter to $opt_name"
-        elif [ "$opt_name" == "--app-docker-image" ]; then
-            shift
-            app_docker_image_id="$1"
-            shift || bailout_with_usage "missing parameter to $opt_name"
+        # elif [ "$opt_name" == "--app-docker-image" ]; then
+        #     shift
+        #     app_docker_image_id="$1"
+        #     shift || bailout_with_usage "missing parameter to $opt_name"
         elif [ "$opt_name" == "--nginx-conf-dir" ]; then
             shift
             nginx_conf_dir="$1"
@@ -106,6 +126,20 @@ function process_arguments()
             shift
             docker_compose_file="$1"
             shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--certs-dir" ]; then
+            shift
+            certs_dir="$1"
+            shift || bailout_with_usage "missing parameter to $opt_name"
+            [ -d $certs_dir ] || bailout_with_usage "$certs_dir is not a directory"
+        elif [ "$opt_name" == "--auth-secret" ]; then
+            shift
+            mso_secret="$1"
+            shift || bailout_with_usage "missing parameter to $opt_name"
+        elif [ "$opt_name" == "--auth-secret-file" ]; then
+            shift
+            mso_secret_file="$1"
+            shift || bailout_with_usage "missing parameter to $opt_name"
+            [ -r $mso_secret_file ] || bailout "could not access $mso_secret_file"
         else
             bailout_with_usage "Unrecognized option: $opt_name"
         fi
@@ -117,30 +151,32 @@ function process_arguments()
 
     operation=$1
     shift
-    if [ "$operation" == "create" ]; then
+    if [ "$operation" == "pull" ]; then
+        subscriber_id=
+    elif [ "$operation" == "create" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for create operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "delete" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for remove operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "start" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for start operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "stop" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for stop operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "restart" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for restart operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "logs" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for logs operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "trace" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for trace operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "inspect" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for inspect operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "list" ]; then
         if [ $# -gt 0 ]; then
             subscriber_id="$1"
@@ -155,6 +191,8 @@ function process_arguments()
         subscriber_id="$1"
         shift || bailout_with_usage "missing subscriber ID for env operation"
     elif [ "$operation" == "setup-web-proxy" ]; then
+        subscriber_id=
+    elif [ "$operation" == "create-mso-secret" ]; then
         subscriber_id=
     else
         bailout_with_usage "Unrecognized operation: $operation"
@@ -255,7 +293,7 @@ function list_container_addresses_for_subscriber()
     done
 }
 
-list_container_env_for_subscriber()
+function list_container_env_for_subscriber()
 {
     subscriber_id=$1
     mm_mongodb_container_id=$(get_container_name_for_subscriber $subscriber_id mm-mongo)
@@ -348,10 +386,18 @@ function start_subscriber()
     subscriber_id="$1"
     echo "Creating resources for subscriber ${subscriber_id}..."
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
+    if [[ -z "$mso_secret" ]]; then
+      if [[ -r "$mso_secret_file" ]]; then
+        mso_secret=$(cat $mso_secret_file)
+      else
+        bailout "Could not open file $mso_secret_file"
+      fi
+    fi
     (MM_SUBSCRIBER_ID="$subscriber_id" \
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
-       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
+       MM_CERTS_DIR="$certs_dir" \
+       MM_MSO_SECRET="$mso_secret" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label up -d) \
          || bailout "Couldn't start subscriber ${subscriber_id}"
@@ -365,8 +411,9 @@ function delete_subscriber()
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
-       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
+       MM_CERTS_DIR="$certs_dir" \
+       MM_MSO_SECRET="$mso_secret" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label down -v) \
        || bailout "Couldn't delete subscriber ${subscriber_id}"
@@ -380,8 +427,9 @@ function stop_containers_for_subscriber()
     subscriber_label=$(label_for_subscriber_id $subscriber_id)
     (MM_SUBSCRIBER_ID="$subscriber_id" \
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
-       MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
+       MM_CERTS_DIR="$certs_dir" \
+       MM_MSO_SECRET="$mso_secret" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label down) \
        || bailout "Couldn't stop subscriber ${subscriber_id}"
@@ -397,6 +445,8 @@ function restart_containers_for_subscriber()
        MM_API_SOURCE_IMAGE="$api_docker_image_id" \
        MM_APP_SOURCE_IMAGE="$app_docker_image_id" \
        MM_API_ENV_FILE="$docker_env_file" \
+       MM_CERTS_DIR="$certs_dir" \
+       MM_MSO_SECRET="$mso_secret" \
        docker-compose -f "$docker_compose_file" \
                       --project-name $subscriber_label restart) \
        || bailout "Error restarting subscriber ${subscriber_id}"
@@ -410,7 +460,7 @@ function create_nginx_rules_for_subscriber()
 
     subscriber_id="$1"
     mm_api_container_id=$(get_container_name_for_subscriber $subscriber_id mm-api)
-    mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
+    # mm_app_container_id=$(get_container_name_for_subscriber $subscriber_id mm-app)
     mm_api_priv_ip_addr=$(get_ip_address_for_container ${mm_api_container_id})
 
     # mm_app_priv_ip_addr=$(get_ip_address_for_container ${mm_app_container_id})
@@ -421,9 +471,6 @@ function create_nginx_rules_for_subscriber()
 # Forwarding rules for container ${mm_api_container_id}
 location /sub/${subscriber_id}/api/ {
     proxy_pass http://${mm_api_priv_ip_addr}:3030/;
-}
-location /sub/${subscriber_id}/app/ {
-    proxy_pass http://${mm_app_priv_ip_addr}:8080/;
 }
 "
     # echo "Forwarding rule for subscriber $subscriber_id: $rules"
@@ -460,6 +507,21 @@ function setup_web_proxy()
     echo "-------------------------------------------------------------------------------------------"
 }
 
+function create_mso_proxy_file()
+{
+    openssl rand -out $mso_secret_file -hex 512
+    if [[ $? == 0 ]]; then
+        echo "Saved a 512-hex-digit MSO shared secret to $mso_secret_file"
+    else
+        echo "Error: Could not write to $mso_secret_file (use --auth-secret-file to specify a different filename)"
+    fi
+}
+
+function pull_docker_image()
+{
+    docker pull $api_docker_image_id
+}
+
 # NOTE: ThiS FUNCTION ISN'T USED CURRENTLY - "docker-compose down" is used now instead
 function cleanup_subscriber_resources()
 {
@@ -494,16 +556,23 @@ function cleanup_subscriber_resources()
 
 process_arguments "$@"
 
-# echo "Script directory: ${script_dir}"
-# echo "Operation: ${operation}"
-# echo "MM API docker image: ${api_docker_image_id}"
-# echo "MM API docker image: ${app_docker_image_id}"
-# echo "Docker reload command: ${nginx_reload_command}"
-# echo "nginx config directory: ${nginx_conf_dir}"
+if [[ $dump_vars ]]; then
+  echo "Script directory: ${script_dir}"
+  echo "Operation: ${operation}"
+  echo "MM API docker image: ${api_docker_image_id}"
+  echo "MM API docker image: ${app_docker_image_id}"
+  echo "Docker reload command: ${nginx_reload_command}"
+  echo "nginx config directory: ${nginx_conf_dir}"
+  echo "certificate directory: ${certs_dir}"
+  echo "mso secret: ${mso_secret}"
+  echo "mso secret file: ${mso_secret_file}"
+fi
 
 subscriber_env_tmp_file="/tmp/mm-sub-${subscriber_id}.end"
 
-if [ "$operation" == "create" -o "$operation" == "start" ]; then
+if [ "$operation" == "pull"  ]; then
+    pull_docker_image
+elif [ "$operation" == "create" -o "$operation" == "start" ]; then
     start_subscriber $subscriber_id
     create_nginx_rules_for_subscriber $subscriber_id
     issue_nginx_reload
@@ -537,6 +606,8 @@ elif [ "$operation" == "inspect" ]; then
     inspect_mmapi_for_subscriber $subscriber_id
 elif [ "$operation" == "setup-web-proxy" ]; then
     setup_web_proxy
+elif [ "$operation" == "create-mso-secret" ]; then
+    create_mso_proxy_file
 else
-        bailout_with_usage "Unrecognized operation: $operation"
+    bailout_with_usage "Unrecognized operation: $operation"
 fi
