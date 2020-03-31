@@ -42,6 +42,7 @@ function print_usage()
     echo ""
     echo "   operation can be one of:"
     echo ""
+    echo "     pull: Download the mm docker image"
     echo "     create <subscriber-id>: Create and start the docker containers and nginx"
     echo "                             mappings for the given subscriber"
     echo "     delete <subscriber-id>: Remove the docker containers, resources, and nginx"
@@ -150,30 +151,32 @@ function process_arguments()
 
     operation=$1
     shift
-    if [ "$operation" == "create" ]; then
+    if [ "$operation" == "pull" ]; then
+        subscriber_id=
+    elif [ "$operation" == "create" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for create operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "delete" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for remove operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "start" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for start operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "stop" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for stop operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "restart" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for restart operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "logs" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for logs operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "trace" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for trace operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "inspect" ]; then
         subscriber_id="$1"
-        shift || bailout_with_usage "missing subscriber ID for inspect operation"
+        shift || bailout_with_usage "missing subscriber ID for $operation operation"
     elif [ "$operation" == "list" ]; then
         if [ $# -gt 0 ]; then
             subscriber_id="$1"
@@ -511,6 +514,11 @@ function create_mso_proxy_file()
     fi
 }
 
+function pull_docker_image()
+{
+    docker pull $api_docker_image_id
+}
+
 # NOTE: ThiS FUNCTION ISN'T USED CURRENTLY - "docker-compose down" is used now instead
 function cleanup_subscriber_resources()
 {
@@ -559,7 +567,9 @@ fi
 
 subscriber_env_tmp_file="/tmp/mm-sub-${subscriber_id}.end"
 
-if [ "$operation" == "create" -o "$operation" == "start" ]; then
+if [ "$operation" == "pull"  ]; then
+    pull_docker_image
+elif [ "$operation" == "create" -o "$operation" == "start" ]; then
     start_subscriber $subscriber_id
     create_nginx_rules_for_subscriber $subscriber_id
     issue_nginx_reload
