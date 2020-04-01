@@ -16,7 +16,7 @@ services:
   mongodb:
     image: mongo
     mem_limit: 200m
-    # restart: on-failure
+    restart: unless-stopped
     volumes:
       - mongodb:/data/db
     networks:
@@ -29,7 +29,7 @@ services:
     depends_on:
       - mongodb
     mem_limit: 200m
-    # restart: on-failure
+    restart: unless-stopped
     volumes:
       - ${MM_CERTS_DIR}:/usr/src/micronets-manager/certs:ro
     networks:
@@ -58,7 +58,7 @@ services:
 #    depends_on:
 #      - api
 #    mem_limit: 200m
-#    # restart: on-failure
+#    restart: unless-stopped
 #    networks:
 #      - mm-priv-network
 #    environment:
