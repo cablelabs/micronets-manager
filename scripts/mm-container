@@ -338,7 +338,7 @@ function check_for_container_for_subscriber()
     container_list=$($DOCKER_CMD container ls -a -q \
                      --filter label=com.cablelabs.micronets.subscriber-id=$subscriber_id \
                      --filter label=com.cablelabs.micronets.resource-type$container_cond)
-    if [ -z $container_list ]; then
+    if [[ -z "$container_list" ]]; then
         bailout "could not find any ${container_type_str}containers for subscriber: $subscriber_id"
     fi
 }
