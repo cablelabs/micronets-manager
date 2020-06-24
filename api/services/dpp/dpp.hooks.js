@@ -114,16 +114,23 @@ const getMudUri = async(hook, mudUrlFromRegistry) => {
   const {bootstrap, user, device} = data
   const { registryBaseUrl, managerBaseUrl } = hook.app.get('mud')
 
-  logger.debug('\n Manager Base Url: ' + JSON.stringify(managerBaseUrl) + '\t\t for url from registry : ' + JSON.stringify(mudUrlFromRegistry))
-  // Retreive MUD URL from mud manager with curl commands
-  const mudUriResponse = await axios ( {
-    ...apiInit ,
-    method : 'POST' ,
-    url : `${managerBaseUrl}/getMudInfo`,
-    data : Object.assign ( {} , { url : mudUrlFromRegistry } )
-  } )
- logger.debug('\n MUD URI from mud manager: ' + JSON.stringify(mudUriResponse.data))
- return mudUriResponse.data
+  if(!isEmpty(mudUrlFromRegistry) && mudUrlFromRegistry.toString().length > 0) {
+    logger.debug('\n Manager Base Url: ' + JSON.stringify(managerBaseUrl) + '\t\t for url from registry : ' + JSON.stringify(mudUrlFromRegistry))
+    // Retreive MUD URL from mud manager with curl commands
+    const mudUriResponse = await axios ( {
+      ...apiInit ,
+      method : 'POST' ,
+      url : `${managerBaseUrl}/getMudInfo`,
+      data : Object.assign ( {} , { url : mudUrlFromRegistry } )
+    } )
+    logger.debug('\n MUD URI from mud manager: ' + JSON.stringify(mudUriResponse.data))
+    return mudUriResponse.data
+  }
+  else {
+    return Object.assign({
+      mfgName: '', modelName: '', mudUrl: ''
+    })
+  }
 }
 
 const validateDppRequest = async(hook) => {
@@ -199,8 +206,6 @@ const onboardDppDevice = async(hook) => {
   let emitterResult = ''
   //Retrieve mud-uri from mud-registry using vendor and pubkey parameters
   let dppMudUrlFromRegistry = await getMudUriFromRegistry(hook)
-
-
   logger.debug('\n MUD URL Obtained from registry : ' + JSON.stringify(dppMudUrlFromRegistry))
   console.log('\n MUD URL invalid. Does not contains http : ' + JSON.stringify(dppMudUrlFromRegistry.toString().indexOf('http') == -1 ))
   console.log('\n MUD URL invalid. Does not contains https : ' + JSON.stringify(dppMudUrlFromRegistry.toString().indexOf('https') == -1 ))
@@ -208,15 +213,12 @@ const onboardDppDevice = async(hook) => {
     console.log('\n Error obtaining mud url : ' + JSON.stringify(dppMudUrlFromRegistry) + '\t Defaulting to no mud url')
     dppMudUrlFromRegistry = ''
   }
-
   // Retrieve mud-uri from mud manager using mud-uri from mud-registry
   // TODO : Add check fpr empty MUD url from registry
-  let { mfgName, modelName, mudUrl } = await getMudUri(hook,dppMudUrlFromRegistry)
-  logger.debug('\n Manufacturer name for device :  ' +  JSON.stringify(mfgName))
-  logger.debug('\n Model name for device :  ' +  JSON.stringify(modelName))
-  logger.debug('\n MUD-URL for device :  ' +  JSON.stringify(mudUrl))
-
-
+    let { mfgName, modelName, mudUrl } = await getMudUri(hook,dppMudUrlFromRegistry)
+    logger.debug('\n Manufacturer name for device :  ' +  JSON.stringify(mfgName))
+    logger.debug('\n Model name for device :  ' +  JSON.stringify(modelName))
+    logger.debug('\n MUD-URL for device :  ' +  JSON.stringify(mudUrl))
   // let malformedMudUrlIndex  =  dppMudUrl.indexOf('undefined')
   // logger.debug('\n Malformed MudUrl Index : ' + JSON.stringify(malformedMudUrlIndex))
   //
