@@ -1,0 +1,24 @@
+{
+	"id": "146e52f0-fd32-4814-8e58-8a3c0f4d5eb7",
+	"values": [
+		{
+			"key": "micronets-manager-linode-ip",
+			"value": "mm-api.micronets.in/sub/{{subscriberId}}/api",
+			"enabled": true
+		},
+		{
+			"key": "mso-portal-linode-ip",
+			"value": "dev.mso-portal-api.micronets.in",
+			"enabled": true
+		},
+		{
+			"key": "subscriberId",
+			"value": "nccoe",
+			"enabled": true
+		}
+	],
+	"name": "My Workspace Globals",
+	"_postman_variable_scope": "globals",
+	"_postman_exported_at": "2019-11-07T19:17:56.987Z",
+	"_postman_exported_using": "Postman/7.10.0"
+}

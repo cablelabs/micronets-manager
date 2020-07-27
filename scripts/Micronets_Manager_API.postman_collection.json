@@ -1,0 +1,309 @@
+{
+	"info": {
+		"_postman_id": "c1dd87ab-e4ec-4576-9610-6f273ae29902",
+		"name": "NCCOE Micronets Manager Linode",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "POST MM Gateway Config",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"version\": \"1.0\",\n    \"gatewayId\": \"{{subscriberId}}-gw\",\n    \"gatewayModel\": \"proto-gateway\",\n    \"gatewayVersion\": {\"major\":1, \"minor\":0, \"micro\":0},\n    \"configRevision\": 1,\n    \"vlanRanges\": [\n        {\"min\":1000, \"max\":4095}\n    ],\n    \"micronetInterfaces\": [\n        {\n            \"name\": \"wlp2s0\",\n            \"macAddress\": \"2c:d0:5a:6e:ca:3c\",\n            \"medium\": \"wifi\",\n            \"ssid\": \"{{subscriberId}}-gw\",\n            \"dpp\": {\n                \"supportedAkms\": [\"psk\"]\n            },\n            \"ipv4SubnetRanges\": [\n                {\n                    \"id\": \"range001\",\n                    \"subnetRange\": {\"octetA\": 10,\n                                    \"octetB\": 135,\n                                    \"octetC\": {\"min\":1, \"max\":5}\n                    },\n                    \"subnetGateway\": {\"octetD\": 1},\n                    \"deviceRange\": {\"octetD\": {\"min\":2, \"max\":254}}\n                }\n            ]\n        },\n        {\n            \"name\": \"enp0s31f6\",\n            \"macAddress\": \"00:30:18:0a:ce:3d\",\n            \"medium\": \"ethernet\",\n            \"ipv4Subnets\": [\n                {\n                    \"id\": \"range001\",\n                    \"subnetRange\": {\"octetA\": 10,\n                                    \"octetB\": 135,\n                                    \"octetC\": 250\n                    },\n                    \"subnetGateway\": {\"octetD\": 1},\n                    \"deviceRange\": {\"octetD\": {\"min\":2, \"max\":254}}\n                }\n            ]\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/micronets/odl",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"micronets",
+						"odl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET MM Gateway Config",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gatewayId\": \"micronets-gw-0001\",\n    \"hwModelId\": \"123456-789\",\n    \"ovsVersion\": \"2.9.2\",\n    \"ovsHost\": \"10.36.32.136\",\n    \"ovsPort\": \"8181\",\n    \"switchConfig\": {\n        \"bridges\": [\n            {\n                \"name\": \"brmn001\",\n                \"macAddress\": \"80:ee:73:dc:64:1c\",\n                \"trunkIp\": \"10.36.32.136/24\",\n                \"trunkPort\": \"2\",\n                \"ports\": [\n                    {\n                        \"port\": 3,\n                        \"interface\": \"enp1s0\",\n                        \"hwtype\": \"wired\",\n                        \"subnet\": \"192.168.250.0/24\",\n                        \"macAddress\": \"80:ee:73:dc:64:1d\",\n                        \"vlanId\": \"0\"\n                    },\n                    {\n                        \"port\": 5,\n                        \"interface\": \"wlp2s0\",\n                        \"hwtype\": \"wifi\",\n                        \"subnet\": \"192.168.252.0/24\",\n                        \"macAddress\": \"20:16:d8:2b:4b:41\",\n                        \"vlanId\": \"0\"\n                    }\n                ]\n            }\n        ]\n    }\n}"
+				},
+				"url": {
+					"raw": "http://{{micronets-manager-linode-ip}}/mm/v1/micronets/odl",
+					"protocol": "http",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"micronets",
+						"odl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET MM Registry",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyIsInR5cGUiOiJhY2Nlc3MifQ.eyJjbGllbnRJRCI6Ind3dy5zdGFuZm9yZC5vcmciLCJkZXZpY2VJRCI6ImQ0ZDBkNTRkMTJkZDNkNDU0ZHRkdDR5ODI5NmNzOTE0MjdxNDFxNDY0OWM5MzRiYTQ5NTk5MWI2ODUyYjUzMSIsInZlbmRvciI6IlN0YW5mb3JkIiwidHlwZSI6Ik1lZGljYWwiLCJtb2RlbCI6Ik1lZGljYWwiLCJzZXJpYWwiOiJNZWRpY2FsIiwibWFjQWRkcmVzcyI6IjUyOmIwOjJhOjQxOjY5OjEwIiwiY2xhc3MiOiJNZWRpY2FsIiwiZGV2aWNlTmFtZSI6Ik1lZGljYWwgZGV2aWNlIiwiZGV2aWNlQ29ubmVjdGlvbiI6IndpcmVkIiwiaWF0IjoxNTQxNDQ3MjU1LCJleHAiOjE1NDE1MzM2NTUsImF1ZCI6Im1pY3JvbmV0cy5jb20iLCJpc3MiOiJodHRwczovL21zby1wb3J0YWwubWljcm9uZXRzLmNvbSIsInN1YiI6IkluaXRpYXRlIHJlZ2lzdHJhdGlvbiB0byBvbi1ib2FyZCBkZXZpY2UiLCJqdGkiOiI3NzZkODkwZi1mZTljLTQwOGUtYTNjNy03MDMzOTBkZjczNGMifQ.ZFZ0s6PudxXsViFInd57lBro9QZqGMG-amtzcg5rIKo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/micronets/registry",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"micronets",
+						"registry"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Micronets",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/subscriber/{{subscriberId}}",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"subscriber",
+						"{{subscriberId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Gateway Subnets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/dhcp/subnets",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"dhcp",
+						"subnets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Gateway Devices in a subnet",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/dhcp/subnets/subnetId/devices",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"dhcp",
+						"subnets",
+						"subnetId",
+						"devices"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET MM Users",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/micronets/users",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"micronets",
+						"users"
+					]
+				},
+				"description": "Contains device info of on-boarded devices"
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE All Micronets",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/subscriber/{{subscriberId}}/micronets",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"subscriber",
+						"{{subscriberId}}",
+						"micronets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE Single Micronet",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/subscriber/{{subscriberId}}/micronets/2459319081",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"subscriber",
+						"{{subscriberId}}",
+						"micronets",
+						"2459319081"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE Device from Micronet",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/subscriber/{{subscriberId}}/micronets/2459319081/devices/MDkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDIgACDIBBiMf4W",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"subscriber",
+						"{{subscriberId}}",
+						"micronets",
+						"2459319081",
+						"devices",
+						"MDkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDIgACDIBBiMf4W"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE Gateway Subnets",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://{{micronets-manager-linode-ip}}/mm/v1/dhcp/subnets",
+					"protocol": "https",
+					"host": [
+						"{{micronets-manager-linode-ip}}"
+					],
+					"path": [
+						"mm",
+						"v1",
+						"dhcp",
+						"subnets"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
